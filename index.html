@@ -7,50 +7,385 @@
 <link rel="manifest" href="manifest.webmanifest" />
 <title>KSR DTP Question Paper Maker</title>
 <style>
-:root{--blue:#0b3b7a;--ink:#172033;--muted:#687386;--line:#d9e0ea;--bg:#eef3f9}
-*{box-sizing:border-box}body{margin:0;font-family:Arial,"Noto Sans Telugu","Nirmala UI",sans-serif;background:var(--bg);color:var(--ink)}
-.appbar{background:linear-gradient(135deg,#082e63,#0b4a9b);color:#fff;padding:16px 18px;box-shadow:0 3px 14px #001a3b33}.appbar h1{font-size:19px;margin:0}.appbar small{opacity:.86}
-.wrap{max-width:1180px;margin:18px auto;padding:0 14px}.panel{background:#fff;border:1px solid #dfe6ef;border-radius:16px;padding:16px;box-shadow:0 7px 25px #17375e12;margin-bottom:14px}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.field label{font-size:12px;font-weight:700;color:#556174;display:block;margin-bottom:5px}.field input,.field select,textarea{width:100%;border:1px solid #cfd8e5;border-radius:10px;padding:10px 11px;font-size:14px;background:#fff}textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.btn{border:0;border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer}.primary{background:var(--blue);color:#fff}.secondary{background:#eaf1fb;color:#123c72}.danger{background:#fff0f0;color:#a52a2a}.stats{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.chip{background:#f2f6fb;border:1px solid #dfe7f2;padding:7px 10px;border-radius:999px;font-size:12px}.hint{font-size:12px;color:var(--muted);line-height:1.5;margin-top:8px}.warn{display:none;margin-top:9px;padding:9px 11px;border:1px solid #efdba3;border-radius:10px;background:#fff8e7;color:#6c5318;font-size:12px}
-.preview-title{display:flex;justify-content:space-between;align-items:center;gap:8px}.paper-shell{overflow:auto;background:#d8dee8;padding:16px;border-radius:12px}.paper{width:210mm;min-height:297mm;margin:auto;background:#fff;box-shadow:0 5px 18px #0002;padding:10mm 8mm;position:relative}.first-header{border:1px solid #222;padding:4mm 5mm;margin-bottom:7mm}.institute-title{font-size:19px;font-weight:800;text-align:center;line-height:1.25;margin-bottom:3mm}.exam-meta{display:grid;grid-template-columns:1fr 1fr;gap:2mm 8mm;font-size:11px;line-height:1.45}.columns{column-count:2;column-gap:5mm;column-rule:1px solid #777;font-size:12px;line-height:1.38;min-height:252mm}.section-head{column-span:all;font-weight:800;border-bottom:1px solid #999;padding:0 0 1.5mm;margin:1mm 0 2.5mm}.qstart{font-weight:700;margin:0 0 1mm}.stem{margin:0 0 1mm}.opt{margin:0 0 .7mm;padding-left:3mm}.ans{float:right;font-weight:700;letter-spacing:1px;margin-left:2mm;white-space:nowrap}.qgap{height:1.2mm}.footer-note{text-align:center;font-size:8.5px;color:#777;margin-top:3mm}
-@media(max-width:850px){.grid{grid-template-columns:1fr 1fr}.paper-shell{padding:8px}.appbar{position:static}}@media(max-width:520px){.grid{grid-template-columns:1fr}.wrap{padding:0 8px}.panel{border-radius:12px;padding:12px}}
-@media print{body{background:#fff}.appbar,.controls,.preview-title{display:none!important}.wrap,.panel,.paper-shell{margin:0!important;padding:0!important;max-width:none!important;background:#fff!important;border:0!important;box-shadow:none!important}.paper{box-shadow:none!important;margin:0!important;width:auto!important;min-height:auto!important;padding:0!important}.footer-note{display:none}@page{size:A4 portrait;margin:10mm 8mm 10mm}}
+:root{
+  --blue:#0b3b7a;--blue2:#0e4f9d;--ink:#151a22;--muted:#687386;
+  --line:#d7dee8;--panel:#fff;--bg:#edf2f8
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,"Noto Sans Telugu","Nirmala UI",sans-serif;background:var(--bg);color:var(--ink)}
+.appbar{background:linear-gradient(135deg,#082e63,#0b4a9b);color:#fff;padding:15px 18px;box-shadow:0 3px 14px #001a3b33}
+.appbar h1{font-size:19px;margin:0}.appbar small{opacity:.86}
+.wrap{max-width:1180px;margin:16px auto;padding:0 12px}
+.panel{background:var(--panel);border:1px solid #dfe6ef;border-radius:15px;padding:15px;box-shadow:0 7px 24px #17375e10;margin-bottom:14px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.field label{font-size:12px;font-weight:700;color:#556174;display:block;margin-bottom:5px}
+.field input,.field select,textarea{width:100%;border:1px solid #ccd6e3;border-radius:10px;padding:10px 11px;font-size:14px;background:#fff;color:#172033}
+textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.btn{border:0;border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer}
+.primary{background:var(--blue);color:#fff}.secondary{background:#eaf1fb;color:#123c72}.danger{background:#fff0f0;color:#a52a2a}
+.stats{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.chip{background:#f2f6fb;border:1px solid #dfe7f2;padding:7px 10px;border-radius:999px;font-size:12px}
+.hint{font-size:12px;color:var(--muted);line-height:1.5;margin-top:8px}
+.preview-title{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.paper-shell{overflow:auto;background:#d8dee8;padding:16px;border-radius:12px}
+.paper{
+  width:210mm;min-height:297mm;margin:auto;background:#fff;box-shadow:0 5px 18px #0002;
+  padding:10mm 8mm 10mm;position:relative
+}
+.first-header{
+  border:1px solid #333;padding:4mm 5mm 3.5mm;margin-bottom:7mm
+}
+.institute-title{
+  font-size:19px;font-weight:800;text-align:center;line-height:1.25;margin-bottom:3mm
+}
+.exam-meta{display:grid;grid-template-columns:1fr 1fr;gap:2mm 8mm;font-size:11px;line-height:1.45}
+.exam-meta b{font-weight:700}
+.columns{
+  column-count:2;column-gap:5mm;column-rule:1px solid #777;
+  font-size:12px;line-height:1.38;min-height:250mm;
+}
+.section-head{
+  column-span:all;font-size:12px;font-weight:800;border-bottom:1px solid #999;
+  padding:0 0 1.5mm;margin:1mm 0 2.5mm
+}
+.qstart{font-weight:700;margin:0 0 1.0mm}
+.stem{margin:0 0 1.0mm}
+.opt{margin:0 0 .7mm;padding-left:3mm}
+.qgap{height:1.2mm}
+.ans{float:right;font-weight:700;letter-spacing:1px;margin-left:2mm;white-space:nowrap}
+
+.warn{background:#fff8e7;border:1px solid #f2dfad;color:#6a5017;border-radius:10px;padding:9px 11px;font-size:12px;margin-top:10px;display:none}
+@media(max-width:850px){.grid{grid-template-columns:1fr 1fr}.paper-shell{padding:8px}.appbar{position:static}}
+@media(max-width:520px){.grid{grid-template-columns:1fr}.wrap{padding:0 8px}.panel{border-radius:12px;padding:12px}}
+@media print{
+  @page{size:A4 portrait;margin:0}
+  html,body{margin:0!important;padding:0!important;background:#fff}
+  body{background:#fff}
+  .appbar,.controls,.preview-title{display:none!important}
+  .wrap,.panel,.paper-shell{margin:0!important;padding:0!important;max-width:none!important;background:#fff!important;border:0!important;box-shadow:none!important}
+  .paper{
+    box-shadow:none!important;
+    margin:0!important;
+    width:210mm!important;
+    min-height:297mm!important;
+    padding:12mm 8mm 12mm!important;
+  }
+  .first-header{margin-bottom:7mm}
+  .columns{min-height:auto}
+  
+}
 </style>
-</head><body>
-<header class="appbar"><h1>KSR DTP Question Paper Maker</h1><small>Premium A4 MCQ • Continuous numbering • Two-column flow</small></header>
+</head>
+<body>
+<header class="appbar">
+  <h1>KSR DTP Question Paper Maker</h1>
+  <small>Premium A4 MCQ • continuous numbering • two-column print flow</small>
+</header>
+
 <main class="wrap">
 <section class="panel controls">
-<div class="grid">
-<div class="field"><label>Institute Name</label><input id="institute" placeholder="Institute / School Name"></div>
-<div class="field"><label>Exam Name</label><input id="exam" value="FINAL GRAND TEST"></div>
-<div class="field"><label>Date</label><input id="date" placeholder="DD-MM-YYYY"></div>
-<div class="field"><label>Max Marks</label><input id="marksTotal" type="number" min="0" placeholder="160"></div>
-</div>
-<div class="grid" style="margin-top:10px">
-<div class="field"><label>Start Question No.</label><input id="startNo" type="number" min="1" value="1"></div>
-<div class="field"><label>Text Size</label><select id="fontSize"><option value="12">Medium</option><option value="11.2">Compact</option><option value="12.8">Large</option></select></div>
-<div class="field"><label>Answer Bracket Type</label><select id="bracket"><option value="[   ]">[   ]</option><option value="(   )">(   )</option><option value="{   }">{   }</option><option value="□">□</option><option value="○">○</option><option value="">Hide</option></select></div>
-<div class="field"><label>Option Indent</label><select id="indent"><option value="3">Normal</option><option value="1.5">Compact</option><option value="5">Wide</option></select></div>
-</div>
-<div class="grid" style="margin-top:10px">
-<div class="field"><label>Line Spacing</label><select id="lineHeight"><option value="1.38">Normal</option><option value="1.30">Compact</option><option value="1.48">Relaxed</option></select></div>
-<div class="field"><label>Question Gap</label><select id="qGap"><option value="1.2">Normal</option><option value="0.6">Compact</option><option value="2">Wide</option></select></div>
-<div class="field"><label>Correct Marks in Student Paper</label><select id="keepMarks"><option value="0">Remove ● / * / ✓</option><option value="1">Keep</option></select></div>
-<div class="field"><label>Subject Headings</label><select id="sectionMode"><option value="1">Show if detected</option><option value="0">Hide</option></select></div>
-</div>
-<div style="margin-top:12px" class="field"><label>Paste Questions — common numbering/options formats accepted</label><textarea id="raw" placeholder="ప్రశ్న 1\nQuestion text...\nA) Option\nB. Option ●\nC: Option\nD - Option"></textarea></div>
-<div class="toolbar"><button class="btn primary" id="build">Generate Preview</button><button class="btn secondary" id="print">Print / Save PDF</button><button class="btn secondary" id="key">Answer Key</button><button class="btn secondary" id="sample">Load Sample</button><button class="btn danger" id="clear">Clear</button></div>
-<div class="stats"><span class="chip" id="qstat">Questions: 0</span><span class="chip" id="rangeStat">Numbering: —</span><span class="chip" id="astat">Detected answers: 0</span><span class="chip" id="issueStat">Issues: 0</span></div><div id="warn" class="warn"></div>
-<div class="hint">Question numbers are regenerated continuously, so pasted numbering can be mixed. Options accepted: A., A), (A), [A], A:, A-, or A followed by a space. Correct answers: ● • * ✓ ✔ ★.</div>
+  <div class="grid">
+    <div class="field"><label>Institute Name</label><input id="institute" placeholder="Institute / School Name"></div>
+    <div class="field"><label>Exam Name</label><input id="exam" value="FINAL GRAND TEST"></div>
+    <div class="field"><label>Date</label><input id="date" placeholder="DD-MM-YYYY"></div>
+    <div class="field"><label>Max Marks</label><input id="marksTotal" type="number" min="0" placeholder="160"></div>
+  </div>
+
+  <div class="grid" style="margin-top:10px">
+    <div class="field"><label>Start Question No.</label><input id="startNo" type="number" min="1" value="1"></div>
+    <div class="field"><label>Text Size</label>
+      <select id="fontSize"><option value="12">Medium</option><option value="11.2">Compact</option><option value="12.8">Large</option></select>
+    </div>
+    <div class="field"><label>Answer Bracket Type</label>
+      <select id="bracket">
+        <option value="[   ]">[   ]</option>
+        <option value="(   )">(   )</option>
+        <option value="{   }">{   }</option>
+        <option value="□">□</option>
+        <option value="○">○</option>
+        <option value="">Hide</option>
+      </select>
+    </div>
+    <div class="field"><label>Option Indent</label>
+      <select id="indent"><option value="3">Normal</option><option value="1.5">Compact</option><option value="5">Wide</option></select>
+    </div>
+  </div>
+
+  <div class="grid" style="margin-top:10px">
+    <div class="field"><label>Line Spacing</label>
+      <select id="lineHeight"><option value="1.38">Normal</option><option value="1.30">Compact</option><option value="1.48">Relaxed</option></select>
+    </div>
+    <div class="field"><label>Question Gap</label>
+      <select id="qGap"><option value="1.2">Normal</option><option value=".6">Compact</option><option value="2">Wide</option></select>
+    </div>
+    <div class="field"><label>Correct Marks in Student Paper</label>
+      <select id="keepMarks"><option value="0">Remove ● / * / ✓</option><option value="1">Keep</option></select>
+    </div>
+    <div class="field"><label>Subject Headings</label>
+      <select id="sectionMode"><option value="1">Show if detected</option><option value="0">Hide</option></select>
+    </div>
+  </div>
+
+  <div style="margin-top:12px" class="field">
+    <label>Paste Questions — numbering/options can be in different common formats</label>
+    <textarea id="raw" placeholder="ప్రశ్న 1&#10;Question text...&#10;A) Option&#10;B. Option ●&#10;C: Option&#10;D - Option&#10;&#10;2. Next question..."></textarea>
+  </div>
+
+  <div class="toolbar">
+    <button class="btn primary" id="build">Generate Preview</button>
+    <button class="btn secondary" id="print">Print / Save PDF</button>
+    <button class="btn secondary" id="key">Answer Key</button>
+    <button class="btn secondary" id="sample">Load Sample</button>
+    <button class="btn danger" id="clear">Clear</button>
+  </div>
+
+  <div class="stats">
+    <span class="chip" id="qstat">Questions: 0</span>
+    <span class="chip" id="rangeStat">Numbering: —</span>
+    <span class="chip" id="astat">Detected answers: 0</span>
+    <span class="chip" id="issueStat">Issues: 0</span>
+  </div>
+  <div id="warn" class="warn"></div>
+
+  <div class="hint">
+    Continuous numbering is generated by the Maker, so pasted question numbers do not have to be correct.
+    Accepted option examples include A., A), (A), A:, A-, and A followed by a space. Correct answers may be marked with ●, •, *, ✓, ✔ or ★.
+  </div>
 </section>
-<section class="panel"><div class="preview-title"><div><b>Print Preview</b><div class="hint">First-page header only • safe top margin on every printed page</div></div><button class="btn primary controls" onclick="printPaper()">Print / PDF</button></div><div class="paper-shell"><div id="paper" class="paper"></div></div></section>
+
+<section class="panel">
+  <div class="preview-title">
+    <div><b>Print Preview</b><div class="hint">First-page exam header only • clean A4 print layout</div></div>
+    <button class="btn primary controls" onclick="printPaper()">Print / PDF</button>
+  </div>
+  <div class="paper-shell"><div id="paper" class="paper"></div></div>
+</section>
 </main>
+
 <script>
-const $=id=>document.getElementById(id);const ANSWER_MARK=/[●•✓✔★*]+/g;const subjectRe=/^(psychology|telugu|english|method|science|social|math|maths|mathematics|trimethod|tri method|telugu method|english method|maths method|science method|social method)$/i;const qRe=/^\s*(?:(?:ప్రశ్న|question|ques|q)\s*[-:#.]?\s*)?(\d{1,4})\s*(?:[\.\):\-]\s*)?(.*)$/i;const optRe=/^\s*[\(\[]?([A-Ha-h])[\)\]]?\s*(?:[\.\):\-]\s*|\s+)(.*)$/;
-function isLikelyQuestionStart(s){return /^(ప్రశ్న|question|ques|q)\s*[-:#.]?\s*\d/i.test(s)||/^\d{1,4}\s*[\.\):\-]\s*/.test(s)}function isSection(s){const x=s.replace(/[*_#]/g,'').trim();return x.length<40&&subjectRe.test(x)}
-function parse(raw){const lines=raw.replace(/\r/g,'').split('\n');let qs=[],cur=null,section='';for(let original of lines){let s=original.trim();if(!s)continue;if(isSection(s)){section=s.replace(/[*_#]/g,'').trim();continue}let qm=s.match(qRe);if(qm&&isLikelyQuestionStart(s)){cur={sourceNo:qm[1],text:(qm[2]||'').trim(),section,body:[],options:[],answer:''};qs.push(cur);continue}if(!cur)continue;let om=s.match(optRe);if(om){let txt=(om[2]||'').trim();ANSWER_MARK.lastIndex=0;if(ANSWER_MARK.test(txt))cur.answer=om[1].toUpperCase();ANSWER_MARK.lastIndex=0;cur.options.push({letter:om[1].toUpperCase(),text:txt})}else cur.body.push(s)}qs.forEach(q=>{if(!q.text&&q.body.length)q.text=q.body.shift()});return qs}
-function clean(s){return $('keepMarks').value==='1'?(s||''):(s||'').replace(ANSWER_MARK,'').trim()}function esc(s){return(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}function bracketHtml(){const b=$('bracket').value;return b?`<span class="ans">${esc(b).replace(/ /g,'&nbsp;')}</span>`:''}
-function analyze(qs){let issues=[];qs.forEach((q,i)=>{if(!q.text)issues.push(`Q${i+1}: question text missing`);if(q.options.length<2)issues.push(`Q${i+1}: options not fully detected`);if(!q.answer)issues.push(`Q${i+1}: correct answer not detected`)});return issues}
-function build(){const qs=parse($('raw').value),start=Math.max(1,parseInt($('startNo').value||'1',10)),end=qs.length?start+qs.length-1:0,issues=analyze(qs);$('qstat').textContent='Questions: '+qs.length;$('rangeStat').textContent=qs.length?`Numbering: ${start}–${end}`:'Numbering: —';$('astat').textContent='Detected answers: '+qs.filter(q=>q.answer).length;$('issueStat').textContent='Issues: '+issues.length;$('warn').style.display=issues.length?'block':'none';$('warn').textContent=issues.length?(issues.slice(0,6).join(' • ')+(issues.length>6?` • +${issues.length-6} more`:'')):'';const paper=$('paper');paper.innerHTML='';const hdr=document.createElement('div');hdr.className='first-header';hdr.innerHTML=`<div class="institute-title">${esc($('institute').value||'INSTITUTE NAME')}</div><div class="exam-meta"><div><b>Exam:</b> ${esc($('exam').value||'FINAL GRAND TEST')}</div><div style="text-align:right"><b>Date:</b> ${esc($('date').value||'__________')}</div><div><b>Max Marks:</b> ${esc($('marksTotal').value||'__________')}</div><div style="text-align:right"><b>Questions:</b> ${qs.length||'—'}</div></div>`;paper.appendChild(hdr);const cols=document.createElement('div');cols.className='columns';cols.style.fontSize=$('fontSize').value+'px';cols.style.lineHeight=$('lineHeight').value;paper.appendChild(cols);let lastSection='';qs.forEach((q,idx)=>{if($('sectionMode').value==='1'&&q.section&&q.section!==lastSection){const sh=document.createElement('div');sh.className='section-head';sh.textContent=q.section;cols.appendChild(sh);lastSection=q.section}const first=document.createElement('div');first.className='qstart';first.innerHTML=`${start+idx}. ${esc(clean(q.text))}`;cols.appendChild(first);let stem=[first];q.body.forEach(t=>{const d=document.createElement('div');d.className='stem';d.textContent=clean(t);cols.appendChild(d);stem.push(d)});if(stem.length)stem[stem.length-1].insertAdjacentHTML('beforeend',bracketHtml());q.options.forEach(o=>{const d=document.createElement('div');d.className='opt';d.style.paddingLeft=$('indent').value+'mm';d.textContent=o.letter+'. '+clean(o.text);cols.appendChild(d)});const sp=document.createElement('div');sp.className='qgap';sp.style.height=$('qGap').value+'mm';cols.appendChild(sp)});const f=document.createElement('div');f.className='footer-note';f.textContent='KSR DTP Question Paper Maker';paper.appendChild(f);saveDraft()}
-function saveDraft(){localStorage.setItem('ksr_dtp_raw',$('raw').value);['institute','exam','date','marksTotal','startNo','fontSize','bracket','indent','lineHeight','qGap','keepMarks','sectionMode'].forEach(id=>localStorage.setItem('ksr_'+id,$(id).value))}function answerKey(){const qs=parse($('raw').value),start=Math.max(1,parseInt($('startNo').value||'1',10));let txt=qs.map((q,i)=>`${start+i}. ${q.answer||'—'}`).join('\n');let w=window.open('','_blank');w.document.write(`<pre style="font:16px Arial;line-height:1.8;padding:24px"><b>ANSWER KEY</b>\n\n${esc(txt)}\n\nMissing / undetected: ${qs.filter(q=>!q.answer).length}</pre>`);w.document.close()}function printPaper(){build();setTimeout(()=>window.print(),120)}
-$('build').onclick=build;$('print').onclick=printPaper;$('key').onclick=answerKey;$('clear').onclick=()=>{if(confirm('Clear all pasted questions?')){$('raw').value='';build()}};$('sample').onclick=()=>{$('raw').value=`Psychology\nప్రశ్న 25\nఅభ్యసన లాక్షణిక వక్రం (Learning Curve) కి సంబంధించి క్రింది వాక్యాలను పరిశీలించండి:\nI. ప్రారంభ స్ఫూర్తి దశలో అభ్యసనం వేగంగా జరుగుతుంది.\nII. చాంచల్య దశలో ప్రగతి రేటు నెమ్మదిస్తుంది.\nపై వాటిలో సరియైనవి ఏవి?\nA) I మరియు II సరియైనవి ●\nB. I మాత్రమే\nC: II మాత్రమే\nD - ఏదీ కాదు\n\nQuestion 99\nChoose the correct article: ___ European student met ___ honest politician.\nA an\nB a, an ★\nC the\nD no article`;build()};window.addEventListener('load',()=>{if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});$('raw').value=localStorage.getItem('ksr_dtp_raw')||'';['institute','exam','date','marksTotal','startNo','fontSize','bracket','indent','lineHeight','qGap','keepMarks','sectionMode'].forEach(id=>{let v=localStorage.getItem('ksr_'+id);if(v!==null)$(id).value=v});build()});
-</script></body></html>
+const $=id=>document.getElementById(id);
+const ANSWER_MARK=/[●•✓✔★*]+/g;
+const subjectRe=/^(psychology|telugu|english|method|science|social|math|maths|mathematics|trimethod|tri method|telugu method|english method|maths method|science method|social method)$/i;
+
+// Flexible question starts: 1., 1), 1:, Q1, Question 1, ప్రశ్న 1, etc.
+const qRe=/^\s*(?:(?:ప్రశ్న|question|ques|q)\s*[-:#.]?\s*)?(\d{1,4})\s*(?:[\.\):\-]\s*)?(.*)$/i;
+// Flexible options: A., A), (A), [A], A:, A-, or simply A + whitespace
+const optRe=/^\s*[\(\[]?([A-Ha-h])[\)\]]?\s*(?:[\.\):\-]\s*|\s+)(.*)$/;
+
+function isLikelyQuestionStart(s){
+  if(/^(ప్రశ్న|question|ques|q)\s*[-:#.]?\s*\d/i.test(s)) return true;
+  if(/^\d{1,4}\s*[\.\):\-]\s*/.test(s)) return true;
+  return false;
+}
+function isSection(s){
+  const cleaned=s.replace(/[*_#]/g,'').trim();
+  return cleaned.length<40 && subjectRe.test(cleaned);
+}
+function parse(raw){
+  const lines=raw.replace(/\r/g,'').split('\n');
+  let qs=[], cur=null, section='';
+  for(let original of lines){
+    let s=original.trim();
+    if(!s) continue;
+
+    if(isSection(s)){ section=s.replace(/[*_#]/g,'').trim(); continue; }
+
+    let qm=s.match(qRe);
+    if(qm && isLikelyQuestionStart(s)){
+      cur={sourceNo:qm[1], text:(qm[2]||'').trim(), section, body:[], options:[], answer:''};
+      qs.push(cur); continue;
+    }
+    if(!cur) continue;
+
+    let om=s.match(optRe);
+    if(om){
+      let txt=(om[2]||'').trim();
+      ANSWER_MARK.lastIndex=0;
+      if(ANSWER_MARK.test(txt)) cur.answer=om[1].toUpperCase();
+      ANSWER_MARK.lastIndex=0;
+      cur.options.push({letter:om[1].toUpperCase(),text:txt});
+    } else {
+      cur.body.push(s);
+    }
+  }
+
+  // Important: if source had "ప్రశ్న 1" on one line and actual question on next line,
+  // merge that next line into the same visible first line.
+  qs.forEach(q=>{
+    if(!q.text && q.body.length){
+      q.text=q.body.shift();
+    }
+  });
+  return qs;
+}
+
+function clean(s){
+  return $('keepMarks').value==='1' ? (s||'') : (s||'').replace(ANSWER_MARK,'').trim();
+}
+function esc(s){
+  return (s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+function bracketHtml(){
+  const b=$('bracket').value;
+  return b ? `<span class="ans">${esc(b).replace(/ /g,'&nbsp;')}</span>` : '';
+}
+function addBracketToLastStem(stemNodes){
+  if(!stemNodes.length) return;
+  stemNodes[stemNodes.length-1].insertAdjacentHTML('beforeend', bracketHtml());
+}
+function analyze(qs){
+  let issues=[];
+  qs.forEach((q,i)=>{
+    if(!q.text) issues.push(`Q${i+1}: question text missing`);
+    if(q.options.length<2) issues.push(`Q${i+1}: options not fully detected`);
+    if(!q.answer) issues.push(`Q${i+1}: correct answer not detected`);
+  });
+  return issues;
+}
+
+function build(){
+  const qs=parse($('raw').value);
+  const start=Math.max(1,parseInt($('startNo').value||'1',10));
+  const end=qs.length ? start+qs.length-1 : 0;
+  const issues=analyze(qs);
+
+  $('qstat').textContent='Questions: '+qs.length;
+  $('rangeStat').textContent=qs.length ? `Numbering: ${start}–${end}` : 'Numbering: —';
+  $('astat').textContent='Detected answers: '+qs.filter(q=>q.answer).length;
+  $('issueStat').textContent='Issues: '+issues.length;
+  $('warn').style.display=issues.length?'block':'none';
+  $('warn').textContent=issues.length ? (issues.slice(0,6).join(' • ')+(issues.length>6?` • +${issues.length-6} more`:"")) : '';
+
+  const paper=$('paper'); paper.innerHTML='';
+
+  const hdr=document.createElement('div');
+  hdr.className='first-header';
+  hdr.innerHTML=`
+    <div class="institute-title">${esc($('institute').value||'INSTITUTE NAME')}</div>
+    <div class="exam-meta">
+      <div><b>Exam:</b> ${esc($('exam').value||'FINAL GRAND TEST')}</div>
+      <div style="text-align:right"><b>Date:</b> ${esc($('date').value||'__________')}</div>
+      <div><b>Max Marks:</b> ${esc($('marksTotal').value||'__________')}</div>
+      <div style="text-align:right"><b>Questions:</b> ${qs.length||'—'}</div>
+    </div>`;
+  paper.appendChild(hdr);
+
+  const cols=document.createElement('div');
+  cols.className='columns';
+  cols.style.fontSize=$('fontSize').value+'px';
+  cols.style.lineHeight=$('lineHeight').value;
+  paper.appendChild(cols);
+
+  let lastSection='';
+  qs.forEach((q,idx)=>{
+    if($('sectionMode').value==='1' && q.section && q.section!==lastSection){
+      const sh=document.createElement('div');
+      sh.className='section-head';
+      sh.textContent=q.section;
+      cols.appendChild(sh);
+      lastSection=q.section;
+    }
+
+    const number=start+idx;
+    let stemNodes=[];
+
+    const first=document.createElement('div');
+    first.className='qstart';
+    first.innerHTML=`${number}. ${esc(clean(q.text))}`;
+    cols.appendChild(first);
+    stemNodes.push(first);
+
+    q.body.forEach(t=>{
+      const d=document.createElement('div');
+      d.className='stem';
+      d.textContent=clean(t);
+      cols.appendChild(d);
+      stemNodes.push(d);
+    });
+
+    // Bracket is on the FINAL line of the question stem, immediately before options.
+    addBracketToLastStem(stemNodes);
+
+    q.options.forEach(o=>{
+      const d=document.createElement('div');
+      d.className='opt';
+      d.style.paddingLeft=$('indent').value+'mm';
+      d.textContent=o.letter+'. '+clean(o.text);
+      cols.appendChild(d);
+    });
+
+    const sp=document.createElement('div');
+    sp.className='qgap';
+    sp.style.height=$('qGap').value+'mm';
+    cols.appendChild(sp);
+  });
+
+  saveDraft();
+}
+function saveDraft(){
+  localStorage.setItem('ksr_dtp_raw',$('raw').value);
+  ['institute','exam','date','marksTotal','startNo','fontSize','bracket','indent','lineHeight','qGap','keepMarks','sectionMode']
+    .forEach(id=>localStorage.setItem('ksr_'+id,$(id).value));
+}
+function answerKey(){
+  const qs=parse($('raw').value);
+  const start=Math.max(1,parseInt($('startNo').value||'1',10));
+  const txt=qs.map((q,i)=>`${start+i}. ${q.answer||'—'}`).join('\n');
+  const missing=qs.filter(q=>!q.answer).length;
+  const w=window.open('','_blank');
+  w.document.write(`<pre style="font:16px Arial;line-height:1.8;padding:24px"><b>ANSWER KEY</b>\n\n${esc(txt)}\n\nMissing / undetected: ${missing}</pre>`);
+  w.document.close();
+}
+function printPaper(){
+  build();
+  const oldTitle=document.title;
+  document.title=' ';
+  setTimeout(()=>{
+    window.print();
+    setTimeout(()=>{document.title=oldTitle},300);
+  },120);
+}
+
+$('build').onclick=build;
+$('print').onclick=printPaper;
+$('key').onclick=answerKey;
+$('clear').onclick=()=>{if(confirm('Clear all pasted questions?')){$('raw').value='';build()}};
+$('sample').onclick=()=>{
+$('raw').value=`Psychology
+ప్రశ్న 25
+అభ్యసన లాక్షణిక వక్రం (Learning Curve) కి సంబంధించి క్రింది వాక్యాలను పరిశీలించండి:
+I. ప్రారంభ స్ఫూర్తి దశలో అభ్యసనం వేగంగా జరుగుతుంది.
+II. చాంచల్య దశలో ప్రగతి రేటు నెమ్మదిస్తుంది.
+పై వాటిలో సరియైనవి ఏవి?
+A) I మరియు II సరియైనవి ●
+B. I మాత్రమే
+C: II మాత్రమే
+D - ఏదీ కాదు
+
+Question 99
+Choose the correct article: ___ European student met ___ honest politician.
+A an
+B a, an ★
+C the
+D no article
+
+Telugu
+3) "పావురము" అనే పదాన్ని "పారువము" అని పలికితే ఇది ఏ ధ్వని పరిణామం?
+(A) వర్ణ విభేదనం
+(B) వర్ణ సమీకరణ
+(C) వర్ణ వ్యత్యయం *
+(D) వర్ణలోపం`;
+build();
+};
+
+window.addEventListener('load',()=>{
+  if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
+  $('raw').value=localStorage.getItem('ksr_dtp_raw')||'';
+  ['institute','exam','date','marksTotal','startNo','fontSize','bracket','indent','lineHeight','qGap','keepMarks','sectionMode']
+    .forEach(id=>{const v=localStorage.getItem('ksr_'+id); if(v!==null) $(id).value=v;});
+  build();
+});
+</script>
+</body>
+</html>
