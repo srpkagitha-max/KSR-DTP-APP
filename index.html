@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <meta name="theme-color" content="#0b3b7a" />
 <link rel="manifest" href="manifest.webmanifest" />
-<title>KSR DTP Question Paper Maker</title>
+<title></title>
 <style>
 :root{
   --blue:#0b3b7a;--blue2:#0e4f9d;--ink:#151a22;--muted:#687386;
@@ -59,7 +59,11 @@ textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}
 @media(max-width:850px){.grid{grid-template-columns:1fr 1fr}.paper-shell{padding:8px}.appbar{position:static}}
 @media(max-width:520px){.grid{grid-template-columns:1fr}.wrap{padding:0 8px}.panel{border-radius:12px;padding:12px}}
 @media print{
-  @page{size:A4 portrait;margin:0}
+  @page{
+    size:A4 portrait;
+    margin:0;
+    @bottom-center{content:counter(page);font-size:9pt}
+  }
   html,body{margin:0!important;padding:0!important;background:#fff}
   body{background:#fff}
   .appbar,.controls,.preview-title{display:none!important}
@@ -69,7 +73,7 @@ textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}
     margin:0!important;
     width:210mm!important;
     min-height:297mm!important;
-    padding:12mm 8mm 12mm!important;
+    padding:10mm 8mm 12mm!important;
   }
   .first-header{margin-bottom:7mm}
   .columns{min-height:auto}
@@ -79,7 +83,7 @@ textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}
 </head>
 <body>
 <header class="appbar">
-  <h1>KSR DTP Question Paper Maker</h1>
+  <h1></h1>
   <small>Premium A4 MCQ • continuous numbering • two-column print flow</small>
 </header>
 
