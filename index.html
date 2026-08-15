@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0b3b7a" />
 <link rel="manifest" href="manifest.webmanifest" />
 <title></title>
-<!-- KSR DTP v3.4.0 Premium Dashboard + Institute Branding -->
+<!-- KSR DTP v3.4.1 PDF Header Cleanup + Black Question Text -->
 <style>
 :root{
   --blue:#087f78;--blue2:#0b9b8d;--ink:#12302d;--muted:#687b78;
@@ -50,19 +50,21 @@ textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}
 .exam-meta{display:flex;justify-content:center;align-items:center;gap:6mm;font-size:11px;line-height:1.45;white-space:nowrap}
 .exam-meta b{font-weight:700}
 .columns{
+  color:#000;
   column-count:2;column-gap:5mm;column-rule:1px solid #777;
   font-size:12px;line-height:1.38;min-height:250mm;text-rendering:optimizeLegibility;
 }
 .section-head{
+  color:#000;
   /* Keep a detected subject heading inside the current column.
      column-span:all can rebalance multi-column content and visually insert
      the heading between a question stem and its options. */
   column-span:none;font-size:12px;font-weight:800;border-bottom:1px solid #999;
   padding:0 0 1.5mm;margin:2.5mm 0 2.5mm;break-after:avoid;
 }
-.qstart{font-weight:700;margin:0 0 1.0mm;orphans:2;widows:2}
-.stem{margin:0 0 1.0mm;orphans:2;widows:2}
-.opt{margin:0 0 .7mm;padding-left:3mm;break-inside:avoid;orphans:2;widows:2}
+.qstart{color:#000;font-weight:700;margin:0 0 1.0mm;orphans:2;widows:2}
+.stem{color:#000;margin:0 0 1.0mm;orphans:2;widows:2}
+.opt{color:#000;margin:0 0 .7mm;padding-left:3mm;break-inside:avoid;orphans:2;widows:2}
 /* Target-page mode should use every available column/page area. Long stems may
    continue in the next column/page instead of pushing a whole question away. */
 .columns.smart-flow .qstart,.columns.smart-flow .stem{orphans:2;widows:2}
