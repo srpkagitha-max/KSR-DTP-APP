@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0b3b7a" />
 <link rel="manifest" href="manifest.webmanifest" />
 <title></title>
-<!-- KSR DTP v3.3.4 Extra Large + Smart Orphan Control -->
+<!-- KSR DTP v3.3.5 Exact Target Page Calibration -->
 <style>
 :root{
   --blue:#0b3b7a;--blue2:#0e4f9d;--ink:#151a22;--muted:#687386;
@@ -123,6 +123,7 @@ textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}
   }
   .first-header{margin-bottom:7mm;break-inside:avoid}
   .columns{min-height:auto}
+  .columns.smart-flow{font-size:calc(1em * var(--print-fit-reserve,1))}
   .qstart{break-after:avoid}
   .columns.smart-flow .qblock.no-body .qstart{break-after:avoid!important}
   .columns.smart-flow .qblock.has-body .stem:last-of-type{break-after:avoid!important}
@@ -722,16 +723,22 @@ function canCompactOptions(q,profile){
 }
 
 function previewPageCount(hdr,cols){
-  // The screen preview uses the same effective text width as A4 print:
-  // 210mm paper with 8mm left/right print margins.  The first page additionally
-  // contains the institute header.  Measuring the flowing two-column height here
-  // gives a close print-page count without creating artificial page boxes.
+  // Conservative A4 estimator. Browser print engines reserve a little extra
+  // space for column/page fragmentation, so use 268mm rather than the raw
+  // 275mm geometric height. This prevents a selected target (e.g. 14) from
+  // unexpectedly spilling to page 15 in the final PDF.
   const pxPerMm=96/25.4;
-  const printablePx=275*pxPerMm; // A4 297mm - 10mm top - 12mm bottom
+  const printablePx=268*pxPerMm;
   const hs=getComputedStyle(hdr);
   const headerExtra=hdr.offsetHeight + parseFloat(hs.marginBottom||0);
   const total=Math.max(0,headerExtra + cols.scrollHeight);
   return Math.max(1,Math.ceil((total-1)/printablePx));
+}
+function setFitTypography(cols,font,line,gap){
+  cols.style.fontSize=font.toFixed(2)+'px';
+  cols.style.lineHeight=line.toFixed(3);
+  cols.querySelectorAll('.qgap').forEach(x=>x.style.height=gap.toFixed(2)+'mm');
+  void cols.offsetHeight;
 }
 function calibrateTargetPages(fit,hdr,cols){
   if(fit.mode==='auto'||!fit.target) return;
@@ -739,43 +746,51 @@ function calibrateTargetPages(fit,hdr,cols){
   let font=parseFloat(cols.style.fontSize)||fit.font;
   let line=parseFloat(cols.style.lineHeight)||fit.line;
   let gap=fit.gap;
+  const requested=fit.requestedFont||12;
+  const low=Math.max(9.55,requested*.82);
+  const high=Math.max(15.6,requested*1.22);
 
-  // Phase 1: reach the requested page count without clipping content.
-  // Typography stays within readable exam-paper limits.
-  for(let i=0;i<10;i++){
+  // Stage 1 — page-count lock. Tighten/relax in small steps until the selected
+  // target is reached. Font size is never silently reset to Medium; the user's
+  // chosen size (including Extra Large) remains the centre of the fit profile.
+  for(let i=0;i<18;i++){
     const pages=previewPageCount(hdr,cols);
     if(pages===target) break;
-    const ratio=target/pages;
-    const step=Math.max(.88,Math.min(1.18,Math.sqrt(ratio)));
-    const low=Math.max(9.7,(fit.requestedFont||12)*0.84), high=Math.max(15.2,(fit.requestedFont||12)*1.18);
-    font=Math.max(low,Math.min(high,font*step));
-    line=Math.max(1.14,Math.min(1.82,line*step));
-    gap=Math.max(.15,Math.min(7.2,gap*(pages<target?1.12:.88) + (pages<target?.22:-.12)));
-    cols.style.fontSize=font.toFixed(2)+'px';
-    cols.style.lineHeight=line.toFixed(3);
-    cols.querySelectorAll('.qgap').forEach(x=>x.style.height=gap.toFixed(2)+'mm');
-    void cols.offsetHeight;
+    if(pages>target){
+      font=Math.max(low,font*.975);
+      line=Math.max(1.12,line*.982);
+      gap=Math.max(.10,gap-.16);
+    }else{
+      font=Math.min(high,font*1.018);
+      line=Math.min(1.86,line*1.012);
+      gap=Math.min(8.8,gap+.20);
+    }
+    setFitTypography(cols,font,line,gap);
   }
 
-  // Phase 2: if the selected page count is already correct, gently spread or
-  // tighten question gaps while *keeping the same page count*. This uses blank
-  // page-bottom space more evenly, especially for relaxed target-page layouts.
+  // Stage 2 — use the selected pages fully. When there is room, first increase
+  // question spacing and line spacing; only then enlarge text. This naturally
+  // gives vertical A/B/C/D options more breathing room instead of needlessly
+  // forcing compact option rows.
   if(previewPageCount(hdr,cols)===target){
-    const direction = fit.target > smartPageRange(parse($('raw').value)).min ? 1 : -1;
-    let bestGap=gap;
-    for(let i=0;i<14;i++){
-      const trial=Math.max(.12,Math.min(8.5,bestGap + direction*.22));
-      cols.querySelectorAll('.qgap').forEach(x=>x.style.height=trial.toFixed(2)+'mm');
-      void cols.offsetHeight;
-      if(previewPageCount(hdr,cols)===target){ bestGap=trial; }
-      else { cols.querySelectorAll('.qgap').forEach(x=>x.style.height=bestGap.toFixed(2)+'mm'); break; }
+    let best={font,line,gap};
+    for(let i=0;i<22;i++){
+      const trialGap=Math.min(9.2,best.gap+.16);
+      const trialLine=Math.min(1.88,best.line+.006);
+      setFitTypography(cols,best.font,trialLine,trialGap);
+      if(previewPageCount(hdr,cols)===target){best={font:best.font,line:trialLine,gap:trialGap};}
+      else{setFitTypography(cols,best.font,best.line,best.gap);break;}
     }
-    gap=bestGap;
+    font=best.font; line=best.line; gap=best.gap;
   }
 
   cols.dataset.targetPages=String(target);
   cols.dataset.previewPages=String(previewPageCount(hdr,cols));
   cols.dataset.smartBalanced='1';
+  // Slight print-engine safety reserve only in target mode. It protects against
+  // the common Chrome/Android one-page spill caused by print fragmentation.
+  const reserve = target>=8 ? .985 : .992;
+  cols.style.setProperty('--print-fit-reserve',String(reserve));
 }
 function build(){
   const qs=parse($('raw').value);
