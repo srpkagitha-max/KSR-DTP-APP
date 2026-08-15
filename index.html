@@ -171,8 +171,8 @@ textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}
 
 <script>
 const $=id=>document.getElementById(id);
-const ANSWER_MARK=/[●•⬤✓✔★*]+/g;
-const subjectRe=/^(psychology|telugu|english|articles|method|science|biology|social|math|maths|mathematics|trimethod|tri method|telugu method|english method|maths method|science method|social method)$/i;
+const ANSWER_MARK=/[●•⬤✓✔★*🔴🔵🟢🟡🟠⚫⚪✅]+/gu;
+const subjectRe=/^(?:app\s+)?(?:exam|gk|pie|psychology|telugu|english|articles|method|science|biology|social|math|maths|mathematics|trimethod|tri method|telugu method|english method|maths method|science method|social method)$/i;
 
 // Main question starts: 1., 1), 1:, Q1, Question 1, ప్రశ్న 1, etc.
 const qRe=/^\s*(?:(?:ప్రశ్న|question|ques|q)\s*[-:#.]?\s*)?(\d{1,4})\s*(?:[\.\):\-]\s*)?(.*)$/i;
@@ -192,7 +192,7 @@ function isLikelyQuestionStart(s){
 }
 function isSection(s){
   const cleaned=s.replace(/[*_#]/g,'').trim();
-  return cleaned.length<40 && subjectRe.test(cleaned);
+  return cleaned.length<40 && subjectRe.test(cleaned.replace(/\s+/g,' '));
 }
 function normalizeInput(raw){
   let text=raw.replace(/\r/g,'');
@@ -218,7 +218,7 @@ function parse(raw){
     let s=original.trim();
     if(!s) continue;
 
-    if(isSection(s)){ section=s.replace(/[*_#]/g,'').trim(); continue; }
+    if(isSection(s)){ section=s.replace(/[*_#]/g,'').trim().replace(/^app\s+/i,''); continue; }
 
     // Dedicated answer lines belong only to the answer key, never to student PDF.
     const am=s.match(answerLineRe);
@@ -336,7 +336,10 @@ function analyze(qs){
     if(Number.isFinite(src)){
       const prev=prevBySection.get(sec);
       if(prev && src<=prev.src){
-        issues.push(`Source numbering break near Q${i+1}: ${prev.src} → ${src}`);
+        // A reset to 1 is a very common way users start a new subject/section,
+        // even when they forget to type a heading. Treat it as an implicit section
+        // instead of a numbering error; generated numbering stays continuous.
+        if(src!==1) issues.push(`Source numbering break near Q${i+1}: ${prev.src} → ${src}`);
       }
       prevBySection.set(sec,{src,index:i});
     }
