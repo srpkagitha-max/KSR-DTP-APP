@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0b3b7a" />
 <link rel="manifest" href="manifest.webmanifest" />
 <title></title>
-<!-- KSR DTP v3.3.5 Exact Target Page Calibration -->
+<!-- KSR DTP v3.3.6 Exact Page Lock + Flexible Orphan Control -->
 <style>
 :root{
   --blue:#0b3b7a;--blue2:#0e4f9d;--ink:#151a22;--muted:#687386;
@@ -68,7 +68,8 @@ textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}
    option set should travel together whenever the browser can satisfy it. */
 .columns.smart-flow .qblock.no-body .qstart{break-after:avoid!important}
 .columns.smart-flow .qblock.has-body .stem:last-of-type{break-after:avoid!important}
-.columns.smart-flow .options-wrap{break-inside:avoid!important;page-break-inside:avoid!important}
+.columns.smart-flow .options-wrap{break-inside:auto!important;page-break-inside:auto!important}
+.columns.smart-flow .options-wrap .opt:first-child{break-before:avoid!important;page-break-before:avoid!important}
 .columns.smart-flow .opt{break-inside:avoid!important;page-break-inside:avoid!important}
 .qblock{break-inside:auto;page-break-inside:auto;margin:0;padding:0}
 .options-wrap{display:block}
@@ -127,7 +128,8 @@ textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}
   .qstart{break-after:avoid}
   .columns.smart-flow .qblock.no-body .qstart{break-after:avoid!important}
   .columns.smart-flow .qblock.has-body .stem:last-of-type{break-after:avoid!important}
-  .columns.smart-flow .options-wrap{break-inside:avoid!important;page-break-inside:avoid!important}
+  .columns.smart-flow .options-wrap{break-inside:auto!important;page-break-inside:auto!important}
+  .columns.smart-flow .options-wrap .opt:first-child{break-before:avoid!important;page-break-before:avoid!important}
   .opt{break-inside:avoid}
   .qblock{break-inside:auto;page-break-inside:auto}
   .target-pages-note{display:none!important}
@@ -787,9 +789,16 @@ function calibrateTargetPages(fit,hdr,cols){
   cols.dataset.targetPages=String(target);
   cols.dataset.previewPages=String(previewPageCount(hdr,cols));
   cols.dataset.smartBalanced='1';
-  // Slight print-engine safety reserve only in target mode. It protects against
-  // the common Chrome/Android one-page spill caused by print fragmentation.
-  const reserve = target>=8 ? .985 : .992;
+  // Chrome/Android paged multi-column layout can consume a little more height
+  // than the on-screen DOM estimator. Use an adaptive reserve, strongest for
+  // Extra Large text, while keeping the selected target page count as priority.
+  const requestedSize=fit.requestedFont||12;
+  let reserve=1;
+  if(target>=8){
+    reserve = requestedSize>=14 ? .962 : requestedSize>=12.8 ? .972 : .978;
+  }else{
+    reserve = requestedSize>=14 ? .975 : .985;
+  }
   cols.style.setProperty('--print-fit-reserve',String(reserve));
 }
 function build(){
