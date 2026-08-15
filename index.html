@@ -171,36 +171,92 @@ textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}
 
 <script>
 const $=id=>document.getElementById(id);
-const ANSWER_MARK=/[●•✓✔★*]+/g;
-const subjectRe=/^(psychology|telugu|english|method|science|social|math|maths|mathematics|trimethod|tri method|telugu method|english method|maths method|science method|social method)$/i;
+const ANSWER_MARK=/[●•⬤✓✔★*]+/g;
+const subjectRe=/^(psychology|telugu|english|articles|method|science|biology|social|math|maths|mathematics|trimethod|tri method|telugu method|english method|maths method|science method|social method)$/i;
 
-// Flexible question starts: 1., 1), 1:, Q1, Question 1, ప్రశ్న 1, etc.
+// Main question starts: 1., 1), 1:, Q1, Question 1, ప్రశ్న 1, etc.
 const qRe=/^\s*(?:(?:ప్రశ్న|question|ques|q)\s*[-:#.]?\s*)?(\d{1,4})\s*(?:[\.\):\-]\s*)?(.*)$/i;
-// Flexible options: A., A), (A), [A], A:, A-, or simply A + whitespace
+// Letter options: A., A), (A), [A], A:, A-, or A + whitespace.
 const optRe=/^\s*[\(\[]?([A-Ha-h])[\)\]]?\s*(?:[\.\):\-]\s*|\s+)(.*)$/;
+// Numeric options: 1) ... 2) ... 3) ... 4) ... . These are normalized to A/B/C/D.
+const numOptRe=/^\s*([1-8])\)\s*(.+)$/;
+const answerLineRe=/^\s*[●•⬤✓✔★*]*\s*(?:జవాబు|సమాధానం|answer|ans)\s*[:\-]?\s*([A-H1-8])(?:\s*[\).:\-]\s*.*)?$/i;
 
 function isLikelyQuestionStart(s){
   if(/^(ప్రశ్న|question|ques|q)\s*[-:#.]?\s*\d/i.test(s)) return true;
-  if(/^\d{1,4}\s*[\.\):\-]\s*/.test(s)) return true;
+  // Do NOT treat 1) / 2) / 3) / 4) as a question when a question is already open;
+  // those are handled as numeric options first inside parse().
+  if(/^\d{1,4}\s*[\.:\-]\s*/.test(s)) return true;
+  if(/^\d{1,4}\)\s*/.test(s)) return true;
   return false;
 }
 function isSection(s){
   const cleaned=s.replace(/[*_#]/g,'').trim();
   return cleaned.length<40 && subjectRe.test(cleaned);
 }
+function normalizeInput(raw){
+  let text=raw.replace(/\r/g,'');
+  // Some pasted banks put the next question on the same line as an answer,
+  // e.g. "● జవాబు: B. 21. Next question". Split it safely.
+  text=text.replace(
+    /(^|\n)(\s*[●•⬤✓✔★*]*\s*(?:జవాబు|సమాధానం|answer|ans)\s*[:\-]?\s*[A-H1-8])\s*[\.]\s+(\d{1,4}\s*[\.\):\-]\s*[^\n]+)/gi,
+    '$1$2\n$3'
+  );
+  return text;
+}
+function answerToLetter(v){
+  const x=String(v||'').toUpperCase();
+  if(/^[A-H]$/.test(x)) return x;
+  const n=parseInt(x,10);
+  return Number.isFinite(n) && n>=1 && n<=8 ? String.fromCharCode(64+n) : '';
+}
 function parse(raw){
-  const lines=raw.replace(/\r/g,'').split('\n');
+  const lines=normalizeInput(raw).split('\n');
   let qs=[], cur=null, section='', numericSubList=false, subNext=1;
+
   for(let original of lines){
     let s=original.trim();
     if(!s) continue;
 
     if(isSection(s)){ section=s.replace(/[*_#]/g,'').trim(); continue; }
 
-    // A numbered list INSIDE a question (1., 2., 3., 4. ...) must stay in the
-    // question body. This is common in Telugu matching/statement questions.
-    // Once an inner list starts at 1, keep its following sequential numbers as body.
-    const inner=s.match(/^\s*(\d{1,2})\s*[.\):\-]\s*(.+)$/);
+    // Dedicated answer lines belong only to the answer key, never to student PDF.
+    const am=s.match(answerLineRe);
+    if(am && cur){
+      cur.answer=answerToLetter(am[1]);
+      continue;
+    }
+
+    // Lettered options must be recognized before question-number detection.
+    if(cur){
+      const om=s.match(optRe);
+      if(om){
+        let txt=(om[2]||'').trim();
+        ANSWER_MARK.lastIndex=0;
+        if(ANSWER_MARK.test(txt)) cur.answer=om[1].toUpperCase();
+        ANSWER_MARK.lastIndex=0;
+        cur.options.push({letter:om[1].toUpperCase(),text:txt});
+        continue;
+      }
+
+      // Numeric MCQ options such as 1) / 2) / 3) / 4).
+      // They are mapped to A/B/C/D so the printed paper remains uniform.
+      const nom=s.match(numOptRe);
+      if(nom){
+        const letter=answerToLetter(nom[1]);
+        let txt=(nom[2]||'').trim();
+        ANSWER_MARK.lastIndex=0;
+        if(ANSWER_MARK.test(txt)) cur.answer=letter;
+        ANSWER_MARK.lastIndex=0;
+        cur.options.push({letter,text:txt});
+        continue;
+      }
+    }
+
+    // A numbered list INSIDE a question (1., 2., 3., 4. ...) stays in the stem.
+    // This is common in matching/statement questions. Numeric options use ')' and
+    // have already been handled above.
+    const inner=s.match(/^\s*(\d{1,2})\s*[\.]\s*(.+)$/);
     if(cur && cur.options.length===0 && inner){
       const n=parseInt(inner[1],10);
       if((!numericSubList && n===1) || (numericSubList && n===subNext)){
@@ -215,28 +271,16 @@ function parse(raw){
     }
     if(!cur) continue;
 
-    let om=s.match(optRe);
-    if(om){
-      let txt=(om[2]||'').trim();
-      ANSWER_MARK.lastIndex=0;
-      if(ANSWER_MARK.test(txt)) cur.answer=om[1].toUpperCase();
-      ANSWER_MARK.lastIndex=0;
-      cur.options.push({letter:om[1].toUpperCase(),text:txt});
-    } else {
-      cur.body.push(s);
-    }
+    // Non-option/non-question lines remain part of the current question stem.
+    cur.body.push(s);
   }
 
-  // Important: if source had "ప్రశ్న 1" on one line and actual question on next line,
-  // merge that next line into the same visible first line.
   qs.forEach(q=>{
-    if(!q.text && q.body.length){
-      q.text=q.body.shift();
-    }
+    // If source had "ప్రశ్న 1" on one line and the actual stem on the next,
+    // merge the first stem line into the visible question line.
+    if(!q.text && q.body.length) q.text=q.body.shift();
 
-    // Always normalize MCQ options into A, B, C, D... order, regardless of
-    // the order in which they were pasted. If a duplicate option letter is
-    // present, keep the first non-empty version so the student paper stays stable.
+    // Normalize option order and prevent duplicates.
     const byLetter=new Map();
     q.options.forEach(o=>{
       const key=(o.letter||'').toUpperCase();
