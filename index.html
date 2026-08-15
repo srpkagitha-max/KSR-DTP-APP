@@ -59,6 +59,10 @@ textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}
 .qstart{font-weight:700;margin:0 0 1.0mm;orphans:2;widows:2}
 .stem{margin:0 0 1.0mm}
 .opt{margin:0 0 .7mm;padding-left:3mm;break-inside:avoid;orphans:2;widows:2}
+.qblock{break-inside:avoid-column;page-break-inside:avoid;margin:0;padding:0}
+.options-wrap{display:block}
+.qblock.compact-options .options-wrap{display:grid;grid-template-columns:1fr 1fr;column-gap:3mm;row-gap:.2mm}
+.qblock.compact-options .opt{margin-bottom:.35mm}
 .qgap{height:1.2mm}
 .ans{float:right;font-weight:700;letter-spacing:1px;margin-left:2mm;white-space:nowrap}
 
@@ -110,6 +114,8 @@ textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}
   .columns{min-height:auto}
   .qstart{break-after:avoid}
   .opt{break-inside:avoid}
+  .qblock{break-inside:avoid-column;page-break-inside:avoid}
+  .target-pages-note{display:none!important}
   
 }
 </style>
@@ -168,6 +174,19 @@ textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}
       <select id="sectionMode"><option value="1">Show if detected</option><option value="0">Hide</option></select>
     </div>
   </div>
+
+  <div class="grid" style="margin-top:10px">
+    <div class="field"><label>PDF Page Fit</label>
+      <select id="pageFitMode"><option value="auto">Auto Premium</option><option value="target">Target Pages</option><option value="min">Minimum Pages</option><option value="max">Maximum Pages</option></select>
+    </div>
+    <div class="field"><label>Target Pages</label>
+      <select id="targetPages" disabled><option value="">Generate preview first</option></select>
+    </div>
+    <div class="field" style="grid-column:span 2"><label>Smart Fit Range</label>
+      <div id="pageRange" class="chip" style="border-radius:10px;min-height:38px;display:flex;align-items:center">Paste questions to calculate minimum / maximum pages</div>
+    </div>
+  </div>
+  <div class="hint target-pages-note">Minimum uses safe compact option rows where they fit. Maximum keeps options one below another with relaxed spacing. Target Pages automatically balances font size, spacing and option layout without forcing long options side-by-side.</div>
 
   <div style="margin-top:12px" class="field">
     <label>Paste Questions — numbering/options can be in different common formats</label>
@@ -622,12 +641,72 @@ function applyEditor(){
   $('paper').scrollIntoView({behavior:'smooth',block:'start'});
 }
 
+function estimateQuestionWeight(q){
+  const stem=[q.text,...q.body].join(' ').length;
+  const opt=(q.options||[]).reduce((n,o)=>n+(o.text||'').length,0);
+  return Math.max(1, stem/150 + opt/190 + (q.body||[]).length*.18 + (q.options||[]).length*.22);
+}
+function smartPageRange(qs){
+  if(!qs.length) return {min:0,max:0};
+  const w=qs.reduce((a,q)=>a+estimateQuestionWeight(q),0);
+  // Calibrated for A4 portrait, two columns, readable Telugu/English MCQ typography.
+  const min=Math.max(1,Math.ceil(w/15.5));
+  const max=Math.max(min,Math.ceil(w/9.1));
+  return {min,max:Math.min(max,min+14)};
+}
+function refreshPageTargets(qs){
+  const r=smartPageRange(qs), sel=$('targetPages'), old=parseInt(sel.value||'0',10);
+  sel.innerHTML='';
+  if(!r.min){
+    sel.disabled=true; sel.innerHTML='<option value="">No questions</option>';
+    $('pageRange').textContent='Paste questions to calculate minimum / maximum pages';
+    return r;
+  }
+  for(let n=r.min;n<=r.max;n++){
+    const o=document.createElement('option'); o.value=n; o.textContent=n+' pages'; sel.appendChild(o);
+  }
+  const pick=(old>=r.min&&old<=r.max)?old:Math.round((r.min+r.max)/2);
+  sel.value=String(pick);
+  sel.disabled=$('pageFitMode').value!=='target';
+  $('pageRange').textContent=`Minimum ${r.min} pages  •  Maximum ${r.max} pages`;
+  return r;
+}
+function getFitProfile(qs){
+  const r=smartPageRange(qs), mode=$('pageFitMode').value;
+  let target;
+  if(mode==='min') target=r.min;
+  else if(mode==='max') target=r.max;
+  else if(mode==='target') target=Math.max(r.min,Math.min(r.max,parseInt($('targetPages').value||r.min,10)));
+  else return {mode:'auto',target:0,font:parseFloat($('fontSize').value),line:parseFloat($('lineHeight').value),gap:parseFloat($('qGap').value),compactRatio:0};
+  const span=Math.max(1,r.max-r.min);
+  const t=(target-r.min)/span; // 0=min compact, 1=max relaxed
+  return {
+    mode,target,
+    font:10.8 + 2.0*t,
+    line:1.24 + .22*t,
+    gap:.45 + 1.35*t,
+    compactRatio:Math.max(0,1-t*1.35)
+  };
+}
+function canCompactOptions(q,profile){
+  if(profile.mode==='auto'||profile.compactRatio<=0) return false;
+  const opts=q.options||[];
+  if(opts.length!==4) return false;
+  const longest=Math.max(...opts.map(o=>(o.text||'').length));
+  const total=opts.reduce((n,o)=>n+(o.text||'').length,0);
+  // Never squeeze long Telugu/English choices into side-by-side cells.
+  const safeLong=profile.compactRatio>.72?54:profile.compactRatio>.42?42:32;
+  return longest<=safeLong && total<=safeLong*3.1;
+}
+
 function build(){
   const qs=parse($('raw').value);
   const start=Math.max(1,parseInt($('startNo').value||'1',10));
   const end=qs.length ? start+qs.length-1 : 0;
   const issues=analyze(qs);
   const sm=getSafetySummary(qs,issues);
+  refreshPageTargets(qs);
+  const fit=getFitProfile(qs);
 
   $('qstat').textContent='Questions: '+qs.length;
   $('rangeStat').textContent=qs.length ? `Numbering: ${start}–${end}` : 'Numbering: —';
@@ -661,8 +740,8 @@ function build(){
 
   const cols=document.createElement('div');
   cols.className='columns';
-  cols.style.fontSize=$('fontSize').value+'px';
-  cols.style.lineHeight=$('lineHeight').value;
+  cols.style.fontSize=(fit.mode==='auto'?$('fontSize').value:fit.font)+'px';
+  cols.style.lineHeight=(fit.mode==='auto'?$('lineHeight').value:fit.line);
   paper.appendChild(cols);
 
   let lastSection='';
@@ -675,45 +754,52 @@ function build(){
       lastSection=q.section;
     }
 
+    const block=document.createElement('div');
+    block.className='qblock'+(canCompactOptions(q,fit)?' compact-options':'');
+    cols.appendChild(block);
+
     const number=start+idx;
     let stemNodes=[];
 
     const first=document.createElement('div');
     first.className='qstart';
     first.innerHTML=`${number}. ${esc(clean(q.text))}`;
-    cols.appendChild(first);
+    block.appendChild(first);
     stemNodes.push(first);
 
     q.body.forEach(t=>{
       const d=document.createElement('div');
       d.className='stem';
       d.textContent=clean(t);
-      cols.appendChild(d);
+      block.appendChild(d);
       stemNodes.push(d);
     });
 
     // Bracket is on the FINAL line of the question stem, immediately before options.
     addBracketToLastStem(stemNodes);
 
+    const ow=document.createElement('div');
+    ow.className='options-wrap';
+    block.appendChild(ow);
     q.options.forEach(o=>{
       const d=document.createElement('div');
       d.className='opt';
       d.style.paddingLeft=$('indent').value+'mm';
       d.textContent=o.letter+'. '+clean(o.text);
-      cols.appendChild(d);
+      ow.appendChild(d);
     });
 
     const sp=document.createElement('div');
     sp.className='qgap';
-    sp.style.height=$('qGap').value+'mm';
-    cols.appendChild(sp);
+    sp.style.height=(fit.mode==='auto'?$('qGap').value:fit.gap)+'mm';
+    block.appendChild(sp);
   });
 
   saveDraft();
 }
 function saveDraft(){
   localStorage.setItem('ksr_dtp_raw',$('raw').value);
-  ['institute','address','phone','exam','date','marksTotal','startNo','fontSize','bracket','indent','lineHeight','qGap','keepMarks','sectionMode']
+  ['institute','address','phone','exam','date','marksTotal','startNo','fontSize','bracket','indent','lineHeight','qGap','keepMarks','sectionMode','pageFitMode','targetPages']
     .forEach(id=>localStorage.setItem('ksr_'+id,$(id).value));
 }
 function answerKey(){
@@ -745,6 +831,8 @@ $('editorSearch').addEventListener('input',renderEditor);
 $('undoEdit').onclick=undoEditor;
 $('redoEdit').onclick=redoEditor;
 $('applyEditor').onclick=applyEditor;
+$('pageFitMode').addEventListener('change',()=>{ $('targetPages').disabled=$('pageFitMode').value!=='target'; build(); });
+$('targetPages').addEventListener('change',build);
 $('clear').onclick=()=>{if(confirm('Clear all pasted questions?')){$('raw').value='';build()}};
 $('sample').onclick=()=>{
 $('raw').value=`Psychology
@@ -779,7 +867,7 @@ $('raw').addEventListener('input',()=>localStorage.setItem('ksr_dtp_raw',$('raw'
 window.addEventListener('load',()=>{
   if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
   $('raw').value=localStorage.getItem('ksr_dtp_raw')||'';
-  ['institute','address','phone','exam','date','marksTotal','startNo','fontSize','bracket','indent','lineHeight','qGap','keepMarks','sectionMode']
+  ['institute','address','phone','exam','date','marksTotal','startNo','fontSize','bracket','indent','lineHeight','qGap','keepMarks','sectionMode','pageFitMode','targetPages']
     .forEach(id=>{const v=localStorage.getItem('ksr_'+id); if(v!==null) $(id).value=v;});
   build();
 });
