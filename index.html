@@ -40,6 +40,9 @@ textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}
 .institute-title{
   font-size:20px;font-weight:800;text-align:center;line-height:1.22;margin-bottom:3mm;letter-spacing:.15px
 }
+.contact-meta{display:flex;justify-content:center;align-items:center;gap:4mm;font-size:10px;line-height:1.35;margin:-1mm 0 2.4mm;color:#303a46;flex-wrap:wrap;text-align:center}
+.contact-meta:empty{display:none;margin:0}
+.contact-meta .sep{color:#7a838e}
 .exam-meta{display:flex;justify-content:center;align-items:center;gap:6mm;font-size:11px;line-height:1.45;white-space:nowrap}
 .exam-meta b{font-weight:700}
 .columns{
@@ -85,7 +88,7 @@ textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}
 
 .warn{background:#fff8e7;border:1px solid #f2dfad;color:#6a5017;border-radius:10px;padding:9px 11px;font-size:12px;margin-top:10px;display:none}
 @media(max-width:850px){.grid{grid-template-columns:1fr 1fr}.paper-shell{padding:8px}.appbar{position:static}}
-@media(max-width:520px){.grid{grid-template-columns:1fr}.wrap{padding:0 8px}.panel{border-radius:12px;padding:12px}}
+@media(max-width:520px){.grid{grid-template-columns:1fr}.grid .field[style*="grid-column"]{grid-column:span 1!important}.wrap{padding:0 8px}.panel{border-radius:12px;padding:12px}}
 @media print{
   @page{
     size:A4 portrait;
@@ -124,6 +127,11 @@ textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}
     <div class="field"><label>Exam Name</label><input id="exam" value="FINAL GRAND TEST"></div>
     <div class="field"><label>Date</label><input id="date" placeholder="DD-MM-YYYY"></div>
     <div class="field"><label>Max Marks</label><input id="marksTotal" type="number" min="0" placeholder="160"></div>
+  </div>
+
+  <div class="grid" style="margin-top:10px">
+    <div class="field" style="grid-column:span 2"><label>Institute Address <span style="font-weight:400;color:#7a8798">(Optional)</span></label><input id="address" placeholder="Area / City / District"></div>
+    <div class="field" style="grid-column:span 2"><label>Phone Number <span style="font-weight:400;color:#7a8798">(Optional)</span></label><input id="phone" inputmode="tel" placeholder="Phone / Mobile Number"></div>
   </div>
 
   <div class="grid" style="margin-top:10px">
@@ -218,9 +226,16 @@ textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}
 </main>
 
 <script>
-// KSR DTP v3.2.0 — Premium Editor + Option Reorder + PDF Polish
+// KSR DTP v3.2.1 — Optional Institute Contact + Marker Cleanup
 const $=id=>document.getElementById(id);
-const ANSWER_MARK=/[●•⬤✓✔★*🔴🔵🟢🟡🟠⚫⚪✅]+/gu;
+const ANSWER_MARK=/[●•⬤∙·▪✓✔★*🔴🔵🟢🟡🟠⚫⚪✅]+/gu;
+const TRAILING_ANSWER_MARK=/(?:\s*[●•⬤∙·▪✓✔★*🔴🔵🟢🟡🟠⚫⚪✅])+\s*$/u;
+function stripAnswerMarkers(s){
+  return String(s||'').replace(TRAILING_ANSWER_MARK,'').trim();
+}
+function hasTrailingAnswerMarker(s){
+  return TRAILING_ANSWER_MARK.test(String(s||''));
+}
 const subjectRe=/^(?:app\s+)?(?:exam|gk|pie|psychology|telugu|english|articles|method|science|biology|social|math|maths|mathematics|trimethod|tri method|telugu method|english method|maths method|science method|social method)$/i;
 
 // Main question starts: 1., 1), 1:, Q1, Question 1, ప్రశ్న 1, etc.
@@ -292,11 +307,9 @@ function parse(raw){
         const leadingMark=om[1]||'';
         const letter=om[2].toUpperCase();
         let txt=(om[3]||'').trim();
-        ANSWER_MARK.lastIndex=0;
-        const markedInText=ANSWER_MARK.test(txt);
-        ANSWER_MARK.lastIndex=0;
+        const markedInText=hasTrailingAnswerMarker(txt);
         if(leadingMark || markedInText) cur.answer=letter;
-        txt=txt.replace(ANSWER_MARK,'').trim();
+        txt=stripAnswerMarkers(txt);
         cur.options.push({letter,text:txt});
         continue;
       }
@@ -308,11 +321,9 @@ function parse(raw){
         const leadingMark=nom[1]||'';
         const letter=answerToLetter(nom[2]);
         let txt=(nom[3]||'').trim();
-        ANSWER_MARK.lastIndex=0;
-        const markedInText=ANSWER_MARK.test(txt);
-        ANSWER_MARK.lastIndex=0;
+        const markedInText=hasTrailingAnswerMarker(txt);
         if(leadingMark || markedInText) cur.answer=letter;
-        txt=txt.replace(ANSWER_MARK,'').trim();
+        txt=stripAnswerMarkers(txt);
         cur.options.push({letter,text:txt});
         continue;
       }
@@ -358,7 +369,7 @@ function parse(raw){
 }
 
 function clean(s){
-  return $('keepMarks').value==='1' ? (s||'') : (s||'').replace(ANSWER_MARK,'').trim();
+  return $('keepMarks').value==='1' ? (s||'') : stripAnswerMarkers(s);
 }
 function esc(s){
   return (s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
@@ -479,7 +490,7 @@ function normalizeEditorQuestion(q){
   q.text=(q.text||'').trim();
   q.body=(q.body||[]).map(x=>(x||'').trim()).filter(Boolean);
   ensureFourOptions(q);
-  q.options.forEach(o=>o.text=(o.text||'').trim());
+  q.options.forEach(o=>o.text=stripAnswerMarkers(o.text));
 }
 function serializeEditorQuestions(qs){
   let out=[]; let lastSection='';
@@ -564,7 +575,7 @@ function renderEditor(){
     });
     card.querySelectorAll('input[data-opt-index]').forEach(inp=>{
       inp.addEventListener('change',e=>{
-        pushEditorUndo(); const oi=parseInt(e.target.dataset.optIndex,10); const o=q.options[oi]; if(o)o.text=e.target.value.replace(ANSWER_MARK,'').trim(); editorDirty=true; updateEditorStatus();
+        pushEditorUndo(); const oi=parseInt(e.target.dataset.optIndex,10); const o=q.options[oi]; if(o)o.text=stripAnswerMarkers(e.target.value); editorDirty=true; updateEditorStatus();
       });
     });
     card.querySelectorAll('[data-opt-act]').forEach(btn=>btn.addEventListener('click',()=>{
@@ -631,8 +642,14 @@ function build(){
 
   const hdr=document.createElement('div');
   hdr.className='first-header';
+  const address=($('address').value||'').trim();
+  const phone=($('phone').value||'').trim();
+  const contactParts=[];
+  if(address) contactParts.push(`<span>${esc(address)}</span>`);
+  if(phone) contactParts.push(`<span><b>Ph:</b> ${esc(phone)}</span>`);
   hdr.innerHTML=`
     <div class="institute-title">${esc($('institute').value||'INSTITUTE NAME')}</div>
+    ${contactParts.length ? `<div class="contact-meta">${contactParts.join('<span class="sep">|</span>')}</div>` : ''}
     <div class="exam-meta">
       <div><b>Date:</b> ${esc($('date').value||'__________')}</div>
       <span>|</span>
@@ -696,7 +713,7 @@ function build(){
 }
 function saveDraft(){
   localStorage.setItem('ksr_dtp_raw',$('raw').value);
-  ['institute','exam','date','marksTotal','startNo','fontSize','bracket','indent','lineHeight','qGap','keepMarks','sectionMode']
+  ['institute','address','phone','exam','date','marksTotal','startNo','fontSize','bracket','indent','lineHeight','qGap','keepMarks','sectionMode']
     .forEach(id=>localStorage.setItem('ksr_'+id,$(id).value));
 }
 function answerKey(){
@@ -762,7 +779,7 @@ $('raw').addEventListener('input',()=>localStorage.setItem('ksr_dtp_raw',$('raw'
 window.addEventListener('load',()=>{
   if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
   $('raw').value=localStorage.getItem('ksr_dtp_raw')||'';
-  ['institute','exam','date','marksTotal','startNo','fontSize','bracket','indent','lineHeight','qGap','keepMarks','sectionMode']
+  ['institute','address','phone','exam','date','marksTotal','startNo','fontSize','bracket','indent','lineHeight','qGap','keepMarks','sectionMode']
     .forEach(id=>{const v=localStorage.getItem('ksr_'+id); if(v!==null) $(id).value=v;});
   build();
 });

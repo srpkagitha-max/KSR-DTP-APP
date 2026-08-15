@@ -1,18 +1,15 @@
-KSR DTP Question Paper Maker — v3.1.0
+KSR DTP Question Paper Maker — v3.2.1
 
-Phase 2: Premium Question Editor
+Premium PDF / Institute Contact / Marker Cleanup update
 
 New in this release:
-- Visual question editor with one card per parsed question
-- Edit question text and A/B/C/D options
-- Change correct answer
-- Duplicate / delete questions
-- Move questions up or down
-- Search by question, option, or subject
-- Undo / redo editing history
-- Apply Changes normalizes numbering and syncs back to the PDF maker
-- Editor backup stored locally
-- Existing v3.0.0 Parser Safety & Accuracy checks preserved
-- Existing A4 two-column PDF, first-page header, page numbering and PWA behavior preserved
+- Optional Institute Address field
+- Optional Phone Number field
+- Address/phone appear in the first-page institute header only when entered
+- Blank optional fields consume no PDF header space
+- Stronger cleanup for repeated answer markers such as ••, ●●, • ● and similar variants
+- Premium Question Editor option ↑/↓ reorder preserved
+- Correct-answer auto-remap after option reorder preserved
+- Parser Safety Report, continuous numbering, A4 two-column PDF and PWA behavior preserved
 
 GitHub patch: replace index.html and sw.js only.
