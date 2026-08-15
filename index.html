@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0b3b7a" />
 <link rel="manifest" href="manifest.webmanifest" />
 <title></title>
-<!-- KSR DTP v3.4.2 Print Cleanup: dashboard excluded from PDF -->
+<!-- KSR DTP v3.4.3 Clean Workspace + Smart Space Use -->
 <style>
 :root{
   --blue:#087f78;--blue2:#0b9b8d;--ink:#12302d;--muted:#687b78;
@@ -65,7 +65,7 @@ textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}
 .opt{margin:0 0 .7mm;padding-left:3mm;break-inside:avoid;orphans:2;widows:2}
 /* Target-page mode should use every available column/page area. Long stems may
    continue in the next column/page instead of pushing a whole question away. */
-.columns.smart-flow .qstart,.columns.smart-flow .stem{orphans:2;widows:2}
+.columns.smart-flow .qstart,.columns.smart-flow .stem{orphans:1;widows:1}
 .columns.smart-flow .qblock{break-inside:auto!important;page-break-inside:auto!important}
 /* Smart orphan control: a long stem may flow, but the final stem line and its
    option set should travel together whenever the browser can satisfy it. */
@@ -128,6 +128,7 @@ textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}
   .first-header{margin-bottom:7mm;break-inside:avoid}
   .columns{min-height:auto}
   .columns.smart-flow{font-size:calc(1em * var(--print-fit-reserve,1))}
+  .columns.smart-flow .qstart,.columns.smart-flow .stem{orphans:1!important;widows:1!important}
   .qstart{break-after:avoid}
   .columns.smart-flow .qblock.no-body .qstart{break-after:avoid!important}
   .columns.smart-flow .qblock.has-body .stem:last-of-type{break-after:avoid!important}
@@ -146,19 +147,7 @@ textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}
 </header>
 
 <main class="wrap">
-<section class="panel dashboard">
-  <div class="dash-top"><div><div class="dash-title">KSR DTP Dashboard</div><div class="dash-sub">Create • Edit • Smart Fit • Print premium question papers</div></div><span class="chip">Premium Workspace</span></div>
-  <div class="institute-card">
-    <div class="logo-preview" id="dashLogo"><span>INSTITUTE<br>LOGO</span></div>
-    <div class="inst-copy"><div class="inst-name" id="dashInstitute">Your Institute</div><div class="inst-meta" id="dashMeta">Add institute name, address, phone and optional logo below.</div></div>
-  </div>
-  <div class="quick-grid">
-    <div class="quick-card"><b>Question Maker</b><span>Paste and generate papers quickly</span></div>
-    <div class="quick-card"><b>Smart Page Fit</b><span>Minimum • Maximum • Target pages</span></div>
-    <div class="quick-card"><b>Question Editor</b><span>Edit • reorder • answers • options</span></div>
-    <div class="quick-card"><b>Premium PDF</b><span>Clean A4 print-ready output</span></div>
-  </div>
-</section>
+
 <section class="panel controls">
   <div class="grid">
     <div class="field"><label>Institute Name</label><input id="institute" placeholder="Institute / School Name"></div>
@@ -168,7 +157,7 @@ textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}
   </div>
 
   <div class="grid" style="margin-top:10px">
-    <div class="field" style="grid-column:span 2"><label>Institute Logo <span style="font-weight:400;color:#7a8798">(Optional)</span></label><div class="logo-upload"><input id="logoFile" type="file" accept="image/png,image/jpeg,image/webp"><div class="logo-actions"><button type="button" class="logo-btn remove" id="removeLogo">Remove Logo</button></div></div><div class="hint">Logo is saved on this device and appears in the institute card and PDF header.</div></div>
+    <div class="field" style="grid-column:span 2"><label>Institute Logo <span style="font-weight:400;color:#7a8798">(Optional)</span></label><div class="logo-upload"><input id="logoFile" type="file" accept="image/png,image/jpeg,image/webp"><div class="logo-actions"><button type="button" class="logo-btn remove" id="removeLogo">Remove Logo</button></div></div><div class="hint">Logo is saved on this device and appears in the PDF header when selected.</div></div>
   </div>
 
   <div class="grid" style="margin-top:10px">
@@ -822,11 +811,15 @@ function calibrateTargetPages(fit,hdr,cols){
 }
 let instituteLogo=localStorage.getItem('ksr_instituteLogo')||'';
 function refreshBranding(){
+  // Dashboard was intentionally removed in v3.4.3. Keep this helper safe so
+  // institute/logo inputs continue to update the PDF without UI dependencies.
+  const dashInstitute=$('dashInstitute'), dashMeta=$('dashMeta'), dashLogo=$('dashLogo');
+  if(!dashInstitute && !dashMeta && !dashLogo) return;
   const name=($('institute').value||'').trim()||'Your Institute';
   const address=($('address').value||'').trim(), phone=($('phone').value||'').trim();
-  $('dashInstitute').textContent=name;
-  $('dashMeta').textContent=[address,phone].filter(Boolean).join(' • ')||'Add institute name, address, phone and optional logo below.';
-  $('dashLogo').innerHTML=instituteLogo?`<img src="${instituteLogo}" alt="Institute logo">`:'<span>INSTITUTE<br>LOGO</span>';
+  if(dashInstitute) dashInstitute.textContent=name;
+  if(dashMeta) dashMeta.textContent=[address,phone].filter(Boolean).join(' • ')||'Add institute name, address, phone and optional logo below.';
+  if(dashLogo) dashLogo.innerHTML=instituteLogo?`<img src="${instituteLogo}" alt="Institute logo">`:'<span>INSTITUTE<br>LOGO</span>';
 }
 $('logoFile').addEventListener('change',e=>{
   const f=e.target.files&&e.target.files[0]; if(!f)return;
