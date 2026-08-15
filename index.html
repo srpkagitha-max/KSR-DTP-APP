@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0b3b7a" />
 <link rel="manifest" href="manifest.webmanifest" />
 <title></title>
-<!-- KSR DTP v3.3.2 Smart Continuous Flow -->
+<!-- KSR DTP v3.3.3 Smart Space Balancing -->
 <style>
 :root{
   --blue:#0b3b7a;--blue2:#0e4f9d;--ink:#151a22;--muted:#687386;
@@ -60,6 +60,13 @@ textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}
 .qstart{font-weight:700;margin:0 0 1.0mm;orphans:2;widows:2}
 .stem{margin:0 0 1.0mm;orphans:2;widows:2}
 .opt{margin:0 0 .7mm;padding-left:3mm;break-inside:avoid;orphans:2;widows:2}
+/* Target-page mode should use every available column/page area. Long stems may
+   continue in the next column/page instead of pushing a whole question away. */
+.columns.smart-flow .qstart,.columns.smart-flow .stem{orphans:1;widows:1}
+.columns.smart-flow .qstart{break-after:auto}
+.columns.smart-flow .qblock{break-inside:auto!important;page-break-inside:auto!important}
+.columns.smart-flow .options-wrap{break-inside:auto!important}
+.columns.smart-flow .opt{break-inside:avoid!important;page-break-inside:avoid!important}
 .qblock{break-inside:auto;page-break-inside:auto;margin:0;padding:0}
 .options-wrap{display:block}
 .qblock.compact-options .options-wrap{display:grid;grid-template-columns:1fr 1fr;column-gap:3mm;row-gap:.2mm}
@@ -114,6 +121,7 @@ textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}
   .first-header{margin-bottom:7mm;break-inside:avoid}
   .columns{min-height:auto}
   .qstart{break-after:avoid}
+  .columns.smart-flow .qstart{break-after:auto}
   .opt{break-inside:avoid}
   .qblock{break-inside:auto;page-break-inside:auto}
   .target-pages-note{display:none!important}
@@ -722,26 +730,43 @@ function calibrateTargetPages(fit,hdr,cols){
   let font=parseFloat(cols.style.fontSize)||fit.font;
   let line=parseFloat(cols.style.lineHeight)||fit.line;
   let gap=fit.gap;
-  // Iteratively use the whole selected page count.  We alter typography only
-  // inside safe exam-paper limits; content is never clipped or hidden.
-  for(let i=0;i<7;i++){
+
+  // Phase 1: reach the requested page count without clipping content.
+  // Typography stays within readable exam-paper limits.
+  for(let i=0;i<10;i++){
     const pages=previewPageCount(hdr,cols);
     if(pages===target) break;
     const ratio=target/pages;
-    const step=Math.max(.90,Math.min(1.16,Math.sqrt(ratio)));
-    font=Math.max(9.8,Math.min(14.8,font*step));
-    line=Math.max(1.16,Math.min(1.72,line*step));
-    gap=Math.max(.25,Math.min(5.8,gap*(pages<target?1.10:.90) + (pages<target?.18:-.10)));
+    const step=Math.max(.88,Math.min(1.18,Math.sqrt(ratio)));
+    font=Math.max(9.7,Math.min(15.2,font*step));
+    line=Math.max(1.14,Math.min(1.82,line*step));
+    gap=Math.max(.15,Math.min(7.2,gap*(pages<target?1.12:.88) + (pages<target?.22:-.12)));
     cols.style.fontSize=font.toFixed(2)+'px';
     cols.style.lineHeight=line.toFixed(3);
     cols.querySelectorAll('.qgap').forEach(x=>x.style.height=gap.toFixed(2)+'mm');
-    // force layout before the next measurement
     void cols.offsetHeight;
   }
+
+  // Phase 2: if the selected page count is already correct, gently spread or
+  // tighten question gaps while *keeping the same page count*. This uses blank
+  // page-bottom space more evenly, especially for relaxed target-page layouts.
+  if(previewPageCount(hdr,cols)===target){
+    const direction = fit.target > smartPageRange(parse($('raw').value)).min ? 1 : -1;
+    let bestGap=gap;
+    for(let i=0;i<14;i++){
+      const trial=Math.max(.12,Math.min(8.5,bestGap + direction*.22));
+      cols.querySelectorAll('.qgap').forEach(x=>x.style.height=trial.toFixed(2)+'mm');
+      void cols.offsetHeight;
+      if(previewPageCount(hdr,cols)===target){ bestGap=trial; }
+      else { cols.querySelectorAll('.qgap').forEach(x=>x.style.height=bestGap.toFixed(2)+'mm'); break; }
+    }
+    gap=bestGap;
+  }
+
   cols.dataset.targetPages=String(target);
   cols.dataset.previewPages=String(previewPageCount(hdr,cols));
+  cols.dataset.smartBalanced='1';
 }
-
 function build(){
   const qs=parse($('raw').value);
   const start=Math.max(1,parseInt($('startNo').value||'1',10));
@@ -782,7 +807,7 @@ function build(){
   paper.appendChild(hdr);
 
   const cols=document.createElement('div');
-  cols.className='columns';
+  cols.className='columns'+(fit.mode==='auto'?'':' smart-flow');
   cols.style.fontSize=(fit.mode==='auto'?$('fontSize').value:fit.font)+'px';
   cols.style.lineHeight=(fit.mode==='auto'?$('lineHeight').value:fit.line);
   paper.appendChild(cols);
