@@ -39,7 +39,7 @@ textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}
 .institute-title{
   font-size:19px;font-weight:800;text-align:center;line-height:1.25;margin-bottom:3mm
 }
-.exam-meta{display:grid;grid-template-columns:1fr 1fr;gap:2mm 8mm;font-size:11px;line-height:1.45}
+.exam-meta{display:flex;justify-content:center;align-items:center;gap:6mm;font-size:11px;line-height:1.45;white-space:nowrap}
 .exam-meta b{font-weight:700}
 .columns{
   column-count:2;column-gap:5mm;column-rule:1px solid #777;
@@ -61,8 +61,8 @@ textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}
 @media print{
   @page{
     size:A4 portrait;
-    margin:0;
-    @bottom-center{content:counter(page);font-size:9pt}
+    margin:10mm 8mm 12mm;
+    @bottom-center{content:counter(page);font-size:9pt;font-family:Arial,sans-serif}
   }
   html,body{margin:0!important;padding:0!important;background:#fff}
   body{background:#fff}
@@ -71,12 +71,14 @@ textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}
   .paper{
     box-shadow:none!important;
     margin:0!important;
-    width:210mm!important;
-    min-height:297mm!important;
-    padding:10mm 8mm 12mm!important;
+    width:auto!important;
+    min-height:0!important;
+    padding:0!important;
   }
-  .first-header{margin-bottom:7mm}
+  .first-header{margin-bottom:7mm;break-inside:avoid}
   .columns{min-height:auto}
+  .qstart{break-after:avoid}
+  .opt{break-inside:avoid}
   
 }
 </style>
@@ -279,8 +281,10 @@ function build(){
   hdr.innerHTML=`
     <div class="institute-title">${esc($('institute').value||'INSTITUTE NAME')}</div>
     <div class="exam-meta">
+      <div><b>Date:</b> ${esc($('date').value||'__________')}</div>
+      <span>|</span>
       <div><b>Exam:</b> ${esc($('exam').value||'FINAL GRAND TEST')}</div>
-      <div style="text-align:right"><b>Date:</b> ${esc($('date').value||'__________')}</div>
+      <span>|</span>
       <div><b>Max Marks:</b> ${esc($('marksTotal').value||'__________')}</div>
     </div>`;
   paper.appendChild(hdr);
