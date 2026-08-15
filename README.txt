@@ -1,19 +1,10 @@
-KSR DTP Question Paper Maker v2.1.5
+KSR DTP Question Paper Maker v3.0.0 — Phase 1 Parser Safety & Accuracy
 
-Context-aware parser update:
-- Matching-list sub-items a) b) c) under List-I / జాబితా-I stay inside the question stem.
-- Correct-answer markers before options (•B, ●C, etc.) are detected correctly.
-- Printed options remain normalized in A/B/C/D order.
-- Numeric options with leading answer marks are supported.
-- Source-number regressions/duplicates are shown as warnings before print while generated numbering remains continuous.
-- Existing clean two-column A4 layout, first-page-only header, page numbering, answer brackets and PWA support are retained.
-
-Changes in v2.1.5:
-- Recognizes App Psychology / App Pie / App method / App Social and similar short App section labels as headings, so they never enter the previous question.
-- Detects red-circle and additional emoji answer markers used in Telugu banks.
-- Treats a source-number reset to 1 as an implicit new section, avoiding false numbering-break warnings when a subject heading is omitted.
-
-V2.1.5 FIX
-- Subject/App headings no longer use column-span:all. This prevents a heading from being visually inserted between the previous question stem and its A/B/C/D options during two-column PDF layout.
-- Headings stay in normal two-column flow and remain attached to the next question.
-- Service-worker cache bumped so installed PWA receives the corrected layout.
+Phase 1 additions:
+- Parser Safety Report with full issue list before PDF generation.
+- Live counts for Questions, Options, Detected Answers, Missing Answers and Issues.
+- Detects suspicious option counts, duplicate option letters, empty options, missing answers, answer-without-option and leaked section headings.
+- Retains source-number regression/duplicate warnings while generated numbering remains continuous.
+- Expanded correct-answer marker support, including ● • ⬤ * ✓ ✔ ★ 🔴 🔵 🟢 🟡 🟠 ⚫ ⚪ ✅ before or inside options.
+- Existing context-aware handling for statement lists, numeric options, matching-list a)/b)/c), section labels, two-column A4 layout, first-page-only header and PWA support retained.
+- Service worker cache bumped to v3.0.0.
