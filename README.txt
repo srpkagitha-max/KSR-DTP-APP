@@ -1,10 +1,18 @@
-KSR DTP Question Paper Maker v3.0.0 — Phase 1 Parser Safety & Accuracy
+KSR DTP Question Paper Maker — v3.1.0
 
-Phase 1 additions:
-- Parser Safety Report with full issue list before PDF generation.
-- Live counts for Questions, Options, Detected Answers, Missing Answers and Issues.
-- Detects suspicious option counts, duplicate option letters, empty options, missing answers, answer-without-option and leaked section headings.
-- Retains source-number regression/duplicate warnings while generated numbering remains continuous.
-- Expanded correct-answer marker support, including ● • ⬤ * ✓ ✔ ★ 🔴 🔵 🟢 🟡 🟠 ⚫ ⚪ ✅ before or inside options.
-- Existing context-aware handling for statement lists, numeric options, matching-list a)/b)/c), section labels, two-column A4 layout, first-page-only header and PWA support retained.
-- Service worker cache bumped to v3.0.0.
+Phase 2: Premium Question Editor
+
+New in this release:
+- Visual question editor with one card per parsed question
+- Edit question text and A/B/C/D options
+- Change correct answer
+- Duplicate / delete questions
+- Move questions up or down
+- Search by question, option, or subject
+- Undo / redo editing history
+- Apply Changes normalizes numbering and syncs back to the PDF maker
+- Editor backup stored locally
+- Existing v3.0.0 Parser Safety & Accuracy checks preserved
+- Existing A4 two-column PDF, first-page header, page numbering and PWA behavior preserved
+
+GitHub patch: replace index.html and sw.js only.
