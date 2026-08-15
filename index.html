@@ -190,17 +190,28 @@ function isSection(s){
 }
 function parse(raw){
   const lines=raw.replace(/\r/g,'').split('\n');
-  let qs=[], cur=null, section='';
+  let qs=[], cur=null, section='', numericSubList=false, subNext=1;
   for(let original of lines){
     let s=original.trim();
     if(!s) continue;
 
     if(isSection(s)){ section=s.replace(/[*_#]/g,'').trim(); continue; }
 
+    // A numbered list INSIDE a question (1., 2., 3., 4. ...) must stay in the
+    // question body. This is common in Telugu matching/statement questions.
+    // Once an inner list starts at 1, keep its following sequential numbers as body.
+    const inner=s.match(/^\s*(\d{1,2})\s*[.\):\-]\s*(.+)$/);
+    if(cur && cur.options.length===0 && inner){
+      const n=parseInt(inner[1],10);
+      if((!numericSubList && n===1) || (numericSubList && n===subNext)){
+        numericSubList=true; subNext=n+1; cur.body.push(s); continue;
+      }
+    }
+
     let qm=s.match(qRe);
     if(qm && isLikelyQuestionStart(s)){
       cur={sourceNo:qm[1], text:(qm[2]||'').trim(), section, body:[], options:[], answer:''};
-      qs.push(cur); continue;
+      qs.push(cur); numericSubList=false; subNext=1; continue;
     }
     if(!cur) continue;
 
