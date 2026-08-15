@@ -220,6 +220,17 @@ function parse(raw){
     if(!q.text && q.body.length){
       q.text=q.body.shift();
     }
+
+    // Always normalize MCQ options into A, B, C, D... order, regardless of
+    // the order in which they were pasted. If a duplicate option letter is
+    // present, keep the first non-empty version so the student paper stays stable.
+    const byLetter=new Map();
+    q.options.forEach(o=>{
+      const key=(o.letter||'').toUpperCase();
+      if(!key) return;
+      if(!byLetter.has(key) || (!byLetter.get(key).text && o.text)) byLetter.set(key,o);
+    });
+    q.options=[...byLetter.values()].sort((a,b)=>a.letter.localeCompare(b.letter));
   });
   return qs;
 }
@@ -271,7 +282,6 @@ function build(){
       <div><b>Exam:</b> ${esc($('exam').value||'FINAL GRAND TEST')}</div>
       <div style="text-align:right"><b>Date:</b> ${esc($('date').value||'__________')}</div>
       <div><b>Max Marks:</b> ${esc($('marksTotal').value||'__________')}</div>
-      <div style="text-align:right"><b>Questions:</b> ${qs.length||'—'}</div>
     </div>`;
   paper.appendChild(hdr);
 
