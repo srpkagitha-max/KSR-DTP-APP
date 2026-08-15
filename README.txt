@@ -1,9 +1,9 @@
-KSR DTP Question Paper Maker v2.1.2
+KSR DTP Question Paper Maker v2.1.3
 
-Parser hardening update:
-- Numeric MCQ options 1) 2) 3) 4) are recognized as options and printed as A/B/C/D.
-- Internal numbered statements 1. 2. 3. 4. remain inside the question.
-- Dedicated జవాబు:/Answer:/Ans: lines are captured for Answer Key and never printed on student paper.
-- Correct-answer symbols ● • ⬤ ✓ ✔ ★ * are removed when Student Paper mark-removal is selected.
-- Same-line patterns such as "జవాబు: B. 21. Next question" are split correctly.
-- Continuous auto-numbering remains stable.
+Context-aware parser update:
+- Matching-list sub-items a) b) c) under List-I / జాబితా-I stay inside the question stem.
+- Correct-answer markers before options (•B, ●C, etc.) are detected correctly.
+- Printed options remain normalized in A/B/C/D order.
+- Numeric options with leading answer marks are supported.
+- Source-number regressions/duplicates are shown as warnings before print while generated numbering remains continuous.
+- Existing clean two-column A4 layout, first-page-only header, page numbering, answer brackets and PWA support are retained.

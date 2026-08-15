@@ -177,9 +177,9 @@ const subjectRe=/^(psychology|telugu|english|articles|method|science|biology|soc
 // Main question starts: 1., 1), 1:, Q1, Question 1, ప్రశ్న 1, etc.
 const qRe=/^\s*(?:(?:ప్రశ్న|question|ques|q)\s*[-:#.]?\s*)?(\d{1,4})\s*(?:[\.\):\-]\s*)?(.*)$/i;
 // Letter options: A., A), (A), [A], A:, A-, or A + whitespace.
-const optRe=/^\s*[\(\[]?([A-Ha-h])[\)\]]?\s*(?:[\.\):\-]\s*|\s+)(.*)$/;
+const optRe=/^\s*([●•⬤✓✔★*]+)?\s*[\(\[]?([A-Ha-h])[\)\]]?\s*(?:[\.\):\-]\s*|\s+)(.*)$/;
 // Numeric options: 1) ... 2) ... 3) ... 4) ... . These are normalized to A/B/C/D.
-const numOptRe=/^\s*([1-8])\)\s*(.+)$/;
+const numOptRe=/^\s*([●•⬤✓✔★*]+)?\s*([1-8])\)\s*(.+)$/;
 const answerLineRe=/^\s*[●•⬤✓✔★*]*\s*(?:జవాబు|సమాధానం|answer|ans)\s*[:\-]?\s*([A-H1-8])(?:\s*[\).:\-]\s*.*)?$/i;
 
 function isLikelyQuestionStart(s){
@@ -229,13 +229,25 @@ function parse(raw){
 
     // Lettered options must be recognized before question-number detection.
     if(cur){
+      // In matching questions, lower-case a) b) c) under List-I / జాబితా-I
+      // are sub-items, not answer choices. Keep them inside the stem.
+      const lowerSub=s.match(/^\s*([a-h])\s*[\)\.\:\-]\s*(.+)$/);
+      const inMatchingList=cur.body.some(x=>/^(?:జాబితా|list)\s*[-–—:]?\s*(?:i|1)/i.test(x.trim()));
+      if(cur.options.length===0 && lowerSub && inMatchingList){
+        cur.body.push(s);
+        continue;
+      }
+
       const om=s.match(optRe);
       if(om){
-        let txt=(om[2]||'').trim();
+        const leadingMark=om[1]||'';
+        const letter=om[2].toUpperCase();
+        let txt=(om[3]||'').trim();
         ANSWER_MARK.lastIndex=0;
-        if(ANSWER_MARK.test(txt)) cur.answer=om[1].toUpperCase();
+        const markedInText=ANSWER_MARK.test(txt);
         ANSWER_MARK.lastIndex=0;
-        cur.options.push({letter:om[1].toUpperCase(),text:txt});
+        if(leadingMark || markedInText) cur.answer=letter;
+        cur.options.push({letter,text:txt});
         continue;
       }
 
@@ -243,11 +255,13 @@ function parse(raw){
       // They are mapped to A/B/C/D so the printed paper remains uniform.
       const nom=s.match(numOptRe);
       if(nom){
-        const letter=answerToLetter(nom[1]);
-        let txt=(nom[2]||'').trim();
+        const leadingMark=nom[1]||'';
+        const letter=answerToLetter(nom[2]);
+        let txt=(nom[3]||'').trim();
         ANSWER_MARK.lastIndex=0;
-        if(ANSWER_MARK.test(txt)) cur.answer=letter;
+        const markedInText=ANSWER_MARK.test(txt);
         ANSWER_MARK.lastIndex=0;
+        if(leadingMark || markedInText) cur.answer=letter;
         cur.options.push({letter,text:txt});
         continue;
       }
@@ -308,10 +322,24 @@ function addBracketToLastStem(stemNodes){
 }
 function analyze(qs){
   let issues=[];
+  let prevBySection=new Map();
   qs.forEach((q,i)=>{
     if(!q.text) issues.push(`Q${i+1}: question text missing`);
     if(q.options.length<2) issues.push(`Q${i+1}: options not fully detected`);
     if(!q.answer) issues.push(`Q${i+1}: correct answer not detected`);
+
+    // Warn about source-number regressions/duplicates inside the same detected section.
+    // Generated numbering remains continuous; this warning helps catch paste mistakes
+    // such as 49 -> 20, 38 -> 9, or 10 -> 10 before printing.
+    const src=parseInt(q.sourceNo,10);
+    const sec=(q.section||'__NO_SECTION__').toLowerCase();
+    if(Number.isFinite(src)){
+      const prev=prevBySection.get(sec);
+      if(prev && src<=prev.src){
+        issues.push(`Source numbering break near Q${i+1}: ${prev.src} → ${src}`);
+      }
+      prevBySection.set(sec,{src,index:i});
+    }
   });
   return issues;
 }
