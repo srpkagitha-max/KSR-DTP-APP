@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0b3b7a" />
 <link rel="manifest" href="manifest.webmanifest" />
 <title></title>
-<!-- KSR DTP v3.4.3 Clean Workspace + Smart Space Use -->
+<!-- KSR DTP v3.4.4 Final Page Balancer -->
 <style>
 :root{
   --blue:#087f78;--blue2:#0b9b8d;--ink:#12302d;--muted:#687b78;
@@ -60,9 +60,9 @@ textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}
   column-span:none;font-size:12px;font-weight:800;border-bottom:1px solid #999;
   padding:0 0 1.5mm;margin:2.5mm 0 2.5mm;break-after:avoid;
 }
-.qstart{font-weight:700;margin:0 0 1.0mm;orphans:2;widows:2}
-.stem{margin:0 0 1.0mm;orphans:2;widows:2}
-.opt{margin:0 0 .7mm;padding-left:3mm;break-inside:avoid;orphans:2;widows:2}
+.qstart{font-weight:700;margin:0 0 var(--fit-stem-gap,1mm);orphans:2;widows:2}
+.stem{margin:0 0 var(--fit-stem-gap,1mm);orphans:2;widows:2}
+.opt{margin:0 0 var(--fit-opt-gap,.7mm);padding-left:3mm;break-inside:avoid;orphans:2;widows:2}
 /* Target-page mode should use every available column/page area. Long stems may
    continue in the next column/page instead of pushing a whole question away. */
 .columns.smart-flow .qstart,.columns.smart-flow .stem{orphans:1;widows:1}
@@ -732,21 +732,26 @@ function canCompactOptions(q,profile){
   return longest<=safeLong && total<=safeLong*3.05;
 }
 
-function previewPageCount(hdr,cols){
-  // Conservative A4 estimator. Browser print engines reserve a little extra
-  // space for column/page fragmentation, so use 268mm rather than the raw
-  // 275mm geometric height. This prevents a selected target (e.g. 14) from
-  // unexpectedly spilling to page 15 in the final PDF.
+function previewPageMetrics(hdr,cols){
+  // Conservative A4 estimator. Besides the page count, retain the fractional
+  // fill of the last selected page. This lets Target Pages use the WHOLE range
+  // instead of stopping immediately after a tiny spill creates the last page.
   const pxPerMm=96/25.4;
   const printablePx=268*pxPerMm;
   const hs=getComputedStyle(hdr);
   const headerExtra=hdr.offsetHeight + parseFloat(hs.marginBottom||0);
   const total=Math.max(0,headerExtra + cols.scrollHeight);
-  return Math.max(1,Math.ceil((total-1)/printablePx));
+  const raw=Math.max(0,total/printablePx);
+  const pages=Math.max(1,Math.ceil(raw-0.001));
+  const lastFill=pages<=1?Math.min(1,raw):Math.max(0,Math.min(1,raw-(pages-1)));
+  return {pages,raw,lastFill,printablePx,total};
 }
-function setFitTypography(cols,font,line,gap){
+function previewPageCount(hdr,cols){ return previewPageMetrics(hdr,cols).pages; }
+function setFitTypography(cols,font,line,gap,optGap,stemGap){
   cols.style.fontSize=font.toFixed(2)+'px';
   cols.style.lineHeight=line.toFixed(3);
+  if(Number.isFinite(optGap)) cols.style.setProperty('--fit-opt-gap',optGap.toFixed(3)+'mm');
+  if(Number.isFinite(stemGap)) cols.style.setProperty('--fit-stem-gap',stemGap.toFixed(3)+'mm');
   cols.querySelectorAll('.qgap').forEach(x=>x.style.height=gap.toFixed(2)+'mm');
   void cols.offsetHeight;
 }
@@ -757,58 +762,92 @@ function calibrateTargetPages(fit,hdr,cols){
   let line=parseFloat(cols.style.lineHeight)||fit.line;
   let gap=fit.gap;
   const requested=fit.requestedFont||12;
+  let optGap=.55 + Math.min(1,Math.max(0,(fit.line-1.18)/.31))*.35;
+  let stemGap=.75 + Math.min(1,Math.max(0,(fit.line-1.18)/.31))*.35;
   const low=Math.max(9.55,requested*.82);
-  const high=Math.max(15.6,requested*1.22);
+  const high=Math.max(16.4,requested*1.28);
 
-  // Stage 1 — page-count lock. Tighten/relax in small steps until the selected
-  // target is reached. Font size is never silently reset to Medium; the user's
-  // chosen size (including Extra Large) remains the centre of the fit profile.
-  for(let i=0;i<18;i++){
+  // Stage 1 — lock the exact selected page count.
+  for(let i=0;i<24;i++){
     const pages=previewPageCount(hdr,cols);
     if(pages===target) break;
     if(pages>target){
-      font=Math.max(low,font*.975);
-      line=Math.max(1.12,line*.982);
-      gap=Math.max(.10,gap-.16);
+      font=Math.max(low,font*.974);
+      line=Math.max(1.11,line*.982);
+      gap=Math.max(.08,gap-.16);
+      optGap=Math.max(.42,optGap-.025);
+      stemGap=Math.max(.60,stemGap-.025);
     }else{
       font=Math.min(high,font*1.018);
-      line=Math.min(1.86,line*1.012);
-      gap=Math.min(8.8,gap+.20);
+      line=Math.min(1.90,line*1.012);
+      gap=Math.min(9.0,gap+.18);
+      optGap=Math.min(1.20,optGap+.025);
+      stemGap=Math.min(1.40,stemGap+.025);
     }
-    setFitTypography(cols,font,line,gap);
+    setFitTypography(cols,font,line,gap,optGap,stemGap);
   }
 
-  // Stage 2 — use the selected pages fully. When there is room, first increase
-  // question spacing and line spacing; only then enlarge text. This naturally
-  // gives vertical A/B/C/D options more breathing room instead of needlessly
-  // forcing compact option rows.
+  // Stage 2 — Final Page Balancer. If page N exists only because a tiny amount
+  // spilled onto it, gently distribute breathing room across stems, options and
+  // question gaps until the last page is substantially used. Stop BEFORE N+1.
+  // This produces a fuller, more DTP-like 20-page paper without giant blank
+  // areas or forcing short options into side-by-side rows.
   if(previewPageCount(hdr,cols)===target){
-    let best={font,line,gap};
-    for(let i=0;i<22;i++){
-      const trialGap=Math.min(9.2,best.gap+.16);
-      const trialLine=Math.min(1.88,best.line+.006);
-      setFitTypography(cols,best.font,trialLine,trialGap);
-      if(previewPageCount(hdr,cols)===target){best={font:best.font,line:trialLine,gap:trialGap};}
-      else{setFitTypography(cols,best.font,best.line,best.gap);break;}
+    let best={font,line,gap,optGap,stemGap};
+    const desiredFill = target>=10 ? .82 : .76;
+    for(let i=0;i<90;i++){
+      const m=previewPageMetrics(hdr,cols);
+      if(m.pages!==target || m.lastFill>=desiredFill) break;
+      const trial={
+        font:Math.min(high,best.font*(i%7===6?1.004:1)),
+        line:Math.min(1.92,best.line+.0025),
+        gap:Math.min(9.4,best.gap+.055),
+        optGap:Math.min(1.32,best.optGap+.012),
+        stemGap:Math.min(1.48,best.stemGap+.010)
+      };
+      setFitTypography(cols,trial.font,trial.line,trial.gap,trial.optGap,trial.stemGap);
+      const tm=previewPageMetrics(hdr,cols);
+      if(tm.pages===target){ best=trial; }
+      else { setFitTypography(cols,best.font,best.line,best.gap,best.optGap,best.stemGap); break; }
     }
-    font=best.font; line=best.line; gap=best.gap;
+    ({font,line,gap,optGap,stemGap}=best);
   }
 
-  cols.dataset.targetPages=String(target);
-  cols.dataset.previewPages=String(previewPageCount(hdr,cols));
-  cols.dataset.smartBalanced='1';
-  // Chrome/Android paged multi-column layout can consume a little more height
-  // than the on-screen DOM estimator. Use an adaptive reserve, strongest for
-  // Extra Large text, while keeping the selected target page count as priority.
-  const requestedSize=fit.requestedFont||12;
-  let reserve=1;
-  if(target>=8){
-    reserve = requestedSize>=14 ? .962 : requestedSize>=12.8 ? .972 : .978;
-  }else{
-    reserve = requestedSize>=14 ? .975 : .985;
+  // Stage 3 — edge calibration: approach the N→N+1 boundary in very small
+  // increments. This uses remaining white space naturally while keeping the
+  // user's exact page target the hard limit.
+  if(previewPageCount(hdr,cols)===target){
+    let best={font,line,gap,optGap,stemGap};
+    for(let i=0;i<30;i++){
+      const m=previewPageMetrics(hdr,cols);
+      if(m.lastFill>=.90) break;
+      const trial={...best,
+        line:Math.min(1.94,best.line+.0014),
+        gap:Math.min(9.6,best.gap+.028),
+        optGap:Math.min(1.36,best.optGap+.006),
+        stemGap:Math.min(1.52,best.stemGap+.005)
+      };
+      setFitTypography(cols,trial.font,trial.line,trial.gap,trial.optGap,trial.stemGap);
+      if(previewPageCount(hdr,cols)===target) best=trial;
+      else { setFitTypography(cols,best.font,best.line,best.gap,best.optGap,best.stemGap); break; }
+    }
+    ({font,line,gap,optGap,stemGap}=best);
   }
+
+  const metrics=previewPageMetrics(hdr,cols);
+  cols.dataset.targetPages=String(target);
+  cols.dataset.previewPages=String(metrics.pages);
+  cols.dataset.lastPageFill=metrics.lastFill.toFixed(3);
+  cols.dataset.smartBalanced='2';
+
+  // Chrome/Android print fragmentation reserve. Slightly less aggressive than
+  // before because the new balancer deliberately fills the selected page range.
+  let reserve=1;
+  if(target>=8){ reserve = requested>=14 ? .958 : requested>=12.8 ? .968 : .975; }
+  else { reserve = requested>=14 ? .972 : .983; }
   cols.style.setProperty('--print-fit-reserve',String(reserve));
 }
+
 let instituteLogo=localStorage.getItem('ksr_instituteLogo')||'';
 function refreshBranding(){
   // Dashboard was intentionally removed in v3.4.3. Keep this helper safe so
