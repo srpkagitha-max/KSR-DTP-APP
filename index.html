@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0b3b7a" />
 <link rel="manifest" href="manifest.webmanifest" />
 <title></title>
-<!-- KSR DTP v3.4.4 Final Page Balancer -->
+<!-- KSR DTP v3.4.5 Uniform Page Density -->
 <style>
 :root{
   --blue:#087f78;--blue2:#0b9b8d;--ink:#12302d;--muted:#687b78;
@@ -838,13 +838,21 @@ function calibrateTargetPages(fit,hdr,cols){
   cols.dataset.targetPages=String(target);
   cols.dataset.previewPages=String(metrics.pages);
   cols.dataset.lastPageFill=metrics.lastFill.toFixed(3);
-  cols.dataset.smartBalanced='2';
+  cols.dataset.smartBalanced='3';
 
-  // Chrome/Android print fragmentation reserve. Slightly less aggressive than
-  // before because the new balancer deliberately fills the selected page range.
+  // v3.4.5 Uniform Page Density: the previous Android safety reserve could
+  // shrink a perfectly balanced preview again at print time, leaving the last
+  // selected page visibly under-filled. Keep only a very small fragmentation
+  // reserve and make it adaptive to the measured last-page fill. This preserves
+  // the exact target while carrying the preview's balanced density into PDF.
   let reserve=1;
-  if(target>=8){ reserve = requested>=14 ? .958 : requested>=12.8 ? .968 : .975; }
-  else { reserve = requested>=14 ? .972 : .983; }
+  if(target>=8){
+    reserve = metrics.lastFill < .86 ? .996 : metrics.lastFill < .93 ? .992 : .988;
+  }else{
+    reserve = metrics.lastFill < .86 ? .998 : .994;
+  }
+  // Extra Large text gets just 0.2% more safety against Android glyph metrics.
+  if(requested>=14) reserve=Math.max(.984,reserve-.002);
   cols.style.setProperty('--print-fit-reserve',String(reserve));
 }
 
