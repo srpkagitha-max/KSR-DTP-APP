@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0b3b7a" />
 <link rel="manifest" href="manifest.webmanifest" />
 <title></title>
-<!-- KSR DTP v3.3.3 Smart Space Balancing -->
+<!-- KSR DTP v3.3.4 Extra Large + Smart Orphan Control -->
 <style>
 :root{
   --blue:#0b3b7a;--blue2:#0e4f9d;--ink:#151a22;--muted:#687386;
@@ -62,10 +62,13 @@ textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}
 .opt{margin:0 0 .7mm;padding-left:3mm;break-inside:avoid;orphans:2;widows:2}
 /* Target-page mode should use every available column/page area. Long stems may
    continue in the next column/page instead of pushing a whole question away. */
-.columns.smart-flow .qstart,.columns.smart-flow .stem{orphans:1;widows:1}
-.columns.smart-flow .qstart{break-after:auto}
+.columns.smart-flow .qstart,.columns.smart-flow .stem{orphans:2;widows:2}
 .columns.smart-flow .qblock{break-inside:auto!important;page-break-inside:auto!important}
-.columns.smart-flow .options-wrap{break-inside:auto!important}
+/* Smart orphan control: a long stem may flow, but the final stem line and its
+   option set should travel together whenever the browser can satisfy it. */
+.columns.smart-flow .qblock.no-body .qstart{break-after:avoid!important}
+.columns.smart-flow .qblock.has-body .stem:last-of-type{break-after:avoid!important}
+.columns.smart-flow .options-wrap{break-inside:avoid!important;page-break-inside:avoid!important}
 .columns.smart-flow .opt{break-inside:avoid!important;page-break-inside:avoid!important}
 .qblock{break-inside:auto;page-break-inside:auto;margin:0;padding:0}
 .options-wrap{display:block}
@@ -121,7 +124,9 @@ textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}
   .first-header{margin-bottom:7mm;break-inside:avoid}
   .columns{min-height:auto}
   .qstart{break-after:avoid}
-  .columns.smart-flow .qstart{break-after:auto}
+  .columns.smart-flow .qblock.no-body .qstart{break-after:avoid!important}
+  .columns.smart-flow .qblock.has-body .stem:last-of-type{break-after:avoid!important}
+  .columns.smart-flow .options-wrap{break-inside:avoid!important;page-break-inside:avoid!important}
   .opt{break-inside:avoid}
   .qblock{break-inside:auto;page-break-inside:auto}
   .target-pages-note{display:none!important}
@@ -152,7 +157,7 @@ textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}
   <div class="grid" style="margin-top:10px">
     <div class="field"><label>Start Question No.</label><input id="startNo" type="number" min="1" value="1"></div>
     <div class="field"><label>Text Size</label>
-      <select id="fontSize"><option value="12">Medium</option><option value="11.2">Compact</option><option value="12.8">Large</option></select>
+      <select id="fontSize"><option value="12">Medium</option><option value="11.2">Compact</option><option value="12.8">Large</option><option value="14.4">Extra Large</option></select>
     </div>
     <div class="field"><label>Answer Bracket Type</label>
       <select id="bracket">
@@ -657,13 +662,14 @@ function estimateQuestionWeight(q){
 }
 function smartPageRange(qs){
   if(!qs.length) return {min:0,max:0};
-  const w=qs.reduce((a,q)=>a+estimateQuestionWeight(q),0);
-  /* v3.3.2 calibration: the old estimator counted text weight as if every
-     question were an indivisible card. Printing actually uses two continuous
-     A4 columns, so the safe range must be based on flowing column capacity. */
+  const baseFont=parseFloat($('fontSize')?.value||'12');
+  // Larger requested text must increase the safe page range instead of being
+  // silently compressed back to the old Medium-size target profile.
+  const fontFactor=Math.pow(baseFont/12,1.42);
+  const w=qs.reduce((a,q)=>a+estimateQuestionWeight(q),0)*fontFactor;
   const min=Math.max(1,Math.ceil(w/63));
   const maxByContent=Math.max(min,Math.ceil(w/29));
-  const max=Math.min(maxByContent,min+10);
+  const max=Math.min(maxByContent,min+12);
   return {min,max};
 }
 function refreshPageTargets(qs){
@@ -692,11 +698,14 @@ function getFitProfile(qs){
   else return {mode:'auto',target:0,font:parseFloat($('fontSize').value),line:parseFloat($('lineHeight').value),gap:parseFloat($('qGap').value),compactRatio:0};
   const span=Math.max(1,r.max-r.min);
   const t=(target-r.min)/span; // 0 = compact, 1 = relaxed/full-page use
+  const requested=parseFloat($('fontSize').value||'12');
+  const minFont=Math.max(9.9,requested*0.88);
+  const maxFont=requested*1.08;
   return {
-    mode,target,
-    font:10.25 + 2.15*t,
-    line:1.18 + .29*t,
-    gap:.25 + 3.25*t,
+    mode,target,requestedFont:requested,
+    font:minFont + (maxFont-minFont)*t,
+    line:1.18 + .31*t,
+    gap:.25 + 3.35*t,
     compactRatio:t<=0.18 ? Math.max(0,1-t*3.2) : 0
   };
 }
@@ -738,7 +747,8 @@ function calibrateTargetPages(fit,hdr,cols){
     if(pages===target) break;
     const ratio=target/pages;
     const step=Math.max(.88,Math.min(1.18,Math.sqrt(ratio)));
-    font=Math.max(9.7,Math.min(15.2,font*step));
+    const low=Math.max(9.7,(fit.requestedFont||12)*0.84), high=Math.max(15.2,(fit.requestedFont||12)*1.18);
+    font=Math.max(low,Math.min(high,font*step));
     line=Math.max(1.14,Math.min(1.82,line*step));
     gap=Math.max(.15,Math.min(7.2,gap*(pages<target?1.12:.88) + (pages<target?.22:-.12)));
     cols.style.fontSize=font.toFixed(2)+'px';
@@ -823,7 +833,7 @@ function build(){
     }
 
     const block=document.createElement('div');
-    block.className='qblock'+(canCompactOptions(q,fit)?' compact-options':'');
+    block.className='qblock '+(q.body&&q.body.length?'has-body':'no-body')+(canCompactOptions(q,fit)?' compact-options':'');
     cols.appendChild(block);
 
     const number=start+idx;
