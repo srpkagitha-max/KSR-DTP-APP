@@ -6,16 +6,19 @@
 <meta name="theme-color" content="#0b3b7a" />
 <link rel="manifest" href="manifest.webmanifest" />
 <title></title>
-<!-- KSR DTP v3.3.6 Exact Page Lock + Flexible Orphan Control -->
+<!-- KSR DTP v3.4.0 Premium Dashboard + Institute Branding -->
 <style>
 :root{
-  --blue:#0b3b7a;--blue2:#0e4f9d;--ink:#151a22;--muted:#687386;
-  --line:#d7dee8;--panel:#fff;--bg:#edf2f8
+  --blue:#087f78;--blue2:#0b9b8d;--ink:#12302d;--muted:#687b78;
+  --line:#d5e5e2;--panel:#fff;--bg:#eef7f5
 }
 *{box-sizing:border-box}
 body{margin:0;font-family:Arial,"Noto Sans Telugu","Nirmala UI",sans-serif;background:var(--bg);color:var(--ink)}
-.appbar{background:linear-gradient(135deg,#082e63,#0b4a9b);color:#fff;padding:15px 18px;box-shadow:0 3px 14px #001a3b33}
-.appbar h1{font-size:19px;margin:0}.appbar small{opacity:.86}
+.appbar{background:linear-gradient(135deg,#064f4a,#078c80);color:#fff;padding:15px 18px;box-shadow:0 3px 14px #003b3633}
+.appbar h1{font-size:21px;margin:0}.appbar small{opacity:.9}
+.brandbar{max-width:1180px;margin:auto;display:flex;align-items:center;gap:11px}.brandmark{width:40px;height:40px;border-radius:12px;background:#ffffff1c;border:1px solid #ffffff42;display:grid;place-items:center;font-weight:900;font-size:18px}.brandcopy{flex:1}
+.dashboard{background:linear-gradient(145deg,#ffffff,#f6fffd);border:1px solid #d5e9e5}.dash-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}.dash-title{font-size:22px;font-weight:900;color:#075d57}.dash-sub{font-size:13px;color:var(--muted);margin-top:4px}.institute-card{margin-top:14px;border:1px solid #d7e8e5;border-radius:16px;padding:14px;display:flex;align-items:center;gap:13px;background:#fff;box-shadow:0 6px 18px #075d570c}.logo-preview{width:70px;height:70px;border-radius:14px;border:1px dashed #a9cbc6;background:#f1faf8;display:grid;place-items:center;overflow:hidden;flex:0 0 auto;color:#0a8178;font-weight:900;text-align:center;font-size:11px}.logo-preview img{width:100%;height:100%;object-fit:contain}.inst-copy{min-width:0;flex:1}.inst-name{font-size:16px;font-weight:900;color:#123b37}.inst-meta{font-size:12px;color:#6b7d7a;line-height:1.5;margin-top:3px}.quick-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-top:14px}.quick-card{border:1px solid #d8e8e5;background:#fff;border-radius:13px;padding:12px;min-height:76px;box-shadow:0 4px 14px #075d5709}.quick-card b{display:block;color:#075d57;font-size:13px;margin-bottom:4px}.quick-card span{font-size:11px;color:#71817f;line-height:1.35}.logo-upload{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.logo-upload input[type=file]{padding:8px;background:#f8fcfb}.logo-actions{display:flex;gap:7px;flex-wrap:wrap}.logo-btn{border:0;border-radius:9px;padding:8px 10px;font-weight:800;background:#e4f5f2;color:#08766e;cursor:pointer}.logo-btn.remove{background:#fff0f0;color:#a52a2a}
+.pdf-logo{width:16mm;height:16mm;object-fit:contain;position:absolute;left:5mm;top:4mm}.first-header.has-logo{position:relative;padding-left:24mm;padding-right:24mm}
 .wrap{max-width:1180px;margin:16px auto;padding:0 12px}
 .panel{background:var(--panel);border:1px solid #dfe6ef;border-radius:15px;padding:15px;box-shadow:0 7px 24px #17375e10;margin-bottom:14px}
 .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
@@ -103,8 +106,8 @@ textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}
 @media(max-width:520px){.qcard-actions{margin-left:0;width:100%}.mini{flex:1}.editor-status{width:100%;margin-left:0}.opt-row{grid-template-columns:30px 1fr auto}.opt-move{min-width:32px;padding:0 7px}}
 
 .warn{background:#fff8e7;border:1px solid #f2dfad;color:#6a5017;border-radius:10px;padding:9px 11px;font-size:12px;margin-top:10px;display:none}
-@media(max-width:850px){.grid{grid-template-columns:1fr 1fr}.paper-shell{padding:8px}.appbar{position:static}}
-@media(max-width:520px){.grid{grid-template-columns:1fr}.grid .field[style*="grid-column"]{grid-column:span 1!important}.wrap{padding:0 8px}.panel{border-radius:12px;padding:12px}}
+@media(max-width:850px){.grid{grid-template-columns:1fr 1fr}.quick-grid{grid-template-columns:1fr 1fr}.paper-shell{padding:8px}.appbar{position:static}}
+@media(max-width:520px){.grid{grid-template-columns:1fr}.dash-title{font-size:19px}.institute-card{align-items:flex-start}.quick-grid{grid-template-columns:1fr 1fr}.grid .field[style*="grid-column"]{grid-column:span 1!important}.wrap{padding:0 8px}.panel{border-radius:12px;padding:12px}}
 @media print{
   @page{
     size:A4 portrait;
@@ -139,17 +142,33 @@ textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}
 </head>
 <body>
 <header class="appbar">
-  <h1></h1>
-  <small>Premium A4 MCQ • continuous numbering • two-column print flow</small>
+  <div class="brandbar"><div class="brandmark">KD</div><div class="brandcopy"><h1>KSR DTP</h1><small>Smart Question Paper Designer</small></div></div>
 </header>
 
 <main class="wrap">
+<section class="panel dashboard">
+  <div class="dash-top"><div><div class="dash-title">KSR DTP Dashboard</div><div class="dash-sub">Create • Edit • Smart Fit • Print premium question papers</div></div><span class="chip">Premium Workspace</span></div>
+  <div class="institute-card">
+    <div class="logo-preview" id="dashLogo"><span>INSTITUTE<br>LOGO</span></div>
+    <div class="inst-copy"><div class="inst-name" id="dashInstitute">Your Institute</div><div class="inst-meta" id="dashMeta">Add institute name, address, phone and optional logo below.</div></div>
+  </div>
+  <div class="quick-grid">
+    <div class="quick-card"><b>Question Maker</b><span>Paste and generate papers quickly</span></div>
+    <div class="quick-card"><b>Smart Page Fit</b><span>Minimum • Maximum • Target pages</span></div>
+    <div class="quick-card"><b>Question Editor</b><span>Edit • reorder • answers • options</span></div>
+    <div class="quick-card"><b>Premium PDF</b><span>Clean A4 print-ready output</span></div>
+  </div>
+</section>
 <section class="panel controls">
   <div class="grid">
     <div class="field"><label>Institute Name</label><input id="institute" placeholder="Institute / School Name"></div>
     <div class="field"><label>Exam Name</label><input id="exam" value="FINAL GRAND TEST"></div>
     <div class="field"><label>Date</label><input id="date" placeholder="DD-MM-YYYY"></div>
     <div class="field"><label>Max Marks</label><input id="marksTotal" type="number" min="0" placeholder="160"></div>
+  </div>
+
+  <div class="grid" style="margin-top:10px">
+    <div class="field" style="grid-column:span 2"><label>Institute Logo <span style="font-weight:400;color:#7a8798">(Optional)</span></label><div class="logo-upload"><input id="logoFile" type="file" accept="image/png,image/jpeg,image/webp"><div class="logo-actions"><button type="button" class="logo-btn remove" id="removeLogo">Remove Logo</button></div></div><div class="hint">Logo is saved on this device and appears in the institute card and PDF header.</div></div>
   </div>
 
   <div class="grid" style="margin-top:10px">
@@ -801,6 +820,22 @@ function calibrateTargetPages(fit,hdr,cols){
   }
   cols.style.setProperty('--print-fit-reserve',String(reserve));
 }
+let instituteLogo=localStorage.getItem('ksr_instituteLogo')||'';
+function refreshBranding(){
+  const name=($('institute').value||'').trim()||'Your Institute';
+  const address=($('address').value||'').trim(), phone=($('phone').value||'').trim();
+  $('dashInstitute').textContent=name;
+  $('dashMeta').textContent=[address,phone].filter(Boolean).join(' • ')||'Add institute name, address, phone and optional logo below.';
+  $('dashLogo').innerHTML=instituteLogo?`<img src="${instituteLogo}" alt="Institute logo">`:'<span>INSTITUTE<br>LOGO</span>';
+}
+$('logoFile').addEventListener('change',e=>{
+  const f=e.target.files&&e.target.files[0]; if(!f)return;
+  if(f.size>2*1024*1024){alert('Please choose a logo below 2 MB.');e.target.value='';return;}
+  const r=new FileReader(); r.onload=()=>{instituteLogo=String(r.result||'');localStorage.setItem('ksr_instituteLogo',instituteLogo);refreshBranding();build();}; r.readAsDataURL(f);
+});
+$('removeLogo').onclick=()=>{instituteLogo='';localStorage.removeItem('ksr_instituteLogo');$('logoFile').value='';refreshBranding();build();};
+['institute','address','phone'].forEach(id=>$(id).addEventListener('input',refreshBranding));
+
 function build(){
   const qs=parse($('raw').value);
   const start=Math.max(1,parseInt($('startNo').value||'1',10));
@@ -822,13 +857,14 @@ function build(){
   const paper=$('paper'); paper.innerHTML='';
 
   const hdr=document.createElement('div');
-  hdr.className='first-header';
+  hdr.className='first-header'+(instituteLogo?' has-logo':'');
   const address=($('address').value||'').trim();
   const phone=($('phone').value||'').trim();
   const contactParts=[];
   if(address) contactParts.push(`<span>${esc(address)}</span>`);
   if(phone) contactParts.push(`<span><b>Ph:</b> ${esc(phone)}</span>`);
   hdr.innerHTML=`
+    ${instituteLogo?`<img class="pdf-logo" src="${instituteLogo}" alt="">`:''}
     <div class="institute-title">${esc($('institute').value||'INSTITUTE NAME')}</div>
     ${contactParts.length ? `<div class="contact-meta">${contactParts.join('<span class="sep">|</span>')}</div>` : ''}
     <div class="exam-meta">
@@ -972,6 +1008,7 @@ window.addEventListener('load',()=>{
   $('raw').value=localStorage.getItem('ksr_dtp_raw')||'';
   ['institute','address','phone','exam','date','marksTotal','startNo','fontSize','bracket','indent','lineHeight','qGap','keepMarks','sectionMode','pageFitMode','targetPages']
     .forEach(id=>{const v=localStorage.getItem('ksr_'+id); if(v!==null) $(id).value=v;});
+  refreshBranding();
   build();
 });
 </script>
