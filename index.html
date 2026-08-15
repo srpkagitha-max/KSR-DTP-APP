@@ -46,8 +46,11 @@ textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}
   font-size:12px;line-height:1.38;min-height:250mm;
 }
 .section-head{
-  column-span:all;font-size:12px;font-weight:800;border-bottom:1px solid #999;
-  padding:0 0 1.5mm;margin:1mm 0 2.5mm
+  /* Keep a detected subject heading inside the current column.
+     column-span:all can rebalance multi-column content and visually insert
+     the heading between a question stem and its options. */
+  column-span:none;font-size:12px;font-weight:800;border-bottom:1px solid #999;
+  padding:0 0 1.5mm;margin:2.5mm 0 2.5mm;break-after:avoid;
 }
 .qstart{font-weight:700;margin:0 0 1.0mm}
 .stem{margin:0 0 1.0mm}
@@ -170,6 +173,7 @@ textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}
 </main>
 
 <script>
+// KSR DTP v2.1.5 — section-flow fix
 const $=id=>document.getElementById(id);
 const ANSWER_MARK=/[●•⬤✓✔★*🔴🔵🟢🟡🟠⚫⚪✅]+/gu;
 const subjectRe=/^(?:app\s+)?(?:exam|gk|pie|psychology|telugu|english|articles|method|science|biology|social|math|maths|mathematics|trimethod|tri method|telugu method|english method|maths method|science method|social method)$/i;
