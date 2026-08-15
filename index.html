@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0b3b7a" />
 <link rel="manifest" href="manifest.webmanifest" />
 <title></title>
-<!-- KSR DTP v3.3.1 Smart Continuous Flow -->
+<!-- KSR DTP v3.3.2 Smart Continuous Flow -->
 <style>
 :root{
   --blue:#0b3b7a;--blue2:#0e4f9d;--ink:#151a22;--muted:#687386;
@@ -650,10 +650,10 @@ function estimateQuestionWeight(q){
 function smartPageRange(qs){
   if(!qs.length) return {min:0,max:0};
   const w=qs.reduce((a,q)=>a+estimateQuestionWeight(q),0);
-  /* v3.3.1 calibration: the old estimator counted text weight as if every
+  /* v3.3.2 calibration: the old estimator counted text weight as if every
      question were an indivisible card. Printing actually uses two continuous
      A4 columns, so the safe range must be based on flowing column capacity. */
-  const min=Math.max(1,Math.ceil(w/55));
+  const min=Math.max(1,Math.ceil(w/63));
   const maxByContent=Math.max(min,Math.ceil(w/29));
   const max=Math.min(maxByContent,min+10);
   return {min,max};
@@ -689,7 +689,7 @@ function getFitProfile(qs){
     font:10.25 + 2.15*t,
     line:1.18 + .29*t,
     gap:.25 + 3.25*t,
-    compactRatio:Math.max(0,1-t*1.55)
+    compactRatio:t<=0.18 ? Math.max(0,1-t*3.2) : 0
   };
 }
 function canCompactOptions(q,profile){
@@ -702,6 +702,44 @@ function canCompactOptions(q,profile){
   // back to one-option-per-line so no option is squeezed or clipped.
   const safeLong=profile.compactRatio>.72?58:profile.compactRatio>.42?44:32;
   return longest<=safeLong && total<=safeLong*3.05;
+}
+
+function previewPageCount(hdr,cols){
+  // The screen preview uses the same effective text width as A4 print:
+  // 210mm paper with 8mm left/right print margins.  The first page additionally
+  // contains the institute header.  Measuring the flowing two-column height here
+  // gives a close print-page count without creating artificial page boxes.
+  const pxPerMm=96/25.4;
+  const printablePx=275*pxPerMm; // A4 297mm - 10mm top - 12mm bottom
+  const hs=getComputedStyle(hdr);
+  const headerExtra=hdr.offsetHeight + parseFloat(hs.marginBottom||0);
+  const total=Math.max(0,headerExtra + cols.scrollHeight);
+  return Math.max(1,Math.ceil((total-1)/printablePx));
+}
+function calibrateTargetPages(fit,hdr,cols){
+  if(fit.mode==='auto'||!fit.target) return;
+  const target=fit.target;
+  let font=parseFloat(cols.style.fontSize)||fit.font;
+  let line=parseFloat(cols.style.lineHeight)||fit.line;
+  let gap=fit.gap;
+  // Iteratively use the whole selected page count.  We alter typography only
+  // inside safe exam-paper limits; content is never clipped or hidden.
+  for(let i=0;i<7;i++){
+    const pages=previewPageCount(hdr,cols);
+    if(pages===target) break;
+    const ratio=target/pages;
+    const step=Math.max(.90,Math.min(1.16,Math.sqrt(ratio)));
+    font=Math.max(9.8,Math.min(14.8,font*step));
+    line=Math.max(1.16,Math.min(1.72,line*step));
+    gap=Math.max(.25,Math.min(5.8,gap*(pages<target?1.10:.90) + (pages<target?.18:-.10)));
+    cols.style.fontSize=font.toFixed(2)+'px';
+    cols.style.lineHeight=line.toFixed(3);
+    cols.querySelectorAll('.qgap').forEach(x=>x.style.height=gap.toFixed(2)+'mm');
+    // force layout before the next measurement
+    void cols.offsetHeight;
+  }
+  cols.dataset.targetPages=String(target);
+  cols.dataset.previewPages=String(previewPageCount(hdr,cols));
 }
 
 function build(){
@@ -800,6 +838,7 @@ function build(){
     block.appendChild(sp);
   });
 
+  calibrateTargetPages(fit,hdr,cols);
   saveDraft();
 }
 function saveDraft(){
