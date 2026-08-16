@@ -51,7 +51,7 @@ textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}
 .exam-meta b{font-weight:700}
 .columns{
   column-count:2;column-gap:5mm;column-rule:1px solid #777;
-  font-size:12px;line-height:1.38;min-height:250mm;text-rendering:optimizeLegibility;
+  font-size:12px;line-height:1.38;min-height:250mm;text-rendering:optimizeLegibility;overflow-wrap:anywhere;word-break:normal;
 }
 .section-head{
   /* Keep a detected subject heading inside the current column.
@@ -73,7 +73,10 @@ textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}
 .columns.smart-flow .qblock.has-body .stem:last-of-type{break-after:avoid!important}
 .columns.smart-flow .options-wrap{break-inside:auto!important;page-break-inside:auto!important}
 .columns.smart-flow .options-wrap .opt:first-child{break-before:avoid!important;page-break-before:avoid!important}
-.columns.smart-flow .opt{break-inside:avoid!important;page-break-inside:avoid!important}
+.columns.smart-flow .opt{break-inside:avoid!important;page-break-inside:avoid!important;overflow-wrap:anywhere;word-break:normal}
+/* v3.4.9 print polish: preserve continuous question/option flow exactly as before,
+   while making very long unbroken text safe inside a column. */
+.columns.smart-flow .qstart,.columns.smart-flow .stem,.columns.smart-flow .opt{max-width:100%}
 .qblock{break-inside:auto;page-break-inside:auto;margin:0;padding:0}
 .options-wrap{display:block}
 .qblock.compact-options .options-wrap{display:grid;grid-template-columns:1fr 1fr;column-gap:3mm;row-gap:.2mm}
@@ -114,7 +117,7 @@ textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}
     margin:10mm 8mm 12mm;
     @bottom-center{content:counter(page);font-size:9pt;font-family:Arial,sans-serif}
   }
-  html,body{margin:0!important;padding:0!important;background:#fff}
+  html,body{margin:0!important;padding:0!important;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   body{background:#fff}
   .appbar,.dashboard,.controls,.preview-title{display:none!important}
   .wrap,.panel,.paper-shell{margin:0!important;padding:0!important;max-width:none!important;background:#fff!important;border:0!important;box-shadow:none!important}
@@ -829,7 +832,7 @@ function calibrateTargetPages(fit,hdr,cols){
     let best={font,line,gap,optGap,stemGap};
     for(let i=0;i<30;i++){
       const m=previewPageMetrics(hdr,cols);
-      if(m.lastFill>=.90) break;
+      if(m.lastFill>=.94) break;
       const trial={...best,
         line:Math.min(1.94,best.line+.0014),
         gap:Math.min(9.6,best.gap+.028),
@@ -847,7 +850,8 @@ function calibrateTargetPages(fit,hdr,cols){
   cols.dataset.targetPages=String(target);
   cols.dataset.previewPages=String(metrics.pages);
   cols.dataset.lastPageFill=metrics.lastFill.toFixed(3);
-  cols.dataset.smartBalanced='5';
+  cols.dataset.smartBalanced='6';
+  cols.dataset.layoutPolish='v3.4.9';
 
   // v3.4.6 Print Density Carry-Forward:
   // The preview balancer already stops at the N -> N+1 boundary. A reserve
