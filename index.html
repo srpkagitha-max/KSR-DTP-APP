@@ -110,7 +110,7 @@ textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}
 .ans{float:right;font-weight:700;letter-spacing:1px;margin-left:2mm;white-space:nowrap}
 
 
-/* v3.6.0 — question paper templates. It is inserted only when it fits in
+/* v3.6.1 — institute-wise custom paper styles. It is inserted only when it fits in
    already-unused space on the final target page, so it never changes the
    requested page count. No heading is shown: only the quote itself. */
 .end-quote{
@@ -149,6 +149,13 @@ textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}
 .warn{background:#fff8e7;border:1px solid #f2dfad;color:#6a5017;border-radius:10px;padding:9px 11px;font-size:12px;margin-top:10px;display:none}
 @media(max-width:850px){.grid{grid-template-columns:1fr 1fr}.quick-grid{grid-template-columns:1fr 1fr}.paper-shell{padding:8px}.appbar{position:static}}
 @media(max-width:520px){.grid{grid-template-columns:1fr}.dash-title{font-size:19px}.institute-card{align-items:flex-start}.quick-grid{grid-template-columns:1fr 1fr}.grid .field[style*="grid-column"]{grid-column:span 1!important}.wrap{padding:0 8px}.panel{border-radius:12px;padding:12px}}
+
+/* v3.6.1 institute-wise custom question paper styles */
+.paper.style-single .columns{column-count:1!important;column-gap:0!important}
+.paper.style-minimal .first-header{border-left:0!important;border-right:0!important;border-top:0!important;border-radius:0!important}
+.paper.style-boxed .first-header{border:1.4px solid #222!important;border-radius:3mm!important;padding:4mm!important}
+.paper.style-boxed .qblock{border:.6px solid #bbb;border-radius:1.8mm;padding:2mm 2.2mm;margin-bottom:2mm}
+
 @media print{
   @page{
     size:A4 portrait;
@@ -198,7 +205,7 @@ textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}
         <button type="button" class="profile-action primary" id="saveProfile">Save / Update</button>
         <button type="button" class="profile-action danger" id="deleteProfile">Delete</button>
       </div>
-      <div class="profile-hint">Dropdown shows a short institute label for easy mobile use. The full institute name, address, phone, logo and PDF layout settings are saved. Exam name, date, marks and questions stay separate for each paper.</div>
+      <div class="profile-hint">Dropdown shows a short institute label for easy mobile use. The full institute name, address, phone, logo and complete Question Paper Style are saved. Exam name, date, marks and questions stay separate for each paper.</div>
     </div>
   </div>
 
@@ -223,6 +230,8 @@ textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}
     <div class="field"><label>Exam Name</label><input id="exam" value="FINAL GRAND TEST"></div>
     <div class="field"><label>Date</label><input id="date" placeholder="DD-MM-YYYY"></div>
     <div class="field"><label>Max Marks</label><input id="marksTotal" type="number" min="0" placeholder="160"></div>
+    <div class="field"><label>Question Paper Layout</label><select id="paperLayout"><option value="two">Two Columns</option><option value="single">Single Column</option></select></div>
+    <div class="field"><label>Paper Design</label><select id="paperBorder"><option value="classic">Classic</option><option value="minimal">Minimal</option><option value="boxed">Premium Box</option></select></div>
   </div>
 
   <div class="grid" style="margin-top:10px">
@@ -917,7 +926,7 @@ function calibrateTargetPages(fit,hdr,cols){
   cols.dataset.previewPages=String(metrics.pages);
   cols.dataset.lastPageFill=metrics.lastFill.toFixed(3);
   cols.dataset.smartBalanced='6';
-  cols.dataset.layoutPolish='v3.6.0';
+  cols.dataset.layoutPolish='v3.6.1';
 
   // v3.4.6 Print Density Carry-Forward:
   // The preview balancer already stops at the N -> N+1 boundary. A reserve
@@ -1009,7 +1018,7 @@ function applyPaperTemplate(){
 }
 
 const PROFILE_KEY='ksr_dtp_institute_profiles_v1';
-const PROFILE_LAYOUT_IDS=['fontSize','bracket','indent','lineHeight','qGap','keepMarks','sectionMode','pageFitMode','targetPages'];
+const PROFILE_LAYOUT_IDS=['paperLayout','paperBorder','fontSize','bracket','indent','lineHeight','qGap','keepMarks','sectionMode','pageFitMode','targetPages'];
 
 function getProfiles(){
   try{
@@ -1141,6 +1150,10 @@ function build(){
   $('warn').textContent=issues.length ? (issues.slice(0,6).join(' • ')+(issues.length>6?` • +${issues.length-6} more`:"")) : '';
 
   const paper=$('paper'); paper.innerHTML='';
+  paper.classList.remove('style-single','style-minimal','style-boxed');
+  if($('paperLayout').value==='single') paper.classList.add('style-single');
+  if($('paperBorder').value==='minimal') paper.classList.add('style-minimal');
+  if($('paperBorder').value==='boxed') paper.classList.add('style-boxed');
 
   const hdr=document.createElement('div');
   hdr.className='first-header'+(instituteLogo?' has-logo':'');
@@ -1247,6 +1260,7 @@ function printPaper(){
   },120);
 }
 
+['paperLayout','paperBorder'].forEach(id=>$(id).addEventListener('change',build));
 $('paperTemplate').addEventListener('change',updateTemplateNote);
 $('applyTemplate').onclick=applyPaperTemplate;
 
