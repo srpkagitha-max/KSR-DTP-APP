@@ -28,6 +28,15 @@ body{margin:0;font-family:Arial,"Noto Sans Telugu","Nirmala UI",sans-serif;backg
 .profile-action.primary{background:#0a9187;color:#fff}
 .profile-action.danger{background:#fff0f0;color:#a52a2a}
 .profile-hint{font-size:11px;color:#71817f;line-height:1.45;margin-top:8px}
+.template-strip{border:1px solid #dfe8f0;background:linear-gradient(145deg,#ffffff,#f7fbff);border-radius:14px;padding:12px;margin-top:10px}
+.template-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+.template-top b{color:#0b5e78;font-size:13px}
+.template-top span{font-size:11px;color:#71817f}
+.template-grid{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center}
+.template-apply{border:0;border-radius:10px;background:#e7f3f8;color:#0b6280;font-weight:900;padding:11px 14px;cursor:pointer;white-space:nowrap}
+.template-note{font-size:11px;color:#71817f;line-height:1.45;margin-top:8px}
+@media(max-width:640px){.template-grid{grid-template-columns:1fr}.template-apply{width:100%}}
+
 @media(max-width:640px){
   .profile-row{grid-template-columns:1fr 1fr}
   .profile-row select{grid-column:1/-1}
@@ -101,7 +110,7 @@ textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}
 .ans{float:right;font-weight:700;letter-spacing:1px;margin-left:2mm;white-space:nowrap}
 
 
-/* v3.5.3 — compact institute profile labels. It is inserted only when it fits in
+/* v3.6.0 — question paper templates. It is inserted only when it fits in
    already-unused space on the final target page, so it never changes the
    requested page count. No heading is shown: only the quote itself. */
 .end-quote{
@@ -191,6 +200,22 @@ textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}
       </div>
       <div class="profile-hint">Dropdown shows a short institute label for easy mobile use. The full institute name, address, phone, logo and PDF layout settings are saved. Exam name, date, marks and questions stay separate for each paper.</div>
     </div>
+  </div>
+
+  <div class="template-strip">
+    <div class="template-top"><b>Question Paper Template</b><span>Quick paper style</span></div>
+    <div class="template-grid">
+      <select id="paperTemplate" aria-label="Question paper template">
+        <option value="custom">Custom</option>
+        <option value="monthly">Monthly Test</option>
+        <option value="grand">Grand Test</option>
+        <option value="model">Model Paper</option>
+        <option value="practice">Practice Test</option>
+        <option value="entrance">Entrance Test</option>
+      </select>
+      <button type="button" class="template-apply" id="applyTemplate">Apply Template</button>
+    </div>
+    <div class="template-note" id="templateNote">Custom keeps your current settings. Templates change only exam name and paper spacing/style; institute profile, questions, logo, marks, date and Target Pages are not disturbed.</div>
   </div>
 
   <div class="grid" style="margin-top:10px">
@@ -892,7 +917,7 @@ function calibrateTargetPages(fit,hdr,cols){
   cols.dataset.previewPages=String(metrics.pages);
   cols.dataset.lastPageFill=metrics.lastFill.toFixed(3);
   cols.dataset.smartBalanced='6';
-  cols.dataset.layoutPolish='v3.5.3';
+  cols.dataset.layoutPolish='v3.6.0';
 
   // v3.4.6 Print Density Carry-Forward:
   // The preview balancer already stops at the N -> N+1 boundary. A reserve
@@ -955,6 +980,33 @@ function addEndQuoteIfSpace(fit,hdr,cols){
   if(after.pages!==fit.target) box.remove();
 }
 
+
+
+const PAPER_TEMPLATES={
+  custom:{label:'Custom',note:'Custom keeps your current settings. Nothing is changed automatically.'},
+  monthly:{label:'Monthly Test',exam:'MONTHLY TEST',fontSize:'12.8',indent:'5',lineHeight:'1.48',qGap:'2',sectionMode:'1',note:'Monthly Test: larger text, relaxed spacing and wider question gaps for a clean classroom paper.'},
+  grand:{label:'Grand Test',exam:'GRAND TEST',fontSize:'12',indent:'3',lineHeight:'1.38',qGap:'1.2',sectionMode:'1',note:'Grand Test: balanced premium spacing for medium or large question papers.'},
+  model:{label:'Model Paper',exam:'MODEL PAPER',fontSize:'12',indent:'3',lineHeight:'1.38',qGap:'1.2',sectionMode:'1',note:'Model Paper: balanced print-ready layout with subject headings when detected.'},
+  practice:{label:'Practice Test',exam:'PRACTICE TEST',fontSize:'11.2',indent:'1.5',lineHeight:'1.30',qGap:'.6',sectionMode:'0',note:'Practice Test: compact layout to fit more questions while keeping readability.'},
+  entrance:{label:'Entrance Test',exam:'ENTRANCE TEST',fontSize:'11.2',indent:'1.5',lineHeight:'1.30',qGap:'.6',sectionMode:'0',note:'Entrance Test: compact objective-paper layout for high question counts.'}
+};
+function updateTemplateNote(){
+  const key=$('paperTemplate')?.value||'custom';
+  const t=PAPER_TEMPLATES[key]||PAPER_TEMPLATES.custom;
+  if($('templateNote')) $('templateNote').textContent=t.note;
+}
+function applyPaperTemplate(){
+  const key=$('paperTemplate').value||'custom';
+  const t=PAPER_TEMPLATES[key]||PAPER_TEMPLATES.custom;
+  updateTemplateNote();
+  if(key==='custom') return;
+  if(t.exam) $('exam').value=t.exam;
+  ['fontSize','indent','lineHeight','qGap','sectionMode'].forEach(id=>{
+    if(t[id]!==undefined) $(id).value=String(t[id]);
+  });
+  build();
+  saveDraft();
+}
 
 const PROFILE_KEY='ksr_dtp_institute_profiles_v1';
 const PROFILE_LAYOUT_IDS=['fontSize','bracket','indent','lineHeight','qGap','keepMarks','sectionMode','pageFitMode','targetPages'];
@@ -1195,6 +1247,9 @@ function printPaper(){
   },120);
 }
 
+$('paperTemplate').addEventListener('change',updateTemplateNote);
+$('applyTemplate').onclick=applyPaperTemplate;
+
 $('profileSelect').addEventListener('change',()=>{
   const id=$('profileSelect').value;
   if(!id) return;
@@ -1249,6 +1304,7 @@ $('raw').addEventListener('input',()=>localStorage.setItem('ksr_dtp_raw',$('raw'
 window.addEventListener('load',()=>{
   if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
   renderProfileSelect('');
+  updateTemplateNote();
   $('raw').value=localStorage.getItem('ksr_dtp_raw')||'';
   ['institute','address','phone','exam','date','marksTotal','startNo','fontSize','bracket','indent','lineHeight','qGap','keepMarks','sectionMode','pageFitMode','targetPages']
     .forEach(id=>{const v=localStorage.getItem('ksr_'+id); if(v!==null) $(id).value=v;});
