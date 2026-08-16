@@ -85,16 +85,17 @@ textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}
 .ans{float:right;font-weight:700;letter-spacing:1px;margin-left:2mm;white-space:nowrap}
 
 
-/* v3.5.0 — optional end-of-paper quote. It is inserted only when it fits in
+/* v3.5.1 — reliable end-of-paper quote. It is inserted only when it fits in
    already-unused space on the final target page, so it never changes the
    requested page count. No heading is shown: only the quote itself. */
 .end-quote{
   break-inside:avoid;page-break-inside:avoid;
-  margin:4mm 0 1mm;padding:4.2mm 4.5mm;
+  margin:3mm 0 1mm;padding:3.2mm 4mm;
   border:1px solid #9aa3aa;border-radius:2.5mm;
   background:#fff;color:#111;text-align:center;
   font-family:Georgia,'Times New Roman',serif;font-style:italic;font-weight:600;
-  font-size:.96em;line-height:1.45;
+  font-size:.92em;line-height:1.35;
+  column-span:none;max-width:100%;box-sizing:border-box;
 }
 
 .editor-panel{display:none}
@@ -863,7 +864,7 @@ function calibrateTargetPages(fit,hdr,cols){
   cols.dataset.previewPages=String(metrics.pages);
   cols.dataset.lastPageFill=metrics.lastFill.toFixed(3);
   cols.dataset.smartBalanced='6';
-  cols.dataset.layoutPolish='v3.5.0';
+  cols.dataset.layoutPolish='v3.5.1';
 
   // v3.4.6 Print Density Carry-Forward:
   // The preview balancer already stops at the N -> N+1 boundary. A reserve
@@ -884,7 +885,12 @@ function addEndQuoteIfSpace(fit,hdr,cols){
   // use spare room, but it must never create an extra physical PDF page.
   if(!fit || fit.mode==='auto' || !fit.target) return;
   const before=previewPageMetrics(hdr,cols);
-  if(before.pages!==fit.target || before.lastFill>.90) return;
+  // v3.5.1: do not reject the quote from the estimated last-page fill alone.
+  // Chrome's real two-column PDF fragmentation can leave visible spare room
+  // even when the estimator reports a high fractional fill. Instead, try the
+  // compact box and keep it only when the physical target-page estimator
+  // remains unchanged.
+  if(before.pages!==fit.target) return;
 
   const quotes=[
     'Success is the sum of small efforts, repeated day after day.',
