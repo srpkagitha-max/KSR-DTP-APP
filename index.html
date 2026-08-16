@@ -18,6 +18,22 @@ body{margin:0;font-family:Arial,"Noto Sans Telugu","Nirmala UI",sans-serif;backg
 .appbar h1{font-size:21px;margin:0}.appbar small{opacity:.9}
 .brandbar{max-width:1180px;margin:auto;display:flex;align-items:center;gap:11px}.brandmark{width:40px;height:40px;border-radius:12px;background:#ffffff1c;border:1px solid #ffffff42;display:grid;place-items:center;font-weight:900;font-size:18px}.brandcopy{flex:1}
 .dashboard{background:linear-gradient(145deg,#ffffff,#f6fffd);border:1px solid #d5e9e5}.dash-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}.dash-title{font-size:22px;font-weight:900;color:#075d57}.dash-sub{font-size:13px;color:var(--muted);margin-top:4px}.institute-card{margin-top:14px;border:1px solid #d7e8e5;border-radius:16px;padding:14px;display:flex;align-items:center;gap:13px;background:#fff;box-shadow:0 6px 18px #075d570c}.logo-preview{width:70px;height:70px;border-radius:14px;border:1px dashed #a9cbc6;background:#f1faf8;display:grid;place-items:center;overflow:hidden;flex:0 0 auto;color:#0a8178;font-weight:900;text-align:center;font-size:11px}.logo-preview img{width:100%;height:100%;object-fit:contain}.inst-copy{min-width:0;flex:1}.inst-name{font-size:16px;font-weight:900;color:#123b37}.inst-meta{font-size:12px;color:#6b7d7a;line-height:1.5;margin-top:3px}.quick-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-top:14px}.quick-card{border:1px solid #d8e8e5;background:#fff;border-radius:13px;padding:12px;min-height:76px;box-shadow:0 4px 14px #075d5709}.quick-card b{display:block;color:#075d57;font-size:13px;margin-bottom:4px}.quick-card span{font-size:11px;color:#71817f;line-height:1.35}.logo-upload{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.logo-upload input[type=file]{padding:8px;background:#f8fcfb}.logo-actions{display:flex;gap:7px;flex-wrap:wrap}.logo-btn{border:0;border-radius:9px;padding:8px 10px;font-weight:800;background:#e4f5f2;color:#08766e;cursor:pointer}.logo-btn.remove{background:#fff0f0;color:#a52a2a}
+.profile-strip{grid-column:1/-1;border:1px solid #d7e8e5;background:linear-gradient(145deg,#fbfffe,#f3fbf9);border-radius:14px;padding:12px}
+.profile-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px}
+.profile-title b{color:#075d57;font-size:13px}
+.profile-title span{font-size:11px;color:#71817f}
+.profile-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px;align-items:center}
+.profile-row select{min-width:0}
+.profile-action{border:0;border-radius:10px;padding:11px 13px;font-weight:900;cursor:pointer;white-space:nowrap;background:#e4f5f2;color:#08766e}
+.profile-action.primary{background:#0a9187;color:#fff}
+.profile-action.danger{background:#fff0f0;color:#a52a2a}
+.profile-hint{font-size:11px;color:#71817f;line-height:1.45;margin-top:8px}
+@media(max-width:640px){
+  .profile-row{grid-template-columns:1fr 1fr}
+  .profile-row select{grid-column:1/-1}
+  .profile-action{width:100%}
+}
+
 .pdf-logo{width:16mm;height:16mm;object-fit:contain;position:absolute;left:5mm;top:4mm}.first-header.has-logo{position:relative;padding-left:24mm;padding-right:24mm}
 .wrap{max-width:1180px;margin:16px auto;padding:0 12px}
 .panel{background:var(--panel);border:1px solid #dfe6ef;border-radius:15px;padding:15px;box-shadow:0 7px 24px #17375e10;margin-bottom:14px}
@@ -85,7 +101,7 @@ textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}
 .ans{float:right;font-weight:700;letter-spacing:1px;margin-left:2mm;white-space:nowrap}
 
 
-/* v3.5.1 — reliable end-of-paper quote. It is inserted only when it fits in
+/* v3.5.2 — institute profiles. It is inserted only when it fits in
    already-unused space on the final target page, so it never changes the
    requested page count. No heading is shown: only the quote itself. */
 .end-quote{
@@ -166,6 +182,18 @@ textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}
 
 <section class="panel controls">
   <div class="grid">
+    <div class="profile-strip">
+      <div class="profile-title"><b>Institute Profiles</b><span>Saved on this device</span></div>
+      <div class="profile-row">
+        <select id="profileSelect" aria-label="Saved institute profiles"><option value="">Select saved institute</option></select>
+        <button type="button" class="profile-action primary" id="saveProfile">Save / Update</button>
+        <button type="button" class="profile-action danger" id="deleteProfile">Delete</button>
+      </div>
+      <div class="profile-hint">Saves institute name, address, phone, logo and PDF layout settings. Exam name, date, marks and questions stay separate for each paper.</div>
+    </div>
+  </div>
+
+  <div class="grid" style="margin-top:10px">
     <div class="field"><label>Institute Name</label><input id="institute" placeholder="Institute / School Name"></div>
     <div class="field"><label>Exam Name</label><input id="exam" value="FINAL GRAND TEST"></div>
     <div class="field"><label>Date</label><input id="date" placeholder="DD-MM-YYYY"></div>
@@ -864,7 +892,7 @@ function calibrateTargetPages(fit,hdr,cols){
   cols.dataset.previewPages=String(metrics.pages);
   cols.dataset.lastPageFill=metrics.lastFill.toFixed(3);
   cols.dataset.smartBalanced='6';
-  cols.dataset.layoutPolish='v3.5.1';
+  cols.dataset.layoutPolish='v3.5.2';
 
   // v3.4.6 Print Density Carry-Forward:
   // The preview balancer already stops at the N -> N+1 boundary. A reserve
@@ -925,6 +953,92 @@ function addEndQuoteIfSpace(fit,hdr,cols){
   // Target 20 become 21 (or otherwise change the requested count), remove it.
   const after=previewPageMetrics(hdr,cols);
   if(after.pages!==fit.target) box.remove();
+}
+
+
+const PROFILE_KEY='ksr_dtp_institute_profiles_v1';
+const PROFILE_LAYOUT_IDS=['fontSize','bracket','indent','lineHeight','qGap','keepMarks','sectionMode','pageFitMode','targetPages'];
+
+function getProfiles(){
+  try{
+    const v=JSON.parse(localStorage.getItem(PROFILE_KEY)||'[]');
+    return Array.isArray(v)?v:[];
+  }catch(e){return [];}
+}
+function putProfiles(v){
+  localStorage.setItem(PROFILE_KEY,JSON.stringify(v));
+}
+function profileId(){
+  return 'p_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,7);
+}
+function renderProfileSelect(selectedId=''){
+  const sel=$('profileSelect');
+  if(!sel) return;
+  const profiles=getProfiles();
+  sel.innerHTML='<option value="">Select saved institute</option>'+
+    profiles.map(p=>`<option value="${esc(p.id)}">${esc(p.name||'Unnamed Institute')}</option>`).join('');
+  if(selectedId && profiles.some(p=>p.id===selectedId)) sel.value=selectedId;
+}
+function currentProfileData(existingId=''){
+  const name=($('institute').value||'').trim();
+  const layout={};
+  PROFILE_LAYOUT_IDS.forEach(id=>layout[id]=$(id).value);
+  return {
+    id: existingId||profileId(),
+    name,
+    address:($('address').value||'').trim(),
+    phone:($('phone').value||'').trim(),
+    logo:instituteLogo||'',
+    layout,
+    updatedAt:Date.now()
+  };
+}
+function applyProfile(p){
+  if(!p) return;
+  $('institute').value=p.name||'';
+  $('address').value=p.address||'';
+  $('phone').value=p.phone||'';
+  instituteLogo=p.logo||'';
+  if(instituteLogo) localStorage.setItem('ksr_instituteLogo',instituteLogo);
+  else localStorage.removeItem('ksr_instituteLogo');
+  $('logoFile').value='';
+  if(p.layout){
+    PROFILE_LAYOUT_IDS.forEach(id=>{
+      if(p.layout[id]!==undefined && p.layout[id]!==null) $(id).value=String(p.layout[id]);
+    });
+  }
+  $('targetPages').disabled=$('pageFitMode').value!=='target';
+  refreshBranding();
+  build();
+}
+function saveCurrentProfile(){
+  const name=($('institute').value||'').trim();
+  if(!name){alert('Please enter Institute Name before saving the profile.');$('institute').focus();return;}
+  let profiles=getProfiles();
+  let id=$('profileSelect').value||'';
+  // If no profile is selected, update an exact same-name profile; otherwise create a new one.
+  if(!id){
+    const same=profiles.find(p=>(p.name||'').trim().toLowerCase()===name.toLowerCase());
+    if(same) id=same.id;
+  }
+  const data=currentProfileData(id);
+  const i=profiles.findIndex(p=>p.id===data.id);
+  if(i>=0) profiles[i]=data; else profiles.push(data);
+  profiles.sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+  putProfiles(profiles);
+  renderProfileSelect(data.id);
+  saveDraft();
+  alert('Institute profile saved.');
+}
+function deleteSelectedProfile(){
+  const id=$('profileSelect').value;
+  if(!id){alert('Select a saved institute profile first.');return;}
+  const profiles=getProfiles();
+  const p=profiles.find(x=>x.id===id);
+  if(!p) return;
+  if(!confirm(`Delete saved profile "${p.name||'Unnamed Institute'}"?`)) return;
+  putProfiles(profiles.filter(x=>x.id!==id));
+  renderProfileSelect('');
 }
 
 let instituteLogo=localStorage.getItem('ksr_instituteLogo')||'';
@@ -1072,6 +1186,14 @@ function printPaper(){
   },120);
 }
 
+$('profileSelect').addEventListener('change',()=>{
+  const id=$('profileSelect').value;
+  if(!id) return;
+  applyProfile(getProfiles().find(p=>p.id===id));
+});
+$('saveProfile').onclick=saveCurrentProfile;
+$('deleteProfile').onclick=deleteSelectedProfile;
+
 $('build').onclick=build;
 $('print').onclick=printPaper;
 $('key').onclick=answerKey;
@@ -1117,6 +1239,7 @@ $('raw').addEventListener('input',()=>localStorage.setItem('ksr_dtp_raw',$('raw'
 
 window.addEventListener('load',()=>{
   if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
+  renderProfileSelect('');
   $('raw').value=localStorage.getItem('ksr_dtp_raw')||'';
   ['institute','address','phone','exam','date','marksTotal','startNo','fontSize','bracket','indent','lineHeight','qGap','keepMarks','sectionMode','pageFitMode','targetPages']
     .forEach(id=>{const v=localStorage.getItem('ksr_'+id); if(v!==null) $(id).value=v;});
