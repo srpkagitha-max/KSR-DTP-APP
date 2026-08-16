@@ -101,7 +101,7 @@ textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}
 .ans{float:right;font-weight:700;letter-spacing:1px;margin-left:2mm;white-space:nowrap}
 
 
-/* v3.5.2 — institute profiles. It is inserted only when it fits in
+/* v3.5.3 — compact institute profile labels. It is inserted only when it fits in
    already-unused space on the final target page, so it never changes the
    requested page count. No heading is shown: only the quote itself. */
 .end-quote{
@@ -189,7 +189,7 @@ textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}
         <button type="button" class="profile-action primary" id="saveProfile">Save / Update</button>
         <button type="button" class="profile-action danger" id="deleteProfile">Delete</button>
       </div>
-      <div class="profile-hint">Saves institute name, address, phone, logo and PDF layout settings. Exam name, date, marks and questions stay separate for each paper.</div>
+      <div class="profile-hint">Dropdown shows a short institute label for easy mobile use. The full institute name, address, phone, logo and PDF layout settings are saved. Exam name, date, marks and questions stay separate for each paper.</div>
     </div>
   </div>
 
@@ -892,7 +892,7 @@ function calibrateTargetPages(fit,hdr,cols){
   cols.dataset.previewPages=String(metrics.pages);
   cols.dataset.lastPageFill=metrics.lastFill.toFixed(3);
   cols.dataset.smartBalanced='6';
-  cols.dataset.layoutPolish='v3.5.2';
+  cols.dataset.layoutPolish='v3.5.3';
 
   // v3.4.6 Print Density Carry-Forward:
   // The preview balancer already stops at the N -> N+1 boundary. A reserve
@@ -971,12 +971,21 @@ function putProfiles(v){
 function profileId(){
   return 'p_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,7);
 }
+function profileLabel(name=''){
+  const full=String(name||'').trim();
+  if(!full) return 'Unnamed Institute';
+  // Prefer the institute name before the first comma for a clean mobile dropdown.
+  let label=(full.split(',')[0]||full).trim();
+  // Keep labels compact even when the institute name itself is very long.
+  if(label.length>34) label=label.slice(0,33).trimEnd()+'…';
+  return label;
+}
 function renderProfileSelect(selectedId=''){
   const sel=$('profileSelect');
   if(!sel) return;
   const profiles=getProfiles();
   sel.innerHTML='<option value="">Select saved institute</option>'+
-    profiles.map(p=>`<option value="${esc(p.id)}">${esc(p.name||'Unnamed Institute')}</option>`).join('');
+    profiles.map(p=>`<option value="${esc(p.id)}">${esc(profileLabel(p.name))}</option>`).join('');
   if(selectedId && profiles.some(p=>p.id===selectedId)) sel.value=selectedId;
 }
 function currentProfileData(existingId=''){
