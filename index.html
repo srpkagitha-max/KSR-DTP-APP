@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0b3b7a" />
 <link rel="manifest" href="manifest.webmanifest" />
 <title></title>
-<!-- KSR DTP v3.4.8 Browser Fragmentation Calibrator -->
+<!-- KSR DTP v3.6.2 Advanced Institute Paper Style Editor -->
 <style>
 :root{
   --blue:#087f78;--blue2:#0b9b8d;--ink:#12302d;--muted:#687b78;
@@ -150,6 +150,20 @@ textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}
 @media(max-width:850px){.grid{grid-template-columns:1fr 1fr}.quick-grid{grid-template-columns:1fr 1fr}.paper-shell{padding:8px}.appbar{position:static}}
 @media(max-width:520px){.grid{grid-template-columns:1fr}.dash-title{font-size:19px}.institute-card{align-items:flex-start}.quick-grid{grid-template-columns:1fr 1fr}.grid .field[style*="grid-column"]{grid-column:span 1!important}.wrap{padding:0 8px}.panel{border-radius:12px;padding:12px}}
 
+
+/* v3.6.2 Advanced Paper Style Editor */
+.paper.style-header-left .institute-title{text-align:left}
+.paper.style-header-left .contact-meta,
+.paper.style-header-left .exam-meta{justify-content:flex-start;text-align:left}
+.paper .qstart{font-weight:var(--question-weight,700)}
+.paper .opt{font-size:calc(1em * var(--option-scale,1))}
+.paper.option-force-two .options-wrap{
+  display:grid!important;grid-template-columns:1fr 1fr;column-gap:3mm;row-gap:.2mm
+}
+.paper.option-force-two .opt{margin-bottom:.35mm}
+.paper.option-force-vertical .options-wrap,
+.paper.option-force-vertical .qblock.compact-options .options-wrap{display:block!important}
+
 /* v3.6.1 institute-wise custom question paper styles */
 .paper.style-single .columns{column-count:1!important;column-gap:0!important}
 .paper.style-minimal .first-header{border-left:0!important;border-right:0!important;border-top:0!important;border-radius:0!important}
@@ -241,6 +255,28 @@ textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}
   <div class="grid" style="margin-top:10px">
     <div class="field" style="grid-column:span 2"><label>Institute Address <span style="font-weight:400;color:#7a8798">(Optional)</span></label><input id="address" placeholder="Area / City / District"></div>
     <div class="field" style="grid-column:span 2"><label>Phone Number <span style="font-weight:400;color:#7a8798">(Optional)</span></label><input id="phone" inputmode="tel" placeholder="Phone / Mobile Number"></div>
+  </div>
+
+  <div class="template-strip" style="margin-top:10px">
+    <div class="template-top"><b>Paper Style Editor</b><span>Saved with Institute Profile</span></div>
+    <div class="grid">
+      <div class="field"><label>Header Alignment</label>
+        <select id="headerAlign"><option value="center">Center</option><option value="left">Left</option></select>
+      </div>
+      <div class="field"><label>Question Text Weight</label>
+        <select id="questionWeight"><option value="700">Bold</option><option value="600">Semi Bold</option><option value="400">Regular</option></select>
+      </div>
+      <div class="field"><label>Options Layout</label>
+        <select id="optionLayout"><option value="smart">Smart / Automatic</option><option value="vertical">One Below Another</option><option value="two">Two Per Row</option></select>
+      </div>
+      <div class="field"><label>Option Text Size</label>
+        <select id="optionScale"><option value="1">Same as Question</option><option value=".94">Slightly Smaller</option><option value=".88">Compact</option></select>
+      </div>
+      <div class="field"><label>Quote Box on Last Page</label>
+        <select id="quoteMode"><option value="auto">Auto if Space</option><option value="off">Off</option></select>
+      </div>
+    </div>
+    <div class="template-note">These controls change the actual PDF appearance. Press <b>Save / Update</b> in Institute Profiles to remember this complete style for that institute.</div>
   </div>
 
   <div class="grid" style="margin-top:10px">
@@ -752,13 +788,31 @@ function estimateQuestionWeight(q){
 function smartPageRange(qs){
   if(!qs.length) return {min:0,max:0};
   const baseFont=parseFloat($('fontSize')?.value||'12');
-  // Larger requested text must increase the safe page range instead of being
-  // silently compressed back to the old Medium-size target profile.
   const fontFactor=Math.pow(baseFont/12,1.42);
-  const w=qs.reduce((a,q)=>a+estimateQuestionWeight(q),0)*fontFactor;
+
+  const layout=$('paperLayout')?.value||'two';
+  const design=$('paperBorder')?.value||'classic';
+  const optionLayout=$('optionLayout')?.value||'smart';
+  const optionScale=parseFloat($('optionScale')?.value||'1');
+  const line=parseFloat($('lineHeight')?.value||'1.38');
+  const gap=parseFloat($('qGap')?.value||'1.2');
+
+  // The selectable range now reflects the institute's actual PDF style.
+  // Heavy styles should not offer targets that cannot physically fit.
+  let styleFactor=1;
+  if(layout==='single') styleFactor*=1.18;
+  if(design==='boxed') styleFactor*=1.24;
+  else if(design==='minimal') styleFactor*=.98;
+  if(optionLayout==='vertical') styleFactor*=1.10;
+  else if(optionLayout==='two') styleFactor*=.90;
+  if(optionScale<1) styleFactor*=Math.max(.88,optionScale+.04);
+  styleFactor*=Math.pow(Math.max(1.18,line)/1.38,.72);
+  styleFactor*=1+Math.max(0,gap-1.2)*.045;
+
+  const w=qs.reduce((a,q)=>a+estimateQuestionWeight(q),0)*fontFactor*styleFactor;
   const min=Math.max(1,Math.ceil(w/63));
   const maxByContent=Math.max(min,Math.ceil(w/29));
-  const max=Math.min(maxByContent,min+12);
+  const max=Math.min(maxByContent,min+14);
   return {min,max};
 }
 function refreshPageTargets(qs){
@@ -799,13 +853,16 @@ function getFitProfile(qs){
   };
 }
 function canCompactOptions(q,profile){
-  if(profile.mode==='auto'||profile.compactRatio<=0) return false;
+  const layout=$('optionLayout')?.value||'smart';
   const opts=q.options||[];
   if(opts.length!==4) return false;
   const longest=Math.max(...opts.map(o=>(o.text||'').length));
   const total=opts.reduce((n,o)=>n+(o.text||'').length,0);
-  // Only genuinely short choices may share a row. Anything doubtful falls
-  // back to one-option-per-line so no option is squeezed or clipped.
+
+  if(layout==='vertical') return false;
+  if(layout==='two') return longest<=86 && total<=250;
+
+  if(profile.mode==='auto'||profile.compactRatio<=0) return false;
   const safeLong=profile.compactRatio>.72?58:profile.compactRatio>.42?44:32;
   return longest<=safeLong && total<=safeLong*3.05;
 }
@@ -926,7 +983,7 @@ function calibrateTargetPages(fit,hdr,cols){
   cols.dataset.previewPages=String(metrics.pages);
   cols.dataset.lastPageFill=metrics.lastFill.toFixed(3);
   cols.dataset.smartBalanced='6';
-  cols.dataset.layoutPolish='v3.6.1';
+  cols.dataset.layoutPolish='v3.6.2';
 
   // v3.4.6 Print Density Carry-Forward:
   // The preview balancer already stops at the N -> N+1 boundary. A reserve
@@ -943,6 +1000,7 @@ function calibrateTargetPages(fit,hdr,cols){
 }
 
 function addEndQuoteIfSpace(fit,hdr,cols){
+  if($('quoteMode') && $('quoteMode').value==='off') return;
   // Keep Auto mode untouched. For Minimum/Maximum/Target modes the quote may
   // use spare room, but it must never create an extra physical PDF page.
   if(!fit || fit.mode==='auto' || !fit.target) return;
@@ -1018,7 +1076,7 @@ function applyPaperTemplate(){
 }
 
 const PROFILE_KEY='ksr_dtp_institute_profiles_v1';
-const PROFILE_LAYOUT_IDS=['paperLayout','paperBorder','fontSize','bracket','indent','lineHeight','qGap','keepMarks','sectionMode','pageFitMode','targetPages'];
+const PROFILE_LAYOUT_IDS=['paperLayout','paperBorder','headerAlign','questionWeight','optionLayout','optionScale','quoteMode','fontSize','bracket','indent','lineHeight','qGap','keepMarks','sectionMode','pageFitMode','targetPages'];
 
 function getProfiles(){
   try{
@@ -1150,10 +1208,15 @@ function build(){
   $('warn').textContent=issues.length ? (issues.slice(0,6).join(' • ')+(issues.length>6?` • +${issues.length-6} more`:"")) : '';
 
   const paper=$('paper'); paper.innerHTML='';
-  paper.classList.remove('style-single','style-minimal','style-boxed');
+  paper.classList.remove('style-single','style-minimal','style-boxed','style-header-left','option-force-two','option-force-vertical');
   if($('paperLayout').value==='single') paper.classList.add('style-single');
   if($('paperBorder').value==='minimal') paper.classList.add('style-minimal');
   if($('paperBorder').value==='boxed') paper.classList.add('style-boxed');
+  if($('headerAlign').value==='left') paper.classList.add('style-header-left');
+  if($('optionLayout').value==='two') paper.classList.add('option-force-two');
+  if($('optionLayout').value==='vertical') paper.classList.add('option-force-vertical');
+  paper.style.setProperty('--question-weight',$('questionWeight').value);
+  paper.style.setProperty('--option-scale',$('optionScale').value);
 
   const hdr=document.createElement('div');
   hdr.className='first-header'+(instituteLogo?' has-logo':'');
@@ -1238,7 +1301,7 @@ function build(){
 }
 function saveDraft(){
   localStorage.setItem('ksr_dtp_raw',$('raw').value);
-  ['institute','address','phone','exam','date','marksTotal','startNo','fontSize','bracket','indent','lineHeight','qGap','keepMarks','sectionMode','pageFitMode','targetPages']
+  ['institute','address','phone','exam','date','marksTotal','startNo','paperLayout','paperBorder','headerAlign','questionWeight','optionLayout','optionScale','quoteMode','fontSize','bracket','indent','lineHeight','qGap','keepMarks','sectionMode','pageFitMode','targetPages']
     .forEach(id=>localStorage.setItem('ksr_'+id,$(id).value));
 }
 function answerKey(){
@@ -1260,7 +1323,9 @@ function printPaper(){
   },120);
 }
 
-['paperLayout','paperBorder'].forEach(id=>$(id).addEventListener('change',build));
+['paperLayout','paperBorder','headerAlign','questionWeight','optionLayout','optionScale','quoteMode'].forEach(id=>{
+  $(id).addEventListener('change',build);
+});
 $('paperTemplate').addEventListener('change',updateTemplateNote);
 $('applyTemplate').onclick=applyPaperTemplate;
 
@@ -1320,7 +1385,7 @@ window.addEventListener('load',()=>{
   renderProfileSelect('');
   updateTemplateNote();
   $('raw').value=localStorage.getItem('ksr_dtp_raw')||'';
-  ['institute','address','phone','exam','date','marksTotal','startNo','fontSize','bracket','indent','lineHeight','qGap','keepMarks','sectionMode','pageFitMode','targetPages']
+  ['institute','address','phone','exam','date','marksTotal','startNo','paperLayout','paperBorder','headerAlign','questionWeight','optionLayout','optionScale','quoteMode','fontSize','bracket','indent','lineHeight','qGap','keepMarks','sectionMode','pageFitMode','targetPages']
     .forEach(id=>{const v=localStorage.getItem('ksr_'+id); if(v!==null) $(id).value=v;});
   refreshBranding();
   build();
