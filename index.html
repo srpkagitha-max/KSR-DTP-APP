@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0b3b7a" />
 <link rel="manifest" href="manifest.webmanifest" />
 <title></title>
-<!-- KSR DTP v3.6.2 Advanced Institute Paper Style Editor -->
+<!-- KSR DTP v3.6.3 Quote-Included Exact Page Fit -->
 <style>
 :root{
   --blue:#087f78;--blue2:#0b9b8d;--ink:#12302d;--muted:#687b78;
@@ -325,7 +325,7 @@ textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}
       <div id="pageRange" class="chip" style="border-radius:10px;min-height:38px;display:flex;align-items:center">Paste questions to calculate minimum / maximum pages</div>
     </div>
   </div>
-  <div class="hint target-pages-note">Minimum uses safe compact option rows where they fit. Maximum keeps options one below another with relaxed spacing. Target Pages automatically balances font size, spacing and option layout without forcing long options side-by-side.</div>
+  <div class="hint target-pages-note">Minimum uses safe compact option rows where they fit. Maximum keeps options one below another with relaxed spacing. Target Pages automatically balances font size, spacing, option layout and the final quote box together inside the selected page count.</div>
 
   <div style="margin-top:12px" class="field">
     <label>Paste Questions — numbering/options can be in different common formats</label>
@@ -983,7 +983,7 @@ function calibrateTargetPages(fit,hdr,cols){
   cols.dataset.previewPages=String(metrics.pages);
   cols.dataset.lastPageFill=metrics.lastFill.toFixed(3);
   cols.dataset.smartBalanced='6';
-  cols.dataset.layoutPolish='v3.6.2';
+  cols.dataset.layoutPolish='v3.6.3';
 
   // v3.4.6 Print Density Carry-Forward:
   // The preview balancer already stops at the N -> N+1 boundary. A reserve
@@ -999,19 +999,13 @@ function calibrateTargetPages(fit,hdr,cols){
   cols.style.setProperty('--print-fit-reserve',String(reserve));
 }
 
-function addEndQuoteIfSpace(fit,hdr,cols){
-  if($('quoteMode') && $('quoteMode').value==='off') return;
-  // Keep Auto mode untouched. For Minimum/Maximum/Target modes the quote may
-  // use spare room, but it must never create an extra physical PDF page.
-  if(!fit || fit.mode==='auto' || !fit.target) return;
-  const before=previewPageMetrics(hdr,cols);
-  // v3.5.1: do not reject the quote from the estimated last-page fill alone.
-  // Chrome's real two-column PDF fragmentation can leave visible spare room
-  // even when the estimator reports a high fractional fill. Instead, try the
-  // compact box and keep it only when the physical target-page estimator
-  // remains unchanged.
-  if(before.pages!==fit.target) return;
+function addEndQuoteForFit(fit,cols){
+  if($('quoteMode') && $('quoteMode').value==='off') return null;
+  if(!fit || fit.mode==='auto' || !fit.target) return null;
 
+  // v3.6.3: The quote is now part of the selected-page content.
+  // Add it BEFORE Smart Fit calibration so questions + quote together
+  // are fitted into the user's selected Minimum / Maximum / Target pages.
   const quotes=[
     'Success is the sum of small efforts, repeated day after day.',
     'The future depends on what you do today.',
@@ -1036,17 +1030,14 @@ function addEndQuoteIfSpace(fit,hdr,cols){
   ];
   const now=new Date();
   const dayKey=Math.floor(new Date(now.getFullYear(),now.getMonth(),now.getDate()).getTime()/86400000);
+
   const box=document.createElement('div');
   box.className='end-quote';
+  box.dataset.fitIncluded='1';
   box.textContent='“'+quotes[Math.abs(dayKey)%quotes.length]+'”';
   cols.appendChild(box);
-
-  // Re-measure with the exact same calibrated A4 model. If the box would make
-  // Target 20 become 21 (or otherwise change the requested count), remove it.
-  const after=previewPageMetrics(hdr,cols);
-  if(after.pages!==fit.target) box.remove();
+  return box;
 }
-
 
 
 const PAPER_TEMPLATES={
@@ -1295,8 +1286,10 @@ function build(){
     block.appendChild(sp);
   });
 
+  // Include the quote in the physical page-fit calculation.
+  // Selected pages now contain BOTH the supplied questions and the quote box.
+  addEndQuoteForFit(fit,cols);
   calibrateTargetPages(fit,hdr,cols);
-  addEndQuoteIfSpace(fit,hdr,cols);
   saveDraft();
 }
 function saveDraft(){
