@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0b3b7a" />
 <link rel="manifest" href="manifest.webmanifest" />
 <title></title>
-<!-- KSR DTP v4.3.0 Home / Paper Mode / Institute Hierarchy -->
+<!-- KSR DTP v4.4.0 Clean Paper Workspace + Save-to-Institutes -->
 <style>
 :root{
   --blue:#087f78;--blue2:#0b9b8d;--ink:#12302d;--muted:#687b78;
@@ -323,6 +323,21 @@ body.mode-school.wiz-step-4 #rawFieldWrap,body.mode-college.wiz-step-4 #rawField
 @media(max-width:640px){.paper-mode-grid{grid-template-columns:1fr}.paper-mode-screen{padding-top:18px}}
 @media(max-width:520px){.home-actions{grid-template-columns:1fr}.home-card{padding:23px 18px}.detail-grid{grid-template-columns:1fr}.detail-item.full{grid-column:auto}.appbar{padding:25px 16px 23px}.appbar h1{font-size:29px}.appbar small{font-size:15px}.brandmark{width:56px;height:56px;font-size:24px}}
 @media print{#homeScreen,#paperModeScreen,#institutesScreen,.workspace-topbar{display:none!important}}
+
+/* v4.4 clean creation workspace — saved institutes are managed from Home > Institutes */
+.legacy-profile-store,.redundant-mode-strip{display:none!important}
+.save-setup-card{margin-top:12px;border:1px solid #cfe3df;background:linear-gradient(180deg,#f8fffd,#eef9f7);border-radius:14px;padding:13px;display:grid;grid-template-columns:1fr auto;gap:10px 12px;align-items:center}
+.save-setup-copy b{display:block;color:#145d62;font-size:14px;margin-bottom:4px}.save-setup-copy span{display:block;color:#60777b;font-size:11px;line-height:1.48}
+.save-setup-btn{border:0;border-radius:11px;background:#0c8b87;color:#fff;padding:11px 14px;font-weight:900;cursor:pointer;white-space:nowrap}
+.save-setup-status{grid-column:1/-1;display:none;border-radius:9px;padding:8px 10px;background:#e8f7f2;color:#176657;font-size:11px;font-weight:700}
+body.mode-school #paperTemplateStrip,body.mode-college #paperTemplateStrip{display:none}
+body.mode-school.wiz-step-4 #paperTemplateStrip,body.mode-college.wiz-step-4 #paperTemplateStrip{display:block}
+body.mode-school.wiz-step-1 #saveSetupCard,body.mode-college.wiz-step-1 #saveSetupCard,
+body.mode-school.wiz-step-2 #saveSetupCard,body.mode-college.wiz-step-2 #saveSetupCard,
+body.mode-school.wiz-step-3 #saveSetupCard,body.mode-college.wiz-step-3 #saveSetupCard{display:none!important}
+body.mode-school.wiz-step-4 #saveSetupCard,body.mode-college.wiz-step-4 #saveSetupCard{display:grid}
+@media(max-width:520px){.save-setup-card{grid-template-columns:1fr}.save-setup-btn{width:100%}.save-setup-status{grid-column:auto}}
+@media print{#saveSetupCard{display:none!important}}
 </style>
 <style id="dynamicPrintStyle">
 @media print{
@@ -361,7 +376,7 @@ body.mode-school.wiz-step-4 #rawFieldWrap,body.mode-college.wiz-step-4 #rawField
 
 <section class="panel controls">
   <div class="grid">
-    <div class="profile-strip">
+    <div class="profile-strip legacy-profile-store">
       <div class="profile-title"><b>Institute Profiles</b><span>Saved on this device</span></div>
       <div class="profile-row">
         <select id="profileSelect" aria-label="Saved institute profiles"><option value="">Select saved institute</option></select>
@@ -373,7 +388,7 @@ body.mode-school.wiz-step-4 #rawFieldWrap,body.mode-college.wiz-step-4 #rawField
     </div>
   </div>
 
-  <div class="template-strip">
+  <div class="template-strip" id="paperTemplateStrip">
     <div class="template-top"><b>Question Paper Template</b><span>Quick paper style</span></div>
     <div class="template-grid">
       <select id="paperTemplate" aria-label="Question paper template">
@@ -389,7 +404,7 @@ body.mode-school.wiz-step-4 #rawFieldWrap,body.mode-college.wiz-step-4 #rawField
     <div class="template-note" id="templateNote">Custom keeps your current settings. Templates change only exam name and paper spacing/style; institute profile, questions, logo, marks, date and Target Pages are not disturbed.</div>
   </div>
 
-  <div class="mode-strip">
+  <div class="mode-strip redundant-mode-strip">
     <div class="template-top"><b>Paper Mode</b><span>MCQ parser remains locked</span></div>
     <div class="mode-grid">
       <div class="field"><label>Exam Paper Type</label>
@@ -455,7 +470,7 @@ body.mode-school.wiz-step-4 #rawFieldWrap,body.mode-college.wiz-step-4 #rawField
   </div>
 
 <div class="template-strip" id="styleEditor" style="margin-top:10px">
-    <div class="template-top"><b>Paper Style Editor</b><span>Saved with Institute Profile</span></div>
+    <div class="template-top"><b>Paper Design</b><span>Preview and save this setup when ready</span></div>
     <div class="grid">
       <div class="field"><label>Header Alignment</label>
         <select id="headerAlign"><option value="center">Center</option><option value="left">Left</option></select>
@@ -572,6 +587,12 @@ body.mode-school.wiz-step-4 #rawFieldWrap,body.mode-college.wiz-step-4 #rawField
   <div id="warn" class="warn"></div>
   <div id="safetyPanel" class="warn" style="display:none;background:#eef7ff;border-color:#bdd9f7;color:#123c72"></div>
 
+  <div class="save-setup-card" id="saveSetupCard">
+    <div class="save-setup-copy"><b>Use this paper regularly?</b><span>Save the institute and this paper setup. Next time open Institutes → Institute Name → Paper Type and add only the new paper details/questions.</span></div>
+    <button type="button" class="save-setup-btn" id="saveSetupToInstitutes">Save Setup to Institutes</button>
+    <div class="save-setup-status" id="saveSetupStatus"></div>
+  </div>
+
   <div class="hint">
     Continuous numbering is generated by the Maker, so pasted question numbers do not have to be correct.
     Accepted option examples include A., A), (A), A:, A-, and A followed by a space. Correct answers may be marked with ●, •, ⬤, *, ✓, ✔, ★, 🔴 or similar common markers. The safety report checks option count, missing answers, duplicate options, source-number anomalies and suspicious blocks before print.
@@ -603,7 +624,7 @@ body.mode-school.wiz-step-4 #rawFieldWrap,body.mode-college.wiz-step-4 #rawField
 </main>
 
 <script>
-// KSR DTP v4.1.0 — MCQ parser locked + Academic 4-step workflow
+// KSR DTP v4.4.0 — UI/save workflow update; MCQ parser locked and unchanged
 const $=id=>document.getElementById(id);
 const ANSWER_MARK=/[●•⬤∙·▪✓✔★*🔴🔵🟢🟡🟠⚫⚪✅]+/gu;
 const LEADING_ANSWER_MARK=/^\s*[●•⬤∙·▪✓✔★*🔴🔵🟢🟡🟠⚫⚪✅]+\s*/u;
@@ -1454,7 +1475,9 @@ function saveCurrentProfile(){
   renderProfileSelect(data.id);
   saveDraft();
   if(!$(`institutesScreen`).classList.contains('hidden')) renderInstituteNames();
-  alert('Institute paper setup saved.');
+  const st=$('saveSetupStatus');
+  if(st){st.style.display='block';st.textContent='Saved successfully. Open Home → Institutes to reuse this setup with new questions.';}
+  return true;
 }
 function saveAsNewInstitute(){
   const currentName=($('institute').value||'').trim();
@@ -1829,7 +1852,7 @@ function showPaperModeChooser(){
 }
 function showPaperWorkspace(fromInstitute=false){
   $('homeScreen').classList.add('hidden'); $('paperModeScreen').classList.add('hidden'); $('institutesScreen').classList.add('hidden'); $('workspace').classList.remove('workspace-hidden');
-  $('workspaceTitle').textContent=fromInstitute?'New '+modeLabel($('paperMode').value||'mcq'):modeLabel($('paperMode').value||'mcq');
+  $('workspaceTitle').textContent=fromInstitute?'New Paper — '+modeLabel($('paperMode').value||'mcq'):modeLabel($('paperMode').value||'mcq');
   window.scrollTo({top:0,behavior:'smooth'});
 }
 function normalizedInstituteName(name=''){return String(name||'').trim().toLowerCase();}
@@ -1883,8 +1906,9 @@ $('paperModeHome').onclick=showHome;
 document.querySelectorAll('[data-paper-choice]').forEach(card=>card.onclick=()=>{
   const mode=card.dataset.paperChoice||'mcq';
   $('paperMode').value=mode; updatePaperMode();
-  // A fresh Paper Mode starts with paper content cleared, while the existing
-  // MCQ parser itself remains untouched.
+  // A fresh Paper Mode starts independently. The locked MCQ parser is untouched.
+  $('profileSelect').value='';
+  const saveStatus=$('saveSetupStatus'); if(saveStatus) saveStatus.style.display='none';
   $('raw').value=''; invalidateParsedMaster(); invalidateAcademicMaster(); build();
   showPaperWorkspace(false);
 });
@@ -1909,6 +1933,11 @@ $('profileSelect').addEventListener('change',()=>{
 $('saveProfile').onclick=saveCurrentProfile;
 $('saveAsProfile').onclick=saveAsNewInstitute;
 $('deleteProfile').onclick=deleteSelectedProfile;
+$('saveSetupToInstitutes').onclick=()=>{
+  const name=($('institute').value||'').trim();
+  if(!name){alert('Enter Institute Name first.');$('institute').focus();return;}
+  saveCurrentProfile();
+};
 
 $('build').onclick=build;
 $('print').onclick=printPaper;
@@ -1998,4 +2027,4 @@ showHome();
 </script>
 </body>
 </html>
-<!-- KSR DTP v4.3.0: Clean Home + Mode Chooser + Institute Hierarchy; MCQ Parser Locked -->
+<!-- KSR DTP v4.4.0: Clean Paper Workspace + Save-to-Institutes; MCQ Parser Locked -->
