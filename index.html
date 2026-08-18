@@ -383,7 +383,7 @@ textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}
   
 
   <div style="margin-top:12px" class="field">
-    <label>Paste Questions — numbering/options can be in different common formats</label>
+    <label>Paste Questions Once — parser output is used directly for Preview / PDF</label>
     <textarea id="raw" placeholder="ప్రశ్న 1&#10;Question text...&#10;A) Option&#10;B. Option ●&#10;C: Option&#10;D - Option&#10;&#10;2. Next question..."></textarea>
   </div>
 
@@ -404,6 +404,7 @@ textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}
     <span class="chip" id="astat">Detected answers: 0</span>
     <span class="chip" id="missingStat">Missing answers: 0</span>
     <span class="chip" id="issueStat">Issues: 0</span>
+    <span class="chip" id="pdfSyncStat">PDF Sync: —</span>
   </div>
   <div id="warn" class="warn"></div>
   <div id="safetyPanel" class="warn" style="display:none;background:#eef7ff;border-color:#bdd9f7;color:#123c72"></div>
@@ -498,6 +499,18 @@ function answerToLetter(v){
   const n=parseInt(x,10);
   return Number.isFinite(n) && n>=1 && n<=8 ? String.fromCharCode(64+n) : '';
 }
+let parsedMaster={raw:null,questions:[]};
+function getParsedQuestions(){
+  const current=String($('raw')?.value||'');
+  if(parsedMaster.raw!==current){
+    parsedMaster={raw:current,questions:parse(current)};
+  }
+  return parsedMaster.questions;
+}
+function invalidateParsedMaster(){
+  parsedMaster={raw:null,questions:[]};
+}
+
 function parse(raw){
   const lines=normalizeInput(raw).split('\n');
   let qs=[], cur=null, section='', numericSubList=false, subNext=1;
@@ -664,7 +677,7 @@ function getSafetySummary(qs,issues){
 }
 
 function renderSafetyReport(){
-  const qs=parse($('raw').value);
+  const qs=getParsedQuestions();
   const issues=analyze(qs);
   const sm=getSafetySummary(qs,issues);
   const panel=$('safetyPanel');
@@ -845,6 +858,7 @@ function redoEditor(){
 function applyEditor(){
   editorQs.forEach(normalizeEditorQuestion);
   $('raw').value=serializeEditorQuestions(editorQs);
+  invalidateParsedMaster();
   editorDirty=false;
   localStorage.setItem('ksr_dtp_editor_backup',JSON.stringify(editorQs));
   build(); renderEditor();
@@ -954,7 +968,7 @@ function previewPageMetrics(hdr,cols){
   // 168-question/20-page output: 271.5mm keeps the selected physical page count
   // aligned with Chrome PDF while still using nearly the whole final page.
   const theoreticalPrintableMm=printableHeightMm();
-  const browserFragmentReserveMm=3.5;
+  const browserFragmentReserveMm=5.5;
   const effectivePrintableMm=theoreticalPrintableMm-browserFragmentReserveMm;
   const printablePx=effectivePrintableMm*pxPerMm;
   const hs=getComputedStyle(hdr);
@@ -1058,7 +1072,7 @@ function calibrateTargetPages(fit,hdr,cols){
   cols.dataset.previewPages=String(metrics.pages);
   cols.dataset.lastPageFill=metrics.lastFill.toFixed(3);
   cols.dataset.smartBalanced='6';
-  cols.dataset.layoutPolish='v3.7.1';
+  cols.dataset.layoutPolish='v3.7.4';
 
   // v3.4.6 Print Density Carry-Forward:
   // The preview balancer already stops at the N -> N+1 boundary. A reserve
@@ -1070,7 +1084,11 @@ function calibrateTargetPages(fit,hdr,cols){
   //
   // Keep this as an explicit CSS variable so a future browser-specific fix can
   // be isolated without changing the page-fit algorithm itself.
-  const reserve=1.000;
+  // v3.7.4 Exact Physical Page Lock:
+  // Android/Chrome print fragmentation is slightly taller than screen preview.
+  // The final target page is intentionally filled >90%, so this modest print-only
+  // reserve removes a tiny N+1 spill without dropping a full page.
+  const reserve = target>=10 ? 0.978 : 0.985;
   cols.style.setProperty('--print-fit-reserve',String(reserve));
 }
 
@@ -1317,7 +1335,7 @@ function printableHeightMm(){
 }
 
 function build(){
-  const qs=parse($('raw').value);
+  const qs=getParsedQuestions();
   const start=Math.max(1,parseInt($('startNo').value||'1',10));
   const end=qs.length ? start+qs.length-1 : 0;
   const issues=analyze(qs);
@@ -1433,6 +1451,12 @@ function build(){
   // Selected pages now contain BOTH the supplied questions and the quote box.
   addEndQuoteForFit(fit,cols);
   calibrateTargetPages(fit,hdr,cols);
+
+  const renderedCount=cols.querySelectorAll('.qblock').length;
+  $('pdfSyncStat').textContent = renderedCount===qs.length
+    ? `PDF Sync: ${renderedCount}/${qs.length} ✓`
+    : `PDF Sync: ${renderedCount}/${qs.length} ✕`;
+
   saveDraft();
 }
 function saveDraft(){
@@ -1441,7 +1465,7 @@ function saveDraft(){
     .forEach(id=>localStorage.setItem('ksr_'+id,$(id).value));
 }
 function answerKey(){
-  const qs=parse($('raw').value);
+  const qs=getParsedQuestions();
   const start=Math.max(1,parseInt($('startNo').value||'1',10));
   const txt=qs.map((q,i)=>`${start+i}. ${q.answer||'—'}`).join('\n');
   const missing=qs.filter(q=>!q.answer).length;
@@ -1449,14 +1473,37 @@ function answerKey(){
   w.document.write(`<pre style="font:16px Arial;line-height:1.8;padding:24px"><b>ANSWER KEY</b>\n\n${esc(txt)}\n\nMissing / undetected: ${missing}</pre>`);
   w.document.close();
 }
+function validateRenderedQuestionCount(){
+  const parsed=getParsedQuestions();
+  const rendered=$('paper').querySelectorAll('.qblock').length;
+  const expectedOptions=parsed.reduce((n,q)=>n+q.options.length,0);
+  const renderedOptions=$('paper').querySelectorAll('.opt').length;
+  return {
+    ok: parsed.length===rendered && expectedOptions===renderedOptions,
+    parsed:parsed.length, rendered,
+    expectedOptions, renderedOptions
+  };
+}
 function printPaper(){
   build();
+  const check=validateRenderedQuestionCount();
+  if(!check.ok){
+    alert(
+      'PDF Safety Lock\n\n'+
+      'Parser questions: '+check.parsed+'\n'+
+      'PDF questions: '+check.rendered+'\n'+
+      'Parser options: '+check.expectedOptions+'\n'+
+      'PDF options: '+check.renderedOptions+'\n\n'+
+      'PDF was not opened because parser and PDF counts do not match.'
+    );
+    return;
+  }
   const oldTitle=document.title;
   document.title=' ';
   setTimeout(()=>{
     window.print();
     setTimeout(()=>{document.title=oldTitle},300);
-  },120);
+  },160);
 }
 
 ['paperLayout','paperBorder','headerAlign','questionWeight','optionLayout','optionScale','quoteMode','pageMargin','headerBorder','questionBox','pageNumber','logoSize','questionNumberWeight'].forEach(id=>{
@@ -1486,7 +1533,7 @@ $('redoEdit').onclick=redoEditor;
 $('applyEditor').onclick=applyEditor;
 $('pageFitMode').addEventListener('change',()=>{ $('targetPages').disabled=$('pageFitMode').value!=='target'; build(); });
 $('targetPages').addEventListener('change',build);
-$('clear').onclick=()=>{if(confirm('Clear all pasted questions?')){$('raw').value='';build()}};
+$('clear').onclick=()=>{if(confirm('Clear all pasted questions?')){$('raw').value='';invalidateParsedMaster();build()}};
 $('sample').onclick=()=>{
 $('raw').value=`Psychology
 ప్రశ్న 25
@@ -1515,13 +1562,17 @@ Telugu
 build();
 };
 
-$('raw').addEventListener('input',()=>localStorage.setItem('ksr_dtp_raw',$('raw').value));
+$('raw').addEventListener('input',()=>{
+  invalidateParsedMaster();
+  localStorage.setItem('ksr_dtp_raw',$('raw').value);
+});
 
 window.addEventListener('load',()=>{
   if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
   renderProfileSelect('');
   updateTemplateNote();
   $('raw').value=localStorage.getItem('ksr_dtp_raw')||'';
+  invalidateParsedMaster();
   ['institute','address','phone','exam','date','marksTotal','startNo','paperLayout','paperBorder','headerAlign','questionWeight','optionLayout','optionScale','quoteMode','pageMargin','headerBorder','questionBox','pageNumber','logoSize','questionNumberWeight','fontSize','bracket','indent','lineHeight','qGap','keepMarks','sectionMode','pageFitMode','targetPages']
     .forEach(id=>{const v=localStorage.getItem('ksr_'+id); if(v!==null) $(id).value=v;});
   refreshBranding();
@@ -1530,3 +1581,4 @@ window.addEventListener('load',()=>{
 </script>
 </body>
 </html>
+<!-- KSR DTP v3.7.4: Exact Target Page Lock + Parser/PDF Single Source -->
