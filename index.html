@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0b3b7a" />
 <link rel="manifest" href="manifest.webmanifest" />
 <title></title>
-<!-- KSR DTP v4.0.0 Complete Exam Paper Maker -->
+<!-- KSR DTP v4.3.0 Home / Paper Mode / Institute Hierarchy -->
 <style>
 :root{
   --blue:#087f78;--blue2:#0b9b8d;--ink:#12302d;--muted:#687b78;
@@ -14,9 +14,9 @@
 }
 *{box-sizing:border-box}
 body{margin:0;font-family:Arial,"Noto Sans Telugu","Nirmala UI",sans-serif;background:var(--bg);color:var(--ink)}
-.appbar{background:linear-gradient(135deg,#064f4a,#078c80);color:#fff;padding:15px 18px;box-shadow:0 3px 14px #003b3633}
-.appbar h1{font-size:21px;margin:0}.appbar small{opacity:.9}
-.brandbar{max-width:1180px;margin:auto;display:flex;align-items:center;gap:11px}.brandmark{width:40px;height:40px;border-radius:12px;background:#ffffff1c;border:1px solid #ffffff42;display:grid;place-items:center;font-weight:900;font-size:18px}.brandcopy{flex:1}
+.appbar{background:linear-gradient(135deg,#064f4a,#078c80);color:#fff;padding:24px 18px 22px;box-shadow:0 3px 14px #003b3633}
+.appbar h1{font-size:28px;line-height:1.08;margin:0 0 4px}.appbar small{opacity:.94;font-size:15px}
+.brandbar{max-width:1180px;margin:auto;display:flex;align-items:center;gap:14px}.brandmark{width:54px;height:54px;border-radius:15px;background:#ffffff1c;border:1px solid #ffffff42;display:grid;place-items:center;font-weight:900;font-size:23px}.brandcopy{flex:1}
 .dashboard{background:linear-gradient(145deg,#ffffff,#f6fffd);border:1px solid #d5e9e5}.dash-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}.dash-title{font-size:22px;font-weight:900;color:#075d57}.dash-sub{font-size:13px;color:var(--muted);margin-top:4px}.institute-card{margin-top:14px;border:1px solid #d7e8e5;border-radius:16px;padding:14px;display:flex;align-items:center;gap:13px;background:#fff;box-shadow:0 6px 18px #075d570c}.logo-preview{width:70px;height:70px;border-radius:14px;border:1px dashed #a9cbc6;background:#f1faf8;display:grid;place-items:center;overflow:hidden;flex:0 0 auto;color:#0a8178;font-weight:900;text-align:center;font-size:11px}.logo-preview img{width:100%;height:100%;object-fit:contain}.inst-copy{min-width:0;flex:1}.inst-name{font-size:16px;font-weight:900;color:#123b37}.inst-meta{font-size:12px;color:#6b7d7a;line-height:1.5;margin-top:3px}.quick-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-top:14px}.quick-card{border:1px solid #d8e8e5;background:#fff;border-radius:13px;padding:12px;min-height:76px;box-shadow:0 4px 14px #075d5709}.quick-card b{display:block;color:#075d57;font-size:13px;margin-bottom:4px}.quick-card span{font-size:11px;color:#71817f;line-height:1.35}.logo-upload{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.logo-upload input[type=file]{padding:8px;background:#f8fcfb}.logo-actions{display:flex;gap:7px;flex-wrap:wrap}.logo-btn{border:0;border-radius:9px;padding:8px 10px;font-weight:800;background:#e4f5f2;color:#08766e;cursor:pointer}.logo-btn.remove{background:#fff0f0;color:#a52a2a}
 .profile-strip{grid-column:1/-1;border:1px solid #d7e8e5;background:linear-gradient(145deg,#fbfffe,#f3fbf9);border-radius:14px;padding:12px}
 .profile-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px}
@@ -111,7 +111,7 @@ textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}
 .ans{float:right;font-weight:700;letter-spacing:1px;margin-left:2mm;white-space:nowrap}
 
 /* v4.1.0 — Academic 4-step workflow + section builder */
-.mode-strip{border:1px solid #cfe4e0;background:linear-gradient(145deg,#ffffff,#f3fbf9);border-radius:14px;padding:12px;margin-top:10px}
+.mode-strip{display:none!important;border:1px solid #cfe4e0;background:linear-gradient(145deg,#ffffff,#f3fbf9);border-radius:14px;padding:12px;margin-top:10px}
 .mode-grid{display:grid;grid-template-columns:1fr 2fr;gap:10px;align-items:end}
 .mode-note{font-size:11px;color:#657b77;line-height:1.45;margin-top:8px}
 .academic-fields{display:none;margin-top:10px}
@@ -302,24 +302,27 @@ body.mode-school.wiz-step-4 #rawFieldWrap,body.mode-college.wiz-step-4 #rawField
   
 }
 
-/* v4.2 simple two-feature home */
-.home-screen{max-width:760px;margin:0 auto;padding:22px 16px 40px}
-.home-hero{text-align:center;padding:18px 8px 10px}.home-hero h2{margin:0;color:#123f52;font-size:25px}.home-hero p{margin:7px 0 0;color:#70808d;font-size:14px}
-.home-actions{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:20px}
-.home-card{appearance:none;border:1px solid #cfe1e5;background:#fff;border-radius:20px;padding:25px 14px;box-shadow:0 8px 24px rgba(25,72,87,.08);text-align:left;cursor:pointer}
-.home-card strong{display:block;font-size:20px;color:#0e7480;margin-bottom:7px}.home-card span{display:block;color:#71808b;line-height:1.45;font-size:13px}
-.home-card .home-icon{width:46px;height:46px;border-radius:14px;background:#e8f6f5;display:grid;place-items:center;font-size:22px;margin-bottom:16px}
-.home-card:active{transform:scale(.99)}
-.home-screen.hidden,.workspace-hidden{display:none!important}
+/* v4.3 clean home + paper-mode chooser + institute hierarchy */
+.home-screen,.paper-mode-screen{max-width:760px;margin:0 auto;padding:28px 16px 42px}
+.home-actions{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:0}
+.home-card,.mode-choice-card{appearance:none;border:1px solid #cfe1e5;background:#fff;border-radius:22px;padding:28px 18px;box-shadow:0 9px 26px rgba(25,72,87,.08);text-align:left;cursor:pointer}
+.home-card strong,.mode-choice-card strong{display:block;font-size:22px;color:#0e7480;margin-bottom:8px}.home-card span,.mode-choice-card span{display:block;color:#71808b;line-height:1.48;font-size:13px}
+.home-card .home-icon,.mode-choice-card .home-icon{width:50px;height:50px;border-radius:15px;background:#e8f6f5;display:grid;place-items:center;font-size:23px;margin-bottom:17px;color:#0e7480;font-weight:900}
+.home-card:active,.mode-choice-card:active{transform:scale(.99)}
+.home-screen.hidden,.paper-mode-screen.hidden,.workspace-hidden{display:none!important}
+.paper-mode-head,.institute-head{display:flex;align-items:center;gap:10px;margin-bottom:16px}.paper-mode-head h2,.institute-head h2{margin:0;flex:1;color:#173f50;font-size:22px}
+.paper-mode-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:13px}.mode-choice-card{padding:22px 16px}.mode-choice-card strong{font-size:18px}.mode-choice-card .home-icon{margin-bottom:13px}
 .workspace-topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
-.workspace-home{border:0;border-radius:12px;padding:10px 14px;background:#e8f3f4;color:#126a75;font-weight:800}
-.institute-screen{max-width:760px;margin:0 auto;padding:18px 16px 40px}.institute-screen.hidden{display:none!important}
-.institute-head{display:flex;align-items:center;gap:10px;margin-bottom:14px}.institute-head h2{margin:0;flex:1;color:#173f50}.institute-list{display:grid;gap:12px}
-.institute-card{background:#fff;border:1px solid #d5e4e7;border-radius:17px;padding:16px;box-shadow:0 5px 16px rgba(25,72,87,.06)}
-.institute-card h3{margin:0 0 5px;color:#164f5e;font-size:17px}.institute-card p{margin:0 0 12px;color:#78868e;font-size:12px;line-height:1.45}.institute-card-actions{display:flex;gap:8px;flex-wrap:wrap}.institute-card-actions button{border:0;border-radius:10px;padding:10px 13px;font-weight:800}.new-paper-btn{background:#0c8b87;color:#fff}.edit-inst-btn{background:#e8f3f4;color:#176c76}.delete-inst-btn{background:#fff0f0;color:#a33}
+.workspace-home{border:0;border-radius:12px;padding:10px 14px;background:#e8f3f4;color:#126a75;font-weight:800;cursor:pointer}
+.institute-screen{max-width:760px;margin:0 auto;padding:20px 16px 42px}.institute-screen.hidden{display:none!important}
+.institute-list{display:grid;gap:12px}.institute-card{background:#fff;border:1px solid #d5e4e7;border-radius:18px;padding:18px;box-shadow:0 5px 16px rgba(25,72,87,.06);cursor:pointer}
+.institute-card h3{margin:0;color:#164f5e;font-size:18px}.institute-card p{margin:7px 0 0;color:#78868e;font-size:12px;line-height:1.45}.institute-card .row-arrow{float:right;color:#6b8e94;font-size:22px;line-height:1}
+.paper-type-card{display:flex;align-items:center;justify-content:space-between;gap:12px}.paper-type-copy b{display:block;color:#164f5e;font-size:17px}.paper-type-copy span{display:block;color:#78868e;font-size:12px;margin-top:4px}.type-pill{background:#e8f6f5;color:#0e7480;border-radius:999px;padding:7px 10px;font-size:11px;font-weight:900;white-space:nowrap}
+.institute-detail{background:#fff;border:1px solid #d5e4e7;border-radius:18px;padding:18px;box-shadow:0 5px 16px rgba(25,72,87,.06)}.institute-detail h3{margin:0 0 4px;color:#164f5e;font-size:20px}.detail-mode{color:#0e7480;font-weight:800;font-size:13px;margin-bottom:15px}.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.detail-item{background:#f7fbfb;border:1px solid #e2eded;border-radius:12px;padding:11px}.detail-item b{display:block;color:#5b7075;font-size:10px;text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px}.detail-item span{display:block;color:#173f50;font-size:13px;line-height:1.4;word-break:break-word}.detail-item.full{grid-column:1/-1}.institute-detail-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:15px}.institute-detail-actions button{border:0;border-radius:11px;padding:11px 14px;font-weight:900;cursor:pointer}.new-paper-btn{background:#0c8b87;color:#fff}.edit-inst-btn{background:#e8f3f4;color:#176c76}.delete-inst-btn{background:#fff0f0;color:#a33}
 .empty-institutes{text-align:center;background:#fff;border:1px dashed #c9dadd;border-radius:18px;padding:28px 18px;color:#71808b}.empty-institutes b{display:block;color:#245362;margin-bottom:6px}
-@media(max-width:520px){.home-actions{grid-template-columns:1fr}.home-card{padding:20px 16px}.home-hero h2{font-size:22px}}
-@media print{#homeScreen,#institutesScreen,.workspace-topbar{display:none!important}}
+@media(max-width:640px){.paper-mode-grid{grid-template-columns:1fr}.paper-mode-screen{padding-top:18px}}
+@media(max-width:520px){.home-actions{grid-template-columns:1fr}.home-card{padding:23px 18px}.detail-grid{grid-template-columns:1fr}.detail-item.full{grid-column:auto}.appbar{padding:25px 16px 23px}.appbar h1{font-size:29px}.appbar small{font-size:15px}.brandmark{width:56px;height:56px;font-size:24px}}
+@media print{#homeScreen,#paperModeScreen,#institutesScreen,.workspace-topbar{display:none!important}}
 </style>
 <style id="dynamicPrintStyle">
 @media print{
@@ -333,15 +336,23 @@ body.mode-school.wiz-step-4 #rawFieldWrap,body.mode-college.wiz-step-4 #rawField
 </header>
 
 <section id="homeScreen" class="home-screen">
-  <div class="home-hero"><h2>What do you want to do?</h2><p>Create a new paper or reuse a saved institute setup.</p></div>
   <div class="home-actions">
-    <button type="button" class="home-card" id="openPaperMode"><span class="home-icon">▤</span><strong>Paper Mode</strong><span>Choose MCQ, School or College paper and create a new question paper.</span></button>
-    <button type="button" class="home-card" id="openInstitutes"><span class="home-icon">▣</span><strong>Institutes</strong><span>Open saved institutes and create the next paper with new questions.</span></button>
+    <button type="button" class="home-card" id="openPaperMode"><span class="home-icon">▤</span><strong>Paper Mode</strong><span>Create a new MCQ, School or College question paper.</span></button>
+    <button type="button" class="home-card" id="openInstitutes"><span class="home-icon">▣</span><strong>Institutes</strong><span>Open a saved institute and reuse its paper setup.</span></button>
+  </div>
+</section>
+
+<section id="paperModeScreen" class="paper-mode-screen hidden">
+  <div class="paper-mode-head"><button type="button" class="workspace-home" id="paperModeHome">← Home</button><h2>Select Paper Mode</h2></div>
+  <div class="paper-mode-grid">
+    <button type="button" class="mode-choice-card" data-paper-choice="mcq"><span class="home-icon">MCQ</span><strong>MCQ / Objective</strong><span>Uses the existing locked MCQ parser and current objective-paper workflow.</span></button>
+    <button type="button" class="mode-choice-card" data-paper-choice="school"><span class="home-icon">S</span><strong>School Paper</strong><span>Create section-wise school examination papers.</span></button>
+    <button type="button" class="mode-choice-card" data-paper-choice="college"><span class="home-icon">C</span><strong>College Paper</strong><span>Create college or university examination papers.</span></button>
   </div>
 </section>
 
 <section id="institutesScreen" class="institute-screen hidden">
-  <div class="institute-head"><button type="button" class="workspace-home" id="institutesHome">← Home</button><h2>Institutes</h2></div>
+  <div class="institute-head"><button type="button" class="workspace-home" id="institutesBack">← Home</button><h2 id="institutesTitle">Institutes</h2></div>
   <div id="instituteCards" class="institute-list"></div>
 </section>
 
@@ -358,7 +369,7 @@ body.mode-school.wiz-step-4 #rawFieldWrap,body.mode-college.wiz-step-4 #rawField
         <button type="button" class="profile-action" id="saveAsProfile">Save As New</button>
         <button type="button" class="profile-action danger" id="deleteProfile">Delete</button>
       </div>
-      <div class="profile-hint">Dropdown shows a short institute label for easy mobile use. The full institute name, address, phone, logo and complete Question Paper Style are saved. Use Save As New to copy the current style to another institute. Exam name, date, marks and questions stay separate for each paper.</div>
+      <div class="profile-hint">Each saved institute can keep a separate setup for MCQ, School and College paper modes. Institute details, logo and paper style are remembered; new questions and exam date stay separate for each new paper.</div>
     </div>
   </div>
 
@@ -1384,7 +1395,7 @@ function renderProfileSelect(selectedId=''){
   if(!sel) return;
   const profiles=getProfiles();
   sel.innerHTML='<option value="">Select saved institute</option>'+
-    profiles.map(p=>`<option value="${esc(p.id)}">${esc(profileLabel(p.name))}</option>`).join('');
+    profiles.map(p=>{const m=p.paperSetup?.paperMode||'mcq';const ml=m==='school'?'School':m==='college'?'College':'MCQ';return `<option value="${esc(p.id)}">${esc(profileLabel(p.name))} — ${ml}</option>`;}).join('');
   if(selectedId && profiles.some(p=>p.id===selectedId)) sel.value=selectedId;
 }
 function currentProfileData(existingId=''){
@@ -1431,7 +1442,8 @@ function saveCurrentProfile(){
   let id=$('profileSelect').value||'';
   // If no profile is selected, update an exact same-name profile; otherwise create a new one.
   if(!id){
-    const same=profiles.find(p=>(p.name||'').trim().toLowerCase()===name.toLowerCase());
+    const mode=$('paperMode').value||'mcq';
+    const same=profiles.find(p=>(p.name||'').trim().toLowerCase()===name.toLowerCase() && (p.paperSetup?.paperMode||'mcq')===mode);
     if(same) id=same.id;
   }
   const data=currentProfileData(id);
@@ -1441,8 +1453,8 @@ function saveCurrentProfile(){
   putProfiles(profiles);
   renderProfileSelect(data.id);
   saveDraft();
-  renderInstituteCards();
-  alert('Institute profile saved.');
+  if(!$(`institutesScreen`).classList.contains('hidden')) renderInstituteNames();
+  alert('Institute paper setup saved.');
 }
 function saveAsNewInstitute(){
   const currentName=($('institute').value||'').trim();
@@ -1452,9 +1464,10 @@ function saveAsNewInstitute(){
   if(!newName){alert('Please enter a valid Institute Name.');return;}
 
   const profiles=getProfiles();
-  const same=profiles.find(p=>(p.name||'').trim().toLowerCase()===newName.toLowerCase());
+  const mode=$('paperMode').value||'mcq';
+  const same=profiles.find(p=>(p.name||'').trim().toLowerCase()===newName.toLowerCase() && (p.paperSetup?.paperMode||'mcq')===mode);
   if(same){
-    alert('A saved institute with this name already exists. Choose a different name or use Save / Update.');
+    alert('This institute already has a saved setup for the selected paper mode. Use Save / Update or choose another paper mode.');
     return;
   }
 
@@ -1473,7 +1486,7 @@ function saveAsNewInstitute(){
 
   const s=$('profileStyleStatus');
   if(s) s.innerHTML='<b>Question Paper Style:</b> New institute profile saved with current style.';
-  alert('New institute profile saved with the current question paper style.');
+  alert('New institute paper setup saved with the current question paper style.');
 }
 
 function deleteSelectedProfile(){
@@ -1801,33 +1814,87 @@ $('insertSection').onclick=()=>{insertAtQuestionEnd(sectionBuilderText());setAca
 $('insertOR').onclick=()=>{insertAtQuestionEnd('OR');setAcademicWizardStep(3,true)};
 $('insertSub').onclick=()=>{insertAtQuestionEnd('(a) Sub-question\n(b) Sub-question');setAcademicWizardStep(3,true)};
 
+let instituteNav={level:'institutes',name:'',profileId:''};
+function modeLabel(mode='mcq'){
+  return mode==='school'?'School Exam Paper':mode==='college'?'College / University Paper':'MCQ / Objective';
+}
 function showHome(){
-  $('homeScreen').classList.remove('hidden'); $('institutesScreen').classList.add('hidden'); $('workspace').classList.add('workspace-hidden');
+  instituteNav={level:'institutes',name:'',profileId:''};
+  $('homeScreen').classList.remove('hidden'); $('paperModeScreen').classList.add('hidden'); $('institutesScreen').classList.add('hidden'); $('workspace').classList.add('workspace-hidden');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function showPaperModeChooser(){
+  $('homeScreen').classList.add('hidden'); $('paperModeScreen').classList.remove('hidden'); $('institutesScreen').classList.add('hidden'); $('workspace').classList.add('workspace-hidden');
   window.scrollTo({top:0,behavior:'smooth'});
 }
 function showPaperWorkspace(fromInstitute=false){
-  $('homeScreen').classList.add('hidden'); $('institutesScreen').classList.add('hidden'); $('workspace').classList.remove('workspace-hidden');
-  $('workspaceTitle').textContent=fromInstitute?'New Paper from Institute':'Paper Mode';
+  $('homeScreen').classList.add('hidden'); $('paperModeScreen').classList.add('hidden'); $('institutesScreen').classList.add('hidden'); $('workspace').classList.remove('workspace-hidden');
+  $('workspaceTitle').textContent=fromInstitute?'New '+modeLabel($('paperMode').value||'mcq'):modeLabel($('paperMode').value||'mcq');
   window.scrollTo({top:0,behavior:'smooth'});
 }
-function renderInstituteCards(){
-  const box=$('instituteCards'); const profiles=getProfiles();
-  if(!profiles.length){box.innerHTML='<div class="empty-institutes"><b>No institutes saved yet</b>Create a paper in Paper Mode and use Save / Update to save the institute setup.</div>';return;}
-  box.innerHTML=profiles.map(p=>{
-    const mode=p.paperSetup?.paperMode||'mcq'; const modeLabel=mode==='school'?'School Paper':mode==='college'?'College Paper':'MCQ / Objective';
-    const sub=[modeLabel,p.paperSetup?.subjectName,p.address].filter(Boolean).join(' • ');
-    return `<div class="institute-card"><h3>${esc(p.name||'Unnamed Institute')}</h3><p>${esc(sub||'Saved question paper setup')}</p><div class="institute-card-actions"><button type="button" class="new-paper-btn" data-new-paper="${esc(p.id)}">New Question Paper</button><button type="button" class="edit-inst-btn" data-edit-inst="${esc(p.id)}">Edit Setup</button><button type="button" class="delete-inst-btn" data-del-inst="${esc(p.id)}">Delete</button></div></div>`;
-  }).join('');
-  box.querySelectorAll('[data-new-paper]').forEach(b=>b.onclick=()=>{
-    const p=getProfiles().find(x=>x.id===b.dataset.newPaper); if(!p)return; applyProfile(p); $('profileSelect').value=p.id;
-    $('exam').value=''; $('date').value=''; $('raw').value=''; invalidateParsedMaster(); invalidateAcademicMaster(); build(); showPaperWorkspace(true);
+function normalizedInstituteName(name=''){return String(name||'').trim().toLowerCase();}
+function instituteGroups(){
+  const groups=[];
+  getProfiles().forEach(p=>{
+    const key=normalizedInstituteName(p.name||'Unnamed Institute');
+    let g=groups.find(x=>x.key===key);
+    if(!g){g={key,name:p.name||'Unnamed Institute',profiles:[]};groups.push(g);}
+    g.profiles.push(p);
   });
-  box.querySelectorAll('[data-edit-inst]').forEach(b=>b.onclick=()=>{const p=getProfiles().find(x=>x.id===b.dataset.editInst);if(!p)return;applyProfile(p);$('profileSelect').value=p.id;showPaperWorkspace(true)});
-  box.querySelectorAll('[data-del-inst]').forEach(b=>b.onclick=()=>{const p=getProfiles().find(x=>x.id===b.dataset.delInst);if(!p)return;if(confirm('Delete '+(p.name||'this institute')+'?')){putProfiles(getProfiles().filter(x=>x.id!==p.id));renderProfileSelect();renderInstituteCards();}});
+  return groups.sort((a,b)=>a.name.localeCompare(b.name));
 }
-$('openPaperMode').onclick=()=>showPaperWorkspace(false);
-$('openInstitutes').onclick=()=>{$('homeScreen').classList.add('hidden');$('workspace').classList.add('workspace-hidden');$('institutesScreen').classList.remove('hidden');renderInstituteCards();window.scrollTo({top:0,behavior:'smooth'});};
-$('workspaceHome').onclick=showHome; $('institutesHome').onclick=showHome;
+function renderInstituteNames(){
+  instituteNav={level:'institutes',name:'',profileId:''};
+  const box=$('instituteCards'),groups=instituteGroups();
+  $('institutesTitle').textContent='Institutes'; $('institutesBack').textContent='← Home';
+  if(!groups.length){box.innerHTML='<div class="empty-institutes"><b>No institutes saved yet</b>Create a paper in Paper Mode and save its institute setup. It will appear here automatically.</div>';return;}
+  box.innerHTML=groups.map(g=>`<div class="institute-card" data-institute-name="${esc(g.name)}"><span class="row-arrow">›</span><h3>${esc(g.name)}</h3></div>`).join('');
+  box.querySelectorAll('[data-institute-name]').forEach(card=>card.onclick=()=>renderInstitutePaperTypes(card.dataset.instituteName));
+}
+function renderInstitutePaperTypes(name){
+  const profiles=getProfiles().filter(p=>normalizedInstituteName(p.name)===normalizedInstituteName(name)).sort((a,b)=>(a.paperSetup?.paperMode||'mcq').localeCompare(b.paperSetup?.paperMode||'mcq'));
+  instituteNav={level:'types',name,profileId:''};
+  $('institutesTitle').textContent=name; $('institutesBack').textContent='← Institutes';
+  const box=$('instituteCards');
+  if(!profiles.length){renderInstituteNames();return;}
+  box.innerHTML=profiles.map(p=>{const mode=p.paperSetup?.paperMode||'mcq';const extra=p.paperSetup?.subjectName||p.paperSetup?.className||p.paperSetup?.courseName||'';return `<div class="institute-card paper-type-card" data-profile-type="${esc(p.id)}"><div class="paper-type-copy"><b>${esc(modeLabel(mode))}</b>${extra?`<span>${esc(extra)}</span>`:''}</div><span class="type-pill">Open ›</span></div>`;}).join('');
+  box.querySelectorAll('[data-profile-type]').forEach(card=>card.onclick=()=>renderInstituteDetails(card.dataset.profileType));
+}
+function renderInstituteDetails(id){
+  const p=getProfiles().find(x=>x.id===id); if(!p){renderInstituteNames();return;}
+  instituteNav={level:'details',name:p.name||'',profileId:id};
+  $('institutesTitle').textContent='Paper Setup'; $('institutesBack').textContent='← Paper Types';
+  const ps=p.paperSetup||{}, mode=ps.paperMode||'mcq';
+  const rows=[];
+  const add=(label,value,full=false)=>{if(String(value||'').trim())rows.push(`<div class="detail-item${full?' full':''}"><b>${esc(label)}</b><span>${esc(value)}</span></div>`)};
+  add('Institute',p.name,true); add('Paper Type',modeLabel(mode));
+  if(mode==='school'){add('Class / Grade',ps.className);add('Subject',ps.subjectName)}
+  if(mode==='college'){add('Course / Programme',ps.courseName);add('Year / Semester',ps.semester);add('Subject',ps.subjectName);add('Subject Code',ps.subjectCode)}
+  add('Duration',ps.duration); add('Max Marks',ps.marksTotal); add('Address',p.address,true); add('Phone',p.phone,true);
+  $('instituteCards').innerHTML=`<div class="institute-detail"><h3>${esc(p.name||'Unnamed Institute')}</h3><div class="detail-mode">${esc(modeLabel(mode))}</div><div class="detail-grid">${rows.join('')||'<div class="detail-item full"><span>Saved paper setup is ready.</span></div>'}</div><div class="institute-detail-actions"><button type="button" class="new-paper-btn" id="detailNewPaper">New Question Paper</button><button type="button" class="edit-inst-btn" id="detailEditSetup">Edit Setup</button><button type="button" class="delete-inst-btn" id="detailDeleteSetup">Delete Setup</button></div></div>`;
+  $('detailNewPaper').onclick=()=>{
+    applyProfile(p); $('profileSelect').value=p.id; $('exam').value=''; $('date').value=''; $('raw').value=''; invalidateParsedMaster(); invalidateAcademicMaster(); build(); showPaperWorkspace(true);
+  };
+  $('detailEditSetup').onclick=()=>{applyProfile(p);$('profileSelect').value=p.id;showPaperWorkspace(true)};
+  $('detailDeleteSetup').onclick=()=>{if(confirm('Delete this saved '+modeLabel(mode)+' setup for '+(p.name||'this institute')+'?')){putProfiles(getProfiles().filter(x=>x.id!==p.id));renderProfileSelect();renderInstitutePaperTypes(p.name||'')}};
+}
+$('openPaperMode').onclick=showPaperModeChooser;
+$('paperModeHome').onclick=showHome;
+document.querySelectorAll('[data-paper-choice]').forEach(card=>card.onclick=()=>{
+  const mode=card.dataset.paperChoice||'mcq';
+  $('paperMode').value=mode; updatePaperMode();
+  // A fresh Paper Mode starts with paper content cleared, while the existing
+  // MCQ parser itself remains untouched.
+  $('raw').value=''; invalidateParsedMaster(); invalidateAcademicMaster(); build();
+  showPaperWorkspace(false);
+});
+$('openInstitutes').onclick=()=>{$('homeScreen').classList.add('hidden');$('paperModeScreen').classList.add('hidden');$('workspace').classList.add('workspace-hidden');$('institutesScreen').classList.remove('hidden');renderInstituteNames();window.scrollTo({top:0,behavior:'smooth'});};
+$('institutesBack').onclick=()=>{
+  if(instituteNav.level==='details') renderInstitutePaperTypes(instituteNav.name);
+  else if(instituteNav.level==='types') renderInstituteNames();
+  else showHome();
+};
+$('workspaceHome').onclick=showHome;
 
 $('paperMode').addEventListener('change',updatePaperMode);
 ['className','courseName','semester','subjectName','subjectCode','duration'].forEach(id=>$(id).addEventListener('input',build));
@@ -1931,4 +1998,4 @@ showHome();
 </script>
 </body>
 </html>
-<!-- KSR DTP v4.1.0: Academic 4-Step Workflow + MCQ Parser Locked -->
+<!-- KSR DTP v4.3.0: Clean Home + Mode Chooser + Institute Hierarchy; MCQ Parser Locked -->

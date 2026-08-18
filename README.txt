@@ -1,24 +1,17 @@
-KSR DTP v4.1.0 - Academic 4-Step Workflow
-
-KSR DTP Complete Exam Paper Maker — v4.0.0
-
-Major School + College Exam Paper update
+KSR DTP v4.3.0 - Clean Home, Paper Mode Chooser & Institute Hierarchy
 
 New in this release:
-- Existing Multiple Choice / Objective parser is preserved and remains separate
-- New Paper Mode selector: MCQ, School Exam Paper, College / University Exam
-- New School fields: Class / Grade, Subject, Time / Duration
-- New College fields: Course / Programme, Year / Semester, Subject, Subject Code, Time / Duration
-- Separate descriptive-question parser for School / College papers
-- Detects SECTION / PART / UNIT / GROUP headings
-- Preserves section instructions such as Answer all questions / Answer any THREE
-- Supports normal numbered descriptive questions without A/B/C/D options
-- Preserves sub-questions such as (a), (b), i), ii)
-- Preserves and highlights OR / లేదా lines
-- Detects common inline marks such as [5 Marks] and keeps them at the right side
-- Academic papers use a clean single-column professional layout
-- Academic source question numbers are preserved
-- MCQ Answer Key, Parser Safety Report and Question Editor remain available only in MCQ mode
-- PWA cache bumped so the new release updates correctly on installed devices
+- Removed the “What do you want to do?” heading and subtitle from Home
+- Enlarged and lowered the KSR DTP brand header for a stronger dashboard look
+- Home keeps only two features: Paper Mode and Institutes
+- Paper Mode now opens a clean chooser: MCQ / Objective, School Paper, College Paper
+- Existing MCQ parser logic is not changed; MCQ choice routes into the existing MCQ workflow
+- Institutes now opens institute names only
+- Tap an institute name to see saved paper types for that institute
+- Tap a paper type to see the remaining saved setup details
+- From setup details, create a New Question Paper, Edit Setup, or Delete Setup
+- One institute can now keep separate saved setups for MCQ, School and College modes
+- New paper from a saved institute loads the saved setup but clears old exam name/date/questions
+- PWA cache bumped to v4.3
 
 GitHub patch: replace index.html, sw.js and README.txt.
