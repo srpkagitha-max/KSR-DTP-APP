@@ -439,12 +439,17 @@ textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}
 </main>
 
 <script>
-// KSR DTP v3.2.1 — Optional Institute Contact + Marker Cleanup
+// KSR DTP v3.7.2 — Section Reset Parser + Answer Marker Cleanup
 const $=id=>document.getElementById(id);
 const ANSWER_MARK=/[●•⬤∙·▪✓✔★*🔴🔵🟢🟡🟠⚫⚪✅]+/gu;
+const LEADING_ANSWER_MARK=/^\s*[●•⬤∙·▪✓✔★*🔴🔵🟢🟡🟠⚫⚪✅]+\s*/u;
 const TRAILING_ANSWER_MARK=/(?:\s*[●•⬤∙·▪✓✔★*🔴🔵🟢🟡🟠⚫⚪✅])+\s*$/u;
 function stripAnswerMarkers(s){
-  return String(s||'').replace(TRAILING_ANSWER_MARK,'').trim();
+  return String(s||'').replace(LEADING_ANSWER_MARK,'').replace(TRAILING_ANSWER_MARK,'').trim();
+}
+function hasAnswerMarker(s){
+  const v=String(s||'');
+  return LEADING_ANSWER_MARK.test(v) || TRAILING_ANSWER_MARK.test(v);
 }
 function hasTrailingAnswerMarker(s){
   return TRAILING_ANSWER_MARK.test(String(s||''));
@@ -495,7 +500,13 @@ function parse(raw){
     let s=original.trim();
     if(!s) continue;
 
-    if(isSection(s)){ section=s.replace(/[*_#]/g,'').trim().replace(/^app\s+/i,''); continue; }
+    if(isSection(s)){
+      section=s.replace(/[*_#]/g,'').trim().replace(/^app\s+/i,'');
+      // A subject/method heading is a hard question boundary. This is essential
+      // when the next subject restarts numbering at 1 (e.g. English 88 -> Maths 1).
+      cur=null; numericSubList=false; subNext=1;
+      continue;
+    }
 
     // Dedicated answer lines belong only to the answer key, never to student PDF.
     const am=s.match(answerLineRe);
@@ -520,7 +531,7 @@ function parse(raw){
         const leadingMark=om[1]||'';
         const letter=om[2].toUpperCase();
         let txt=(om[3]||'').trim();
-        const markedInText=hasTrailingAnswerMarker(txt);
+        const markedInText=hasAnswerMarker(txt);
         if(leadingMark || markedInText) cur.answer=letter;
         txt=stripAnswerMarkers(txt);
         cur.options.push({letter,text:txt});
@@ -534,7 +545,7 @@ function parse(raw){
         const leadingMark=nom[1]||'';
         const letter=answerToLetter(nom[2]);
         let txt=(nom[3]||'').trim();
-        const markedInText=hasTrailingAnswerMarker(txt);
+        const markedInText=hasAnswerMarker(txt);
         if(leadingMark || markedInText) cur.answer=letter;
         txt=stripAnswerMarkers(txt);
         cur.options.push({letter,text:txt});
