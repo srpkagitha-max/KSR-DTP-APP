@@ -439,7 +439,7 @@ textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}
 </main>
 
 <script>
-// KSR DTP v3.7.2 — Section Reset Parser + Answer Marker Cleanup
+// KSR DTP v3.7.3 — Invisible Unicode Safe Parser
 const $=id=>document.getElementById(id);
 const ANSWER_MARK=/[●•⬤∙·▪✓✔★*🔴🔵🟢🟡🟠⚫⚪✅]+/gu;
 const LEADING_ANSWER_MARK=/^\s*[●•⬤∙·▪✓✔★*🔴🔵🟢🟡🟠⚫⚪✅]+\s*/u;
@@ -477,7 +477,13 @@ function isSection(s){
   return cleaned.length<40 && subjectRe.test(cleaned.replace(/\s+/g,' '));
 }
 function normalizeInput(raw){
-  let text=raw.replace(/\r/g,'');
+  // Mobile/WhatsApp/AI copied text can contain invisible Unicode characters
+  // (ZWSP/ZWNJ/ZWJ/WORD JOINER/BOM). They are not matched by JavaScript \s,
+  // so a line that visually starts with "1." may fail question detection.
+  // Remove these formatting characters before parsing so every subject is preserved.
+  let text=String(raw||'')
+    .replace(/\r/g,'')
+    .replace(/[\u200B\u200C\u200D\u2060\uFEFF]/g,'');
   // Some pasted banks put the next question on the same line as an answer,
   // e.g. "● జవాబు: B. 21. Next question". Split it safely.
   text=text.replace(
