@@ -301,6 +301,25 @@ body.mode-school.wiz-step-4 #rawFieldWrap,body.mode-college.wiz-step-4 #rawField
   .target-pages-note{display:none!important}
   
 }
+
+/* v4.2 simple two-feature home */
+.home-screen{max-width:760px;margin:0 auto;padding:22px 16px 40px}
+.home-hero{text-align:center;padding:18px 8px 10px}.home-hero h2{margin:0;color:#123f52;font-size:25px}.home-hero p{margin:7px 0 0;color:#70808d;font-size:14px}
+.home-actions{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:20px}
+.home-card{appearance:none;border:1px solid #cfe1e5;background:#fff;border-radius:20px;padding:25px 14px;box-shadow:0 8px 24px rgba(25,72,87,.08);text-align:left;cursor:pointer}
+.home-card strong{display:block;font-size:20px;color:#0e7480;margin-bottom:7px}.home-card span{display:block;color:#71808b;line-height:1.45;font-size:13px}
+.home-card .home-icon{width:46px;height:46px;border-radius:14px;background:#e8f6f5;display:grid;place-items:center;font-size:22px;margin-bottom:16px}
+.home-card:active{transform:scale(.99)}
+.home-screen.hidden,.workspace-hidden{display:none!important}
+.workspace-topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.workspace-home{border:0;border-radius:12px;padding:10px 14px;background:#e8f3f4;color:#126a75;font-weight:800}
+.institute-screen{max-width:760px;margin:0 auto;padding:18px 16px 40px}.institute-screen.hidden{display:none!important}
+.institute-head{display:flex;align-items:center;gap:10px;margin-bottom:14px}.institute-head h2{margin:0;flex:1;color:#173f50}.institute-list{display:grid;gap:12px}
+.institute-card{background:#fff;border:1px solid #d5e4e7;border-radius:17px;padding:16px;box-shadow:0 5px 16px rgba(25,72,87,.06)}
+.institute-card h3{margin:0 0 5px;color:#164f5e;font-size:17px}.institute-card p{margin:0 0 12px;color:#78868e;font-size:12px;line-height:1.45}.institute-card-actions{display:flex;gap:8px;flex-wrap:wrap}.institute-card-actions button{border:0;border-radius:10px;padding:10px 13px;font-weight:800}.new-paper-btn{background:#0c8b87;color:#fff}.edit-inst-btn{background:#e8f3f4;color:#176c76}.delete-inst-btn{background:#fff0f0;color:#a33}
+.empty-institutes{text-align:center;background:#fff;border:1px dashed #c9dadd;border-radius:18px;padding:28px 18px;color:#71808b}.empty-institutes b{display:block;color:#245362;margin-bottom:6px}
+@media(max-width:520px){.home-actions{grid-template-columns:1fr}.home-card{padding:20px 16px}.home-hero h2{font-size:22px}}
+@media print{#homeScreen,#institutesScreen,.workspace-topbar{display:none!important}}
 </style>
 <style id="dynamicPrintStyle">
 @media print{
@@ -313,7 +332,21 @@ body.mode-school.wiz-step-4 #rawFieldWrap,body.mode-college.wiz-step-4 #rawField
   <div class="brandbar"><div class="brandmark">KD</div><div class="brandcopy"><h1>KSR DTP</h1><small>Smart Question Paper Designer</small></div></div>
 </header>
 
-<main class="wrap">
+<section id="homeScreen" class="home-screen">
+  <div class="home-hero"><h2>What do you want to do?</h2><p>Create a new paper or reuse a saved institute setup.</p></div>
+  <div class="home-actions">
+    <button type="button" class="home-card" id="openPaperMode"><span class="home-icon">▤</span><strong>Paper Mode</strong><span>Choose MCQ, School or College paper and create a new question paper.</span></button>
+    <button type="button" class="home-card" id="openInstitutes"><span class="home-icon">▣</span><strong>Institutes</strong><span>Open saved institutes and create the next paper with new questions.</span></button>
+  </div>
+</section>
+
+<section id="institutesScreen" class="institute-screen hidden">
+  <div class="institute-head"><button type="button" class="workspace-home" id="institutesHome">← Home</button><h2>Institutes</h2></div>
+  <div id="instituteCards" class="institute-list"></div>
+</section>
+
+<main class="wrap workspace-hidden" id="workspace">
+  <div class="workspace-topbar"><button type="button" class="workspace-home" id="workspaceHome">← Home</button><b id="workspaceTitle">Paper Mode</b></div>
 
 <section class="panel controls">
   <div class="grid">
@@ -1364,6 +1397,7 @@ function currentProfileData(existingId=''){
     address:($('address').value||'').trim(),
     phone:($('phone').value||'').trim(),
     logo:instituteLogo||'',
+    paperSetup:{paperMode:$('paperMode').value||'mcq',className:$('className').value||'',courseName:$('courseName').value||'',semester:$('semester').value||'',subjectName:$('subjectName').value||'',subjectCode:$('subjectCode').value||'',duration:$('duration').value||'',marksTotal:$('marksTotal').value||''},
     layout,
     updatedAt:Date.now()
   };
@@ -1377,12 +1411,16 @@ function applyProfile(p){
   if(instituteLogo) localStorage.setItem('ksr_instituteLogo',instituteLogo);
   else localStorage.removeItem('ksr_instituteLogo');
   $('logoFile').value='';
+  if(p.paperSetup){
+    ['paperMode','className','courseName','semester','subjectName','subjectCode','duration','marksTotal'].forEach(id=>{if(p.paperSetup[id]!==undefined) $(id).value=String(p.paperSetup[id]);});
+  }
   if(p.layout){
     PROFILE_LAYOUT_IDS.forEach(id=>{
       if(p.layout[id]!==undefined && p.layout[id]!==null) $(id).value=String(p.layout[id]);
     });
   }
   $('targetPages').disabled=$('pageFitMode').value!=='target';
+  updatePaperMode();
   refreshBranding();
   build();
 }
@@ -1403,6 +1441,7 @@ function saveCurrentProfile(){
   putProfiles(profiles);
   renderProfileSelect(data.id);
   saveDraft();
+  renderInstituteCards();
   alert('Institute profile saved.');
 }
 function saveAsNewInstitute(){
@@ -1761,6 +1800,35 @@ $('wizNext').onclick=()=>{ if(academicWizardStep<4) setAcademicWizardStep(academ
 $('insertSection').onclick=()=>{insertAtQuestionEnd(sectionBuilderText());setAcademicWizardStep(3,true)};
 $('insertOR').onclick=()=>{insertAtQuestionEnd('OR');setAcademicWizardStep(3,true)};
 $('insertSub').onclick=()=>{insertAtQuestionEnd('(a) Sub-question\n(b) Sub-question');setAcademicWizardStep(3,true)};
+
+function showHome(){
+  $('homeScreen').classList.remove('hidden'); $('institutesScreen').classList.add('hidden'); $('workspace').classList.add('workspace-hidden');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function showPaperWorkspace(fromInstitute=false){
+  $('homeScreen').classList.add('hidden'); $('institutesScreen').classList.add('hidden'); $('workspace').classList.remove('workspace-hidden');
+  $('workspaceTitle').textContent=fromInstitute?'New Paper from Institute':'Paper Mode';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function renderInstituteCards(){
+  const box=$('instituteCards'); const profiles=getProfiles();
+  if(!profiles.length){box.innerHTML='<div class="empty-institutes"><b>No institutes saved yet</b>Create a paper in Paper Mode and use Save / Update to save the institute setup.</div>';return;}
+  box.innerHTML=profiles.map(p=>{
+    const mode=p.paperSetup?.paperMode||'mcq'; const modeLabel=mode==='school'?'School Paper':mode==='college'?'College Paper':'MCQ / Objective';
+    const sub=[modeLabel,p.paperSetup?.subjectName,p.address].filter(Boolean).join(' • ');
+    return `<div class="institute-card"><h3>${esc(p.name||'Unnamed Institute')}</h3><p>${esc(sub||'Saved question paper setup')}</p><div class="institute-card-actions"><button type="button" class="new-paper-btn" data-new-paper="${esc(p.id)}">New Question Paper</button><button type="button" class="edit-inst-btn" data-edit-inst="${esc(p.id)}">Edit Setup</button><button type="button" class="delete-inst-btn" data-del-inst="${esc(p.id)}">Delete</button></div></div>`;
+  }).join('');
+  box.querySelectorAll('[data-new-paper]').forEach(b=>b.onclick=()=>{
+    const p=getProfiles().find(x=>x.id===b.dataset.newPaper); if(!p)return; applyProfile(p); $('profileSelect').value=p.id;
+    $('exam').value=''; $('date').value=''; $('raw').value=''; invalidateParsedMaster(); invalidateAcademicMaster(); build(); showPaperWorkspace(true);
+  });
+  box.querySelectorAll('[data-edit-inst]').forEach(b=>b.onclick=()=>{const p=getProfiles().find(x=>x.id===b.dataset.editInst);if(!p)return;applyProfile(p);$('profileSelect').value=p.id;showPaperWorkspace(true)});
+  box.querySelectorAll('[data-del-inst]').forEach(b=>b.onclick=()=>{const p=getProfiles().find(x=>x.id===b.dataset.delInst);if(!p)return;if(confirm('Delete '+(p.name||'this institute')+'?')){putProfiles(getProfiles().filter(x=>x.id!==p.id));renderProfileSelect();renderInstituteCards();}});
+}
+$('openPaperMode').onclick=()=>showPaperWorkspace(false);
+$('openInstitutes').onclick=()=>{$('homeScreen').classList.add('hidden');$('workspace').classList.add('workspace-hidden');$('institutesScreen').classList.remove('hidden');renderInstituteCards();window.scrollTo({top:0,behavior:'smooth'});};
+$('workspaceHome').onclick=showHome; $('institutesHome').onclick=showHome;
+
 $('paperMode').addEventListener('change',updatePaperMode);
 ['className','courseName','semester','subjectName','subjectCode','duration'].forEach(id=>$(id).addEventListener('input',build));
 $('paperTemplate').addEventListener('change',updateTemplateNote);
@@ -1858,6 +1926,8 @@ window.addEventListener('load',()=>{
   updateSectionPreview();
   updatePaperMode();
 });
+
+showHome();
 </script>
 </body>
 </html>
