@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0b3b7a" />
 <link rel="manifest" href="manifest.webmanifest" />
 <title></title>
-<!-- KSR DTP v3.7.0 Complete Paper Style Editor -->
+<!-- KSR DTP v3.7.1 Consolidated Paper Style Editor -->
 <style>
 :root{
   --blue:#087f78;--blue2:#0b9b8d;--ink:#12302d;--muted:#687b78;
@@ -152,6 +152,14 @@ textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}
 @media(max-width:520px){.grid{grid-template-columns:1fr}.dash-title{font-size:19px}.institute-card{align-items:flex-start}.quick-grid{grid-template-columns:1fr 1fr}.grid .field[style*="grid-column"]{grid-column:span 1!important}.wrap{padding:0 8px}.panel{border-radius:12px;padding:12px}}
 
 
+
+
+/* v3.7.1 Consolidated Paper Style Editor */
+.style-divider{
+  margin:14px 0 10px;padding-top:12px;border-top:1px solid #dce7e5;
+  font-size:13px;font-weight:800;color:#0b6f67;letter-spacing:.01em
+}
+.style-divider span{background:#fff;padding-right:8px}
 
 /* v3.7.0 Complete Paper Style Editor */
 .paper{--logo-size:16mm;--qnum-weight:800}
@@ -321,15 +329,15 @@ textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}
         <select id="questionNumberWeight"><option value="800">Bold</option><option value="500">Normal</option></select>
       </div>
     </div>
-    <div class="template-note">These controls change the actual PDF appearance. Press <b>Save / Update</b> in Institute Profiles to remember this complete style for that institute.</div>
-  </div>
-
-  <div class="grid" style="margin-top:10px">
-    <div class="field"><label>Start Question No.</label><input id="startNo" type="number" min="1" value="1"></div>
-    <div class="field"><label>Text Size</label>
+    <div class="template-note">All question-paper appearance and page-fit controls are together here. Press <b>Save / Update</b> in Institute Profiles to remember the complete style for that institute.</div>
+  
+    <div class="style-divider"><span>Question & Page Formatting</span></div>
+    <div class="grid">
+<div class="field"><label>Start Question No.</label><input id="startNo" type="number" min="1" value="1"></div>
+<div class="field"><label>Text Size</label>
       <select id="fontSize"><option value="12">Medium</option><option value="11.2">Compact</option><option value="12.8">Large</option><option value="14.4">Extra Large</option></select>
     </div>
-    <div class="field"><label>Answer Bracket Type</label>
+<div class="field"><label>Answer Bracket Type</label>
       <select id="bracket">
         <option value="[   ]">[   ]</option>
         <option value="(   )">(   )</option>
@@ -339,38 +347,40 @@ textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}
         <option value="">Hide</option>
       </select>
     </div>
-    <div class="field"><label>Option Indent</label>
+<div class="field"><label>Option Indent</label>
       <select id="indent"><option value="3">Normal</option><option value="1.5">Compact</option><option value="5">Wide</option></select>
     </div>
-  </div>
-
-  <div class="grid" style="margin-top:10px">
-    <div class="field"><label>Line Spacing</label>
+<div class="field"><label>Line Spacing</label>
       <select id="lineHeight"><option value="1.38">Normal</option><option value="1.30">Compact</option><option value="1.48">Relaxed</option></select>
     </div>
-    <div class="field"><label>Question Gap</label>
+<div class="field"><label>Question Gap</label>
       <select id="qGap"><option value="1.2">Normal</option><option value=".6">Compact</option><option value="2">Wide</option></select>
     </div>
-    <div class="field"><label>Correct Marks in Student Paper</label>
+<div class="field"><label>Correct Marks in Student Paper</label>
       <select id="keepMarks"><option value="0">Remove ● / * / ✓</option><option value="1">Keep</option></select>
     </div>
-    <div class="field"><label>Subject Headings</label>
+<div class="field"><label>Subject Headings</label>
       <select id="sectionMode"><option value="1">Show if detected</option><option value="0">Hide</option></select>
     </div>
-  </div>
-
-  <div class="grid" style="margin-top:10px">
-    <div class="field"><label>PDF Page Fit</label>
+<div class="field"><label>PDF Page Fit</label>
       <select id="pageFitMode"><option value="auto">Auto Premium</option><option value="target">Target Pages</option><option value="min">Minimum Pages</option><option value="max">Maximum Pages</option></select>
     </div>
-    <div class="field"><label>Target Pages</label>
+<div class="field"><label>Target Pages</label>
       <select id="targetPages" disabled><option value="">Generate preview first</option></select>
     </div>
-    <div class="field" style="grid-column:span 2"><label>Smart Fit Range</label>
+    </div>
+<div class="field" style="grid-column:span 2"><label>Smart Fit Range</label>
       <div id="pageRange" class="chip" style="border-radius:10px;min-height:38px;display:flex;align-items:center">Paste questions to calculate minimum / maximum pages</div>
     </div>
-  </div>
-  <div class="hint target-pages-note">Minimum uses safe compact option rows where they fit. Maximum keeps options one below another with relaxed spacing. Target Pages automatically balances font size, spacing, option layout and the final quote box together inside the selected page count.</div>
+<div class="hint target-pages-note">Minimum uses safe compact option rows where they fit. Maximum keeps options one below another with relaxed spacing. Target Pages automatically balances font size, spacing, option layout and the final quote box together inside the selected page count.</div>
+</div>
+
+  
+
+  
+
+  
+  
 
   <div style="margin-top:12px" class="field">
     <label>Paste Questions — numbering/options can be in different common formats</label>
@@ -1031,7 +1041,7 @@ function calibrateTargetPages(fit,hdr,cols){
   cols.dataset.previewPages=String(metrics.pages);
   cols.dataset.lastPageFill=metrics.lastFill.toFixed(3);
   cols.dataset.smartBalanced='6';
-  cols.dataset.layoutPolish='v3.7.0';
+  cols.dataset.layoutPolish='v3.7.1';
 
   // v3.4.6 Print Density Carry-Forward:
   // The preview balancer already stops at the N -> N+1 boundary. A reserve
