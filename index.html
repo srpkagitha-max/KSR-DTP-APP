@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0b3b7a" />
 <link rel="manifest" href="manifest.webmanifest" />
 <title></title>
-<!-- KSR DTP v3.6.4 Institute Style Clone -->
+<!-- KSR DTP v3.7.0 Complete Paper Style Editor -->
 <style>
 :root{
   --blue:#087f78;--blue2:#0b9b8d;--ink:#12302d;--muted:#687b78;
@@ -152,6 +152,31 @@ textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}
 @media(max-width:520px){.grid{grid-template-columns:1fr}.dash-title{font-size:19px}.institute-card{align-items:flex-start}.quick-grid{grid-template-columns:1fr 1fr}.grid .field[style*="grid-column"]{grid-column:span 1!important}.wrap{padding:0 8px}.panel{border-radius:12px;padding:12px}}
 
 
+
+/* v3.7.0 Complete Paper Style Editor */
+.paper{--logo-size:16mm;--qnum-weight:800}
+.paper.margin-narrow{padding:8mm 6mm 8mm}
+.paper.margin-normal{padding:10mm 8mm 10mm}
+.paper.margin-wide{padding:14mm 12mm 14mm}
+.paper .pdf-logo{
+  width:var(--logo-size)!important;height:var(--logo-size)!important;
+}
+.paper .first-header.has-logo{
+  padding-left:calc(var(--logo-size) + 8mm)!important;
+  padding-right:calc(var(--logo-size) + 8mm)!important;
+}
+.paper.header-border-off .first-header{
+  border:0!important;box-shadow:none!important;
+}
+.paper.qbox-on .qblock{
+  border:.6px solid #bbb!important;border-radius:1.8mm!important;
+  padding:2mm 2.2mm!important;margin-bottom:2mm!important;
+}
+.paper.qbox-off .qblock{
+  border:0!important;border-radius:0!important;padding:0!important;margin-bottom:0!important;
+}
+.paper .qnum{font-weight:var(--qnum-weight,800)}
+
 /* v3.6.2 Advanced Paper Style Editor */
 .paper.style-header-left .institute-title{text-align:left}
 .paper.style-header-left .contact-meta,
@@ -172,11 +197,6 @@ textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}
 .paper.style-boxed .qblock{border:.6px solid #bbb;border-radius:1.8mm;padding:2mm 2.2mm;margin-bottom:2mm}
 
 @media print{
-  @page{
-    size:A4 portrait;
-    margin:10mm 8mm 12mm;
-    @bottom-center{content:counter(page);font-size:9pt;font-family:Arial,sans-serif}
-  }
   html,body{margin:0!important;padding:0!important;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   body{background:#fff}
   .appbar,.dashboard,.controls,.preview-title{display:none!important}
@@ -201,6 +221,11 @@ textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}
   .qblock{break-inside:auto;page-break-inside:auto}
   .target-pages-note{display:none!important}
   
+}
+</style>
+<style id="dynamicPrintStyle">
+@media print{
+  @page{size:A4 portrait;margin:10mm 8mm 12mm;@bottom-center{content:counter(page);font-size:9pt;font-family:Arial,sans-serif}}
 }
 </style>
 </head>
@@ -276,6 +301,24 @@ textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}
       </div>
       <div class="field"><label>Quote Box on Last Page</label>
         <select id="quoteMode"><option value="auto">Auto if Space</option><option value="off">Off</option></select>
+      </div>
+      <div class="field"><label>Page Margin</label>
+        <select id="pageMargin"><option value="normal">Normal</option><option value="narrow">Narrow</option><option value="wide">Wide</option></select>
+      </div>
+      <div class="field"><label>Header Border</label>
+        <select id="headerBorder"><option value="on">On</option><option value="off">Off</option></select>
+      </div>
+      <div class="field"><label>Question Box</label>
+        <select id="questionBox"><option value="auto">Follow Paper Design</option><option value="on">Always On</option><option value="off">Always Off</option></select>
+      </div>
+      <div class="field"><label>Page Number</label>
+        <select id="pageNumber"><option value="on">On</option><option value="off">Off</option></select>
+      </div>
+      <div class="field"><label>Institute Logo Size</label>
+        <select id="logoSize"><option value="16">Normal</option><option value="12">Small</option><option value="20">Large</option></select>
+      </div>
+      <div class="field"><label>Question Number Weight</label>
+        <select id="questionNumberWeight"><option value="800">Bold</option><option value="500">Normal</option></select>
       </div>
     </div>
     <div class="template-note">These controls change the actual PDF appearance. Press <b>Save / Update</b> in Institute Profiles to remember this complete style for that institute.</div>
@@ -808,6 +851,9 @@ function smartPageRange(qs){
   if(optionLayout==='vertical') styleFactor*=1.10;
   else if(optionLayout==='two') styleFactor*=.90;
   if(optionScale<1) styleFactor*=Math.max(.88,optionScale+.04);
+  const margin=$('pageMargin')?.value||'normal';
+  if(margin==='narrow') styleFactor*=.97;
+  else if(margin==='wide') styleFactor*=1.06;
   styleFactor*=Math.pow(Math.max(1.18,line)/1.38,.72);
   styleFactor*=1+Math.max(0,gap-1.2)*.045;
 
@@ -880,7 +926,7 @@ function previewPageMetrics(hdr,cols){
   // Calibrate against the effective printable height measured from the user's
   // 168-question/20-page output: 271.5mm keeps the selected physical page count
   // aligned with Chrome PDF while still using nearly the whole final page.
-  const theoreticalPrintableMm=275;
+  const theoreticalPrintableMm=printableHeightMm();
   const browserFragmentReserveMm=3.5;
   const effectivePrintableMm=theoreticalPrintableMm-browserFragmentReserveMm;
   const printablePx=effectivePrintableMm*pxPerMm;
@@ -985,7 +1031,7 @@ function calibrateTargetPages(fit,hdr,cols){
   cols.dataset.previewPages=String(metrics.pages);
   cols.dataset.lastPageFill=metrics.lastFill.toFixed(3);
   cols.dataset.smartBalanced='6';
-  cols.dataset.layoutPolish='v3.6.4';
+  cols.dataset.layoutPolish='v3.7.0';
 
   // v3.4.6 Print Density Carry-Forward:
   // The preview balancer already stops at the N -> N+1 boundary. A reserve
@@ -1069,7 +1115,7 @@ function applyPaperTemplate(){
 }
 
 const PROFILE_KEY='ksr_dtp_institute_profiles_v1';
-const PROFILE_LAYOUT_IDS=['paperLayout','paperBorder','headerAlign','questionWeight','optionLayout','optionScale','quoteMode','fontSize','bracket','indent','lineHeight','qGap','keepMarks','sectionMode','pageFitMode','targetPages'];
+const PROFILE_LAYOUT_IDS=['paperLayout','paperBorder','headerAlign','questionWeight','optionLayout','optionScale','quoteMode','pageMargin','headerBorder','questionBox','pageNumber','logoSize','questionNumberWeight','fontSize','bracket','indent','lineHeight','qGap','keepMarks','sectionMode','pageFitMode','targetPages'];
 
 function getProfiles(){
   try{
@@ -1214,6 +1260,35 @@ $('logoFile').addEventListener('change',e=>{
 $('removeLogo').onclick=()=>{instituteLogo='';localStorage.removeItem('ksr_instituteLogo');$('logoFile').value='';refreshBranding();build();};
 ['institute','address','phone'].forEach(id=>$(id).addEventListener('input',refreshBranding));
 
+
+function updateDynamicPrintStyle(){
+  const margin=$('pageMargin')?.value||'normal';
+  const pageNum=$('pageNumber')?.value||'on';
+  const map={
+    narrow:{top:8,right:6,bottom:10,left:6},
+    normal:{top:10,right:8,bottom:12,left:8},
+    wide:{top:14,right:12,bottom:16,left:12}
+  };
+  const m=map[margin]||map.normal;
+  const pageContent=pageNum==='off'?'none':'counter(page)';
+  const style=$('dynamicPrintStyle');
+  if(style){
+    style.textContent=`@media print{
+      @page{
+        size:A4 portrait;
+        margin:${m.top}mm ${m.right}mm ${m.bottom}mm ${m.left}mm;
+        @bottom-center{content:${pageContent};font-size:9pt;font-family:Arial,sans-serif}
+      }
+    }`;
+  }
+}
+function printableHeightMm(){
+  const margin=$('pageMargin')?.value||'normal';
+  if(margin==='narrow') return 279;
+  if(margin==='wide') return 267;
+  return 275;
+}
+
 function build(){
   const qs=parse($('raw').value);
   const start=Math.max(1,parseInt($('startNo').value||'1',10));
@@ -1233,7 +1308,12 @@ function build(){
   $('warn').textContent=issues.length ? (issues.slice(0,6).join(' • ')+(issues.length>6?` • +${issues.length-6} more`:"")) : '';
 
   const paper=$('paper'); paper.innerHTML='';
-  paper.classList.remove('style-single','style-minimal','style-boxed','style-header-left','option-force-two','option-force-vertical');
+  updateDynamicPrintStyle();
+  paper.classList.remove('style-single','style-minimal','style-boxed','style-header-left','option-force-two','option-force-vertical','margin-narrow','margin-normal','margin-wide','header-border-off','qbox-on','qbox-off');
+  paper.classList.add('margin-'+($('pageMargin').value||'normal'));
+  if($('headerBorder').value==='off') paper.classList.add('header-border-off');
+  if($('questionBox').value==='on') paper.classList.add('qbox-on');
+  if($('questionBox').value==='off') paper.classList.add('qbox-off');
   if($('paperLayout').value==='single') paper.classList.add('style-single');
   if($('paperBorder').value==='minimal') paper.classList.add('style-minimal');
   if($('paperBorder').value==='boxed') paper.classList.add('style-boxed');
@@ -1242,6 +1322,8 @@ function build(){
   if($('optionLayout').value==='vertical') paper.classList.add('option-force-vertical');
   paper.style.setProperty('--question-weight',$('questionWeight').value);
   paper.style.setProperty('--option-scale',$('optionScale').value);
+  paper.style.setProperty('--logo-size',($('logoSize').value||'16')+'mm');
+  paper.style.setProperty('--qnum-weight',$('questionNumberWeight').value||'800');
 
   const hdr=document.createElement('div');
   hdr.className='first-header'+(instituteLogo?' has-logo':'');
@@ -1288,7 +1370,7 @@ function build(){
 
     const first=document.createElement('div');
     first.className='qstart';
-    first.innerHTML=`${number}. ${esc(clean(q.text))}`;
+    first.innerHTML=`<span class="qnum">${number}.</span> ${esc(clean(q.text))}`;
     block.appendChild(first);
     stemNodes.push(first);
 
@@ -1328,7 +1410,7 @@ function build(){
 }
 function saveDraft(){
   localStorage.setItem('ksr_dtp_raw',$('raw').value);
-  ['institute','address','phone','exam','date','marksTotal','startNo','paperLayout','paperBorder','headerAlign','questionWeight','optionLayout','optionScale','quoteMode','fontSize','bracket','indent','lineHeight','qGap','keepMarks','sectionMode','pageFitMode','targetPages']
+  ['institute','address','phone','exam','date','marksTotal','startNo','paperLayout','paperBorder','headerAlign','questionWeight','optionLayout','optionScale','quoteMode','pageMargin','headerBorder','questionBox','pageNumber','logoSize','questionNumberWeight','fontSize','bracket','indent','lineHeight','qGap','keepMarks','sectionMode','pageFitMode','targetPages']
     .forEach(id=>localStorage.setItem('ksr_'+id,$(id).value));
 }
 function answerKey(){
@@ -1350,7 +1432,7 @@ function printPaper(){
   },120);
 }
 
-['paperLayout','paperBorder','headerAlign','questionWeight','optionLayout','optionScale','quoteMode'].forEach(id=>{
+['paperLayout','paperBorder','headerAlign','questionWeight','optionLayout','optionScale','quoteMode','pageMargin','headerBorder','questionBox','pageNumber','logoSize','questionNumberWeight'].forEach(id=>{
   $(id).addEventListener('change',build);
 });
 $('paperTemplate').addEventListener('change',updateTemplateNote);
@@ -1413,7 +1495,7 @@ window.addEventListener('load',()=>{
   renderProfileSelect('');
   updateTemplateNote();
   $('raw').value=localStorage.getItem('ksr_dtp_raw')||'';
-  ['institute','address','phone','exam','date','marksTotal','startNo','paperLayout','paperBorder','headerAlign','questionWeight','optionLayout','optionScale','quoteMode','fontSize','bracket','indent','lineHeight','qGap','keepMarks','sectionMode','pageFitMode','targetPages']
+  ['institute','address','phone','exam','date','marksTotal','startNo','paperLayout','paperBorder','headerAlign','questionWeight','optionLayout','optionScale','quoteMode','pageMargin','headerBorder','questionBox','pageNumber','logoSize','questionNumberWeight','fontSize','bracket','indent','lineHeight','qGap','keepMarks','sectionMode','pageFitMode','targetPages']
     .forEach(id=>{const v=localStorage.getItem('ksr_'+id); if(v!==null) $(id).value=v;});
   refreshBranding();
   build();
