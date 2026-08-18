@@ -110,7 +110,7 @@ textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}
 .qgap{height:1.2mm}
 .ans{float:right;font-weight:700;letter-spacing:1px;margin-left:2mm;white-space:nowrap}
 
-/* v4.0.0 — School / College complete exam-paper mode */
+/* v4.1.0 — Academic 4-step workflow + section builder */
 .mode-strip{border:1px solid #cfe4e0;background:linear-gradient(145deg,#ffffff,#f3fbf9);border-radius:14px;padding:12px;margin-top:10px}
 .mode-grid{display:grid;grid-template-columns:1fr 2fr;gap:10px;align-items:end}
 .mode-note{font-size:11px;color:#657b77;line-height:1.45;margin-top:8px}
@@ -135,6 +135,51 @@ body.mode-school .mcq-only,body.mode-college .mcq-only{display:none!important}
 .academic-help{display:none;border:1px solid #d6e7e4;background:#f8fdfc;border-radius:12px;padding:10px 12px;margin-top:10px;font-size:12px;color:#526864;line-height:1.55}
 body.mode-school .academic-help,body.mode-college .academic-help{display:block}
 @media(max-width:640px){.mode-grid{grid-template-columns:1fr}.academic-fields{grid-template-columns:1fr 1fr!important}.academic-fields .field{grid-column:auto!important}}
+
+
+/* Academic wizard: visible only in School / College modes. MCQ UI is unchanged. */
+.academic-wizard{display:none;margin-top:10px;border:1px solid #cbdde8;background:#f9fcff;border-radius:14px;padding:12px}
+body.mode-school .academic-wizard,body.mode-college .academic-wizard{display:block}
+.wizard-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+.wstep{border:1px solid #d3dfeb;background:#fff;color:#52677d;border-radius:10px;padding:9px 6px;font-size:11px;font-weight:800;cursor:pointer;text-align:center;line-height:1.25}
+.wstep.active{background:#0e6573;color:#fff;border-color:#0e6573;box-shadow:0 4px 12px #0e657329}
+.wizard-caption{font-size:11px;color:#65788a;margin-top:8px;line-height:1.45}
+.wizard-nav{display:flex;gap:8px;justify-content:space-between;margin-top:10px}
+.wizard-nav button{border:0;border-radius:10px;padding:10px 14px;font-weight:800;cursor:pointer}
+#wizBack{background:#edf2f7;color:#34506c}#wizNext{background:#0e6573;color:#fff;margin-left:auto}
+.academic-structure{display:none;margin-top:10px;border:1px solid #d4e4ef;background:#fbfdff;border-radius:14px;padding:12px}
+body.mode-school .academic-structure,body.mode-college .academic-structure{display:block}
+.structure-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.structure-grid .full{grid-column:1/-1}
+.structure-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}.structure-actions button{border:0;border-radius:9px;padding:9px 11px;font-weight:800;cursor:pointer;background:#eaf3f5;color:#0e6573}.structure-actions .primary{background:#0e6573;color:#fff}
+.section-preview{margin-top:9px;border:1px dashed #c8d7e4;border-radius:10px;padding:9px;font-size:11px;line-height:1.5;color:#536778;min-height:40px;background:#fff}
+body.mode-school.wiz-step-1 #academicStructure,body.mode-college.wiz-step-1 #academicStructure,
+body.mode-school.wiz-step-1 #rawFieldWrap,body.mode-college.wiz-step-1 #rawFieldWrap,
+body.mode-school.wiz-step-1 #styleEditor,body.mode-college.wiz-step-1 #styleEditor,
+body.mode-school.wiz-step-1 #toolbarWrap,body.mode-college.wiz-step-1 #toolbarWrap,
+body.mode-school.wiz-step-1 #statsWrap,body.mode-college.wiz-step-1 #statsWrap{display:none!important}
+body.mode-school.wiz-step-2 #academicFields,body.mode-college.wiz-step-2 #academicFields,
+body.mode-school.wiz-step-2 #commonDetails,body.mode-college.wiz-step-2 #commonDetails,
+body.mode-school.wiz-step-2 #brandingDetails,body.mode-college.wiz-step-2 #brandingDetails,
+body.mode-school.wiz-step-2 #contactDetails,body.mode-college.wiz-step-2 #contactDetails,
+body.mode-school.wiz-step-2 #rawFieldWrap,body.mode-college.wiz-step-2 #rawFieldWrap,
+body.mode-school.wiz-step-2 #styleEditor,body.mode-college.wiz-step-2 #styleEditor,
+body.mode-school.wiz-step-2 #toolbarWrap,body.mode-college.wiz-step-2 #toolbarWrap,
+body.mode-school.wiz-step-2 #statsWrap,body.mode-college.wiz-step-2 #statsWrap{display:none!important}
+body.mode-school.wiz-step-3 #academicFields,body.mode-college.wiz-step-3 #academicFields,
+body.mode-school.wiz-step-3 #commonDetails,body.mode-college.wiz-step-3 #commonDetails,
+body.mode-school.wiz-step-3 #brandingDetails,body.mode-college.wiz-step-3 #brandingDetails,
+body.mode-school.wiz-step-3 #contactDetails,body.mode-college.wiz-step-3 #contactDetails,
+body.mode-school.wiz-step-3 #academicStructure,body.mode-college.wiz-step-3 #academicStructure,
+body.mode-school.wiz-step-3 #styleEditor,body.mode-college.wiz-step-3 #styleEditor,
+body.mode-school.wiz-step-3 #toolbarWrap,body.mode-college.wiz-step-3 #toolbarWrap,
+body.mode-school.wiz-step-3 #statsWrap,body.mode-college.wiz-step-3 #statsWrap{display:none!important}
+body.mode-school.wiz-step-4 #academicFields,body.mode-college.wiz-step-4 #academicFields,
+body.mode-school.wiz-step-4 #commonDetails,body.mode-college.wiz-step-4 #commonDetails,
+body.mode-school.wiz-step-4 #brandingDetails,body.mode-college.wiz-step-4 #brandingDetails,
+body.mode-school.wiz-step-4 #contactDetails,body.mode-college.wiz-step-4 #contactDetails,
+body.mode-school.wiz-step-4 #academicStructure,body.mode-college.wiz-step-4 #academicStructure,
+body.mode-school.wiz-step-4 #rawFieldWrap,body.mode-college.wiz-step-4 #rawFieldWrap{display:none!important}
+@media(max-width:640px){.wizard-steps{grid-template-columns:1fr 1fr}.structure-grid{grid-template-columns:1fr}.structure-grid .full{grid-column:auto}}
 
 
 /* v3.6.1 — institute-wise custom paper styles. It is inserted only when it fits in
@@ -314,6 +359,17 @@ body.mode-school .academic-help,body.mode-college .academic-help{display:block}
     </div>
   </div>
 
+  <div class="academic-wizard" id="academicWizard">
+    <div class="wizard-steps">
+      <button type="button" class="wstep active" data-step="1">1. Paper Details</button>
+      <button type="button" class="wstep" data-step="2">2. Sections & Marks</button>
+      <button type="button" class="wstep" data-step="3">3. Questions</button>
+      <button type="button" class="wstep" data-step="4">4. Preview & PDF</button>
+    </div>
+    <div class="wizard-caption" id="wizardCaption">Enter school/college, exam, subject, class/course and paper details.</div>
+    <div class="wizard-nav"><button type="button" id="wizBack">Back</button><button type="button" id="wizNext">Continue</button></div>
+  </div>
+
   <div class="grid academic-fields" id="academicFields">
     <div class="field school-field"><label>Class / Grade</label><input id="className" placeholder="e.g. 4th Class / Class X"></div>
     <div class="field college-field"><label>Course / Programme</label><input id="courseName" placeholder="e.g. B.Sc / B.Com / B.Tech"></div>
@@ -323,7 +379,7 @@ body.mode-school .academic-help,body.mode-college .academic-help{display:block}
     <div class="field"><label>Time / Duration</label><input id="duration" placeholder="e.g. 2 Hours / 3 Hours"></div>
   </div>
 
-  <div class="grid" style="margin-top:10px">
+  <div class="grid" id="commonDetails" style="margin-top:10px">
     <div class="field"><label>Institute Name</label><input id="institute" placeholder="Institute / School Name"></div>
     <div class="field"><label>Exam Name</label><input id="exam" value="FINAL GRAND TEST"></div>
     <div class="field"><label>Date</label><input id="date" placeholder="DD-MM-YYYY"></div>
@@ -332,16 +388,29 @@ body.mode-school .academic-help,body.mode-college .academic-help{display:block}
     <div class="field"><label>Paper Design</label><select id="paperBorder"><option value="classic">Classic</option><option value="minimal">Minimal</option><option value="boxed">Premium Box</option></select></div>
   </div>
 
-  <div class="grid" style="margin-top:10px">
+  <div class="grid" id="brandingDetails" style="margin-top:10px">
     <div class="field" style="grid-column:span 2"><label>Institute Logo <span style="font-weight:400;color:#7a8798">(Optional)</span></label><div class="logo-upload"><input id="logoFile" type="file" accept="image/png,image/jpeg,image/webp"><div class="logo-actions"><button type="button" class="logo-btn remove" id="removeLogo">Remove Logo</button></div></div><div class="hint">Logo is saved on this device and appears in the PDF header when selected.</div></div>
   </div>
 
-  <div class="grid" style="margin-top:10px">
+  <div class="grid" id="contactDetails" style="margin-top:10px">
     <div class="field" style="grid-column:span 2"><label>Institute Address <span style="font-weight:400;color:#7a8798">(Optional)</span></label><input id="address" placeholder="Area / City / District"></div>
     <div class="field" style="grid-column:span 2"><label>Phone Number <span style="font-weight:400;color:#7a8798">(Optional)</span></label><input id="phone" inputmode="tel" placeholder="Phone / Mobile Number"></div>
   </div>
 
-  <div class="template-strip" style="margin-top:10px">
+  <div class="academic-structure" id="academicStructure">
+    <div class="template-top"><b>Section & Marks Builder</b><span>Optional helper</span></div>
+    <div class="structure-grid">
+      <div class="field"><label>Section / Part</label><input id="sectionName" placeholder="e.g. SECTION - A"></div>
+      <div class="field"><label>Question Type</label><select id="questionType"><option>General Questions</option><option>Fill in the Blanks</option><option>True / False</option><option>Match the Following</option><option>Very Short Answer</option><option>Short Answer</option><option>Long Answer / Essay</option><option>Numericals / Problems</option><option>Passage / Comprehension</option></select></div>
+      <div class="field full"><label>Instruction</label><input id="sectionInstructionInput" placeholder="e.g. Answer any FIVE questions"></div>
+      <div class="field"><label>Marks Pattern</label><input id="marksPattern" placeholder="e.g. 5 × 2 = 10 Marks"></div>
+      <div class="field"><label>Internal Choice</label><select id="internalChoice"><option value="none">No special choice</option><option value="or">OR / Internal Choice</option><option value="any">Answer Any</option></select></div>
+    </div>
+    <div class="structure-actions"><button type="button" class="primary" id="insertSection">Insert Section into Questions</button><button type="button" id="insertOR">Insert OR Line</button><button type="button" id="insertSub">Insert (a) / (b) Hint</button></div>
+    <div class="section-preview" id="sectionPreview">Build a section here, then insert it into Step 3. You can also paste a complete paper directly without using this helper.</div>
+  </div>
+
+<div class="template-strip" id="styleEditor" style="margin-top:10px">
     <div class="template-top"><b>Paper Style Editor</b><span>Saved with Institute Profile</span></div>
     <div class="grid">
       <div class="field"><label>Header Alignment</label>
@@ -431,13 +500,13 @@ body.mode-school .academic-help,body.mode-college .academic-help{display:block}
   
   
 
-  <div style="margin-top:12px" class="field">
+  <div style="margin-top:12px" class="field" id="rawFieldWrap">
     <label id="rawLabel">Paste Questions Once — parser output is used directly for Preview / PDF</label>
     <textarea id="raw" placeholder="ప్రశ్న 1&#10;Question text...&#10;A) Option&#10;B. Option ●&#10;C: Option&#10;D - Option&#10;&#10;2. Next question..."></textarea>
     <div class="academic-help" id="academicHelp"><b>School / College input:</b> Paste the full paper in normal order. SECTION-A / PART-I headings, instructions such as “Answer all questions”, numbered questions, sub-questions (a), (b), OR lines and marks like [5 Marks] are preserved. No A/B/C/D options are required.</div>
   </div>
 
-  <div class="toolbar">
+  <div class="toolbar" id="toolbarWrap">
     <button class="btn primary" id="build">Generate Preview</button>
     <button class="btn secondary" id="print">Print / Save PDF</button>
     <button class="btn secondary mcq-only" id="key">Answer Key</button>
@@ -447,7 +516,7 @@ body.mode-school .academic-help,body.mode-college .academic-help{display:block}
     <button class="btn danger" id="clear">Clear</button>
   </div>
 
-  <div class="stats">
+  <div class="stats" id="statsWrap">
     <span class="chip" id="qstat">Questions: 0</span>
     <span class="chip" id="rangeStat">Numbering: —</span>
     <span class="chip" id="ostat">Options: 0</span>
@@ -490,7 +559,7 @@ body.mode-school .academic-help,body.mode-college .academic-help{display:block}
 </main>
 
 <script>
-// KSR DTP v4.0.0 — MCQ parser locked + School/College Exam modes
+// KSR DTP v4.1.0 — MCQ parser locked + Academic 4-step workflow
 const $=id=>document.getElementById(id);
 const ANSWER_MARK=/[●•⬤∙·▪✓✔★*🔴🔵🟢🟡🟠⚫⚪✅]+/gu;
 const LEADING_ANSWER_MARK=/^\s*[●•⬤∙·▪✓✔★*🔴🔵🟢🟡🟠⚫⚪✅]+\s*/u;
@@ -1614,6 +1683,49 @@ function printPaper(){
 }
 
 
+
+let academicWizardStep=1;
+const wizardCaptions={
+  1:'Enter school/college, exam, subject, class/course and paper details.',
+  2:'Create sections, instructions and marks patterns. This helper is optional; full-paper paste still works.',
+  3:'Paste or type the complete question paper. Sections, sub-questions, OR and marks are preserved.',
+  4:'Adjust final paper style, generate preview and print / save the PDF.'
+};
+function setAcademicWizardStep(step,scroll=false){
+  academicWizardStep=Math.max(1,Math.min(4,Number(step)||1));
+  document.body.classList.remove('wiz-step-1','wiz-step-2','wiz-step-3','wiz-step-4');
+  document.body.classList.add('wiz-step-'+academicWizardStep);
+  document.querySelectorAll('.wstep').forEach(b=>b.classList.toggle('active',Number(b.dataset.step)===academicWizardStep));
+  if($('wizardCaption')) $('wizardCaption').textContent=wizardCaptions[academicWizardStep];
+  if($('wizBack')) $('wizBack').style.visibility=academicWizardStep===1?'hidden':'visible';
+  if($('wizNext')) $('wizNext').textContent=academicWizardStep===4?'Generate Preview':'Continue';
+  if(scroll && $('academicWizard')) $('academicWizard').scrollIntoView({behavior:'smooth',block:'start'});
+  if(academicWizardStep===4 && isAcademicMode()) build();
+}
+function sectionBuilderText(){
+  const name=($('sectionName')?.value||'').trim()||'SECTION - A';
+  const type=($('questionType')?.value||'General Questions').trim();
+  const inst=($('sectionInstructionInput')?.value||'').trim();
+  const marks=($('marksPattern')?.value||'').trim();
+  const choice=$('internalChoice')?.value||'none';
+  let instruction=inst;
+  if(marks) instruction+=(instruction?' ':'')+'('+marks+')';
+  if(!instruction && type!=='General Questions') instruction=type;
+  if(choice==='or') instruction+=(instruction?' • ':'')+'Internal choice / OR where shown';
+  if(choice==='any') instruction+=(instruction?' • ':'')+'Answer any questions as instructed';
+  return name+(instruction?'\n'+instruction:'')+'\n';
+}
+function updateSectionPreview(){
+  if(!$('sectionPreview')) return;
+  $('sectionPreview').textContent=sectionBuilderText()+'1. Your first question here...';
+}
+function insertAtQuestionEnd(text){
+  const raw=$('raw'); if(!raw) return;
+  const existing=raw.value.replace(/\s+$/,'');
+  raw.value=(existing?existing+'\n\n':'')+text;
+  raw.dispatchEvent(new Event('input',{bubbles:true}));
+}
+
 function updatePaperMode(){
   const mode=$('paperMode').value||'mcq';
   document.body.classList.remove('mode-mcq','mode-school','mode-college');
@@ -1630,6 +1742,7 @@ function updatePaperMode(){
     : 'ప్రశ్న 1\nQuestion text...\nA) Option\nB. Option ●\nC: Option\nD - Option\n\n2. Next question...';
   if(academic){
     $('paperLayout').value='single';
+    setAcademicWizardStep(academicWizardStep||1);
     $('bracket').value='';
     $('sectionMode').value='1';
     closeEditor();
@@ -1641,6 +1754,13 @@ function updatePaperMode(){
 ['paperLayout','paperBorder','headerAlign','questionWeight','optionLayout','optionScale','quoteMode','pageMargin','headerBorder','questionBox','pageNumber','logoSize','questionNumberWeight'].forEach(id=>{
   $(id).addEventListener('change',build);
 });
+document.querySelectorAll('.wstep').forEach(b=>b.addEventListener('click',()=>setAcademicWizardStep(b.dataset.step,true)));
+$('wizBack').onclick=()=>setAcademicWizardStep(academicWizardStep-1,true);
+$('wizNext').onclick=()=>{ if(academicWizardStep<4) setAcademicWizardStep(academicWizardStep+1,true); else build(); };
+['sectionName','questionType','sectionInstructionInput','marksPattern','internalChoice'].forEach(id=>$(id).addEventListener('input',updateSectionPreview));
+$('insertSection').onclick=()=>{insertAtQuestionEnd(sectionBuilderText());setAcademicWizardStep(3,true)};
+$('insertOR').onclick=()=>{insertAtQuestionEnd('OR');setAcademicWizardStep(3,true)};
+$('insertSub').onclick=()=>{insertAtQuestionEnd('(a) Sub-question\n(b) Sub-question');setAcademicWizardStep(3,true)};
 $('paperMode').addEventListener('change',updatePaperMode);
 ['className','courseName','semester','subjectName','subjectCode','duration'].forEach(id=>$(id).addEventListener('input',build));
 $('paperTemplate').addEventListener('change',updateTemplateNote);
@@ -1669,6 +1789,30 @@ $('pageFitMode').addEventListener('change',()=>{ $('targetPages').disabled=$('pa
 $('targetPages').addEventListener('change',build);
 $('clear').onclick=()=>{if(confirm('Clear all pasted questions?')){$('raw').value='';invalidateParsedMaster();invalidateAcademicMaster();build()}};
 $('sample').onclick=()=>{
+if(isAcademicMode()){
+$('raw').value=`SECTION - A
+Answer all questions (5 × 1 = 5 Marks)
+1. Fill in the blank: Water boils at ______ °C. [1 Mark]
+2. State True or False: Plants prepare their own food. [1 Mark]
+3. Define photosynthesis. [1 Mark]
+
+SECTION - B
+Answer any TWO (2 × 3 = 6 Marks)
+4. Explain any three uses of water. [3 Marks]
+5. Write a short note on the solar system. [3 Marks]
+OR
+6. Explain the water cycle with a neat diagram. [3 Marks]
+
+SECTION - C
+Answer any ONE (1 × 5 = 5 Marks)
+7. Describe the process of photosynthesis. [5 Marks]
+(a) Mention the raw materials.
+(b) Write the importance of sunlight.`;
+invalidateAcademicMaster();
+setAcademicWizardStep(3,true);
+build();
+return;
+}
 $('raw').value=`Psychology
 ప్రశ్న 25
 అభ్యసన లాక్షణిక వక్రం (Learning Curve) కి సంబంధించి క్రింది వాక్యాలను పరిశీలించండి:
@@ -1711,9 +1855,10 @@ window.addEventListener('load',()=>{
   ['paperMode','className','courseName','semester','subjectName','subjectCode','duration','institute','address','phone','exam','date','marksTotal','startNo','paperLayout','paperBorder','headerAlign','questionWeight','optionLayout','optionScale','quoteMode','pageMargin','headerBorder','questionBox','pageNumber','logoSize','questionNumberWeight','fontSize','bracket','indent','lineHeight','qGap','keepMarks','sectionMode','pageFitMode','targetPages']
     .forEach(id=>{const v=localStorage.getItem('ksr_'+id); if(v!==null) $(id).value=v;});
   refreshBranding();
+  updateSectionPreview();
   updatePaperMode();
 });
 </script>
 </body>
 </html>
-<!-- KSR DTP v3.7.4: Exact Target Page Lock + Parser/PDF Single Source -->
+<!-- KSR DTP v4.1.0: Academic 4-Step Workflow + MCQ Parser Locked -->
