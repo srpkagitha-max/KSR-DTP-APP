@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0b3b7a" />
 <link rel="manifest" href="manifest.webmanifest" />
 <title></title>
-<!-- KSR DTP v3.6.3 Quote-Included Exact Page Fit -->
+<!-- KSR DTP v3.6.4 Institute Style Clone -->
 <style>
 :root{
   --blue:#087f78;--blue2:#0b9b8d;--ink:#12302d;--muted:#687b78;
@@ -41,6 +41,7 @@ body{margin:0;font-family:Arial,"Noto Sans Telugu","Nirmala UI",sans-serif;backg
   .profile-row{grid-template-columns:1fr 1fr}
   .profile-row select{grid-column:1/-1}
   .profile-action{width:100%}
+  #saveAsProfile{grid-column:1/-1}
 }
 
 .pdf-logo{width:16mm;height:16mm;object-fit:contain;position:absolute;left:5mm;top:4mm}.first-header.has-logo{position:relative;padding-left:24mm;padding-right:24mm}
@@ -217,9 +218,10 @@ textarea{min-height:350px;resize:vertical;line-height:1.5;font-family:inherit}
       <div class="profile-row">
         <select id="profileSelect" aria-label="Saved institute profiles"><option value="">Select saved institute</option></select>
         <button type="button" class="profile-action primary" id="saveProfile">Save / Update</button>
+        <button type="button" class="profile-action" id="saveAsProfile">Save As New</button>
         <button type="button" class="profile-action danger" id="deleteProfile">Delete</button>
       </div>
-      <div class="profile-hint">Dropdown shows a short institute label for easy mobile use. The full institute name, address, phone, logo and complete Question Paper Style are saved. Exam name, date, marks and questions stay separate for each paper.</div>
+      <div class="profile-hint">Dropdown shows a short institute label for easy mobile use. The full institute name, address, phone, logo and complete Question Paper Style are saved. Use Save As New to copy the current style to another institute. Exam name, date, marks and questions stay separate for each paper.</div>
     </div>
   </div>
 
@@ -983,7 +985,7 @@ function calibrateTargetPages(fit,hdr,cols){
   cols.dataset.previewPages=String(metrics.pages);
   cols.dataset.lastPageFill=metrics.lastFill.toFixed(3);
   cols.dataset.smartBalanced='6';
-  cols.dataset.layoutPolish='v3.6.3';
+  cols.dataset.layoutPolish='v3.6.4';
 
   // v3.4.6 Print Density Carry-Forward:
   // The preview balancer already stops at the N -> N+1 boundary. A reserve
@@ -1149,6 +1151,38 @@ function saveCurrentProfile(){
   saveDraft();
   alert('Institute profile saved.');
 }
+function saveAsNewInstitute(){
+  const currentName=($('institute').value||'').trim();
+  const proposed=prompt('Enter the new Institute Name', currentName||'');
+  if(proposed===null) return;
+  const newName=String(proposed||'').trim();
+  if(!newName){alert('Please enter a valid Institute Name.');return;}
+
+  const profiles=getProfiles();
+  const same=profiles.find(p=>(p.name||'').trim().toLowerCase()===newName.toLowerCase());
+  if(same){
+    alert('A saved institute with this name already exists. Choose a different name or use Save / Update.');
+    return;
+  }
+
+  const data=currentProfileData('');
+  data.name=newName;
+  data.id=profileId();
+  data.updatedAt=Date.now();
+
+  profiles.push(data);
+  profiles.sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+  putProfiles(profiles);
+
+  $('institute').value=newName;
+  renderProfileSelect(data.id);
+  saveDraft();
+
+  const s=$('profileStyleStatus');
+  if(s) s.innerHTML='<b>Question Paper Style:</b> New institute profile saved with current style.';
+  alert('New institute profile saved with the current question paper style.');
+}
+
 function deleteSelectedProfile(){
   const id=$('profileSelect').value;
   if(!id){alert('Select a saved institute profile first.');return;}
@@ -1328,6 +1362,7 @@ $('profileSelect').addEventListener('change',()=>{
   applyProfile(getProfiles().find(p=>p.id===id));
 });
 $('saveProfile').onclick=saveCurrentProfile;
+$('saveAsProfile').onclick=saveAsNewInstitute;
 $('deleteProfile').onclick=deleteSelectedProfile;
 
 $('build').onclick=build;
