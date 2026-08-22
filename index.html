@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0b3b7a" />
 <link rel="manifest" href="manifest.webmanifest" />
 <title></title>
-<!-- KSR DTP v4.4.0 Clean Paper Workspace + Save-to-Institutes -->
+<!-- KSR DTP v4.5.0 Academic Paper Engine — MCQ Parser Locked -->
 <style>
 :root{
   --blue:#087f78;--blue2:#0b9b8d;--ink:#12302d;--muted:#687b78;
@@ -132,6 +132,13 @@ body.mode-school .mcq-only,body.mode-college .mcq-only{display:none!important}
 .paper.academic-paper .or-line{text-align:center;font-weight:800;letter-spacing:.5px;margin:1.2mm 0}
 .paper.academic-paper .sub-line{padding-left:5mm}
 .paper.academic-paper .marks-inline{float:right;font-weight:700;white-space:nowrap;margin-left:3mm}
+.paper.academic-paper .body-line{position:relative;clear:both}
+.paper.academic-paper .body-line .body-text{display:inline}
+.paper.academic-paper .body-line .body-marks{float:right;font-weight:700;white-space:nowrap;margin-left:3mm}
+.paper.academic-paper .or-line{clear:both;text-align:center;font-weight:900;letter-spacing:1px;margin:2.2mm 10mm;padding:1mm 0;border-top:1px solid #9da8b2;border-bottom:1px solid #9da8b2}
+.paper.academic-paper .answer-space{clear:both;margin:1.2mm 0 0 5mm}
+.paper.academic-paper .answer-line{height:6mm;border-bottom:1px dotted #aeb7bf}
+.paper.academic-paper .section-type-note{text-align:center;font-size:9.5px;font-weight:700;color:#64727f;margin:-1mm 0 2mm}
 .academic-help{display:none;border:1px solid #d6e7e4;background:#f8fdfc;border-radius:12px;padding:10px 12px;margin-top:10px;font-size:12px;color:#526864;line-height:1.55}
 body.mode-school .academic-help,body.mode-college .academic-help{display:block}
 @media(max-width:640px){.mode-grid{grid-template-columns:1fr}.academic-fields{grid-template-columns:1fr 1fr!important}.academic-fields .field{grid-column:auto!important}}
@@ -464,6 +471,8 @@ body.mode-school.wiz-step-4 #saveSetupCard,body.mode-college.wiz-step-4 #saveSet
       <div class="field full"><label>Instruction</label><input id="sectionInstructionInput" placeholder="e.g. Answer any FIVE questions"></div>
       <div class="field"><label>Marks Pattern</label><input id="marksPattern" placeholder="e.g. 5 × 2 = 10 Marks"></div>
       <div class="field"><label>Internal Choice</label><select id="internalChoice"><option value="none">No special choice</option><option value="or">OR / Internal Choice</option><option value="any">Answer Any</option></select></div>
+      <div class="field"><label>Answer Writing Space</label><select id="sectionAnswerLines"><option value="0">No answer lines</option><option value="2">2 Lines</option><option value="4">4 Lines</option><option value="6">6 Lines</option><option value="10">10 Lines</option></select></div>
+      <div class="field"><label>Question Numbering</label><select id="academicNumbering"><option value="source">Keep pasted numbers</option><option value="continuous">Continuous numbering</option></select></div>
     </div>
     <div class="structure-actions"><button type="button" class="primary" id="insertSection">Insert Section into Questions</button><button type="button" id="insertOR">Insert OR Line</button><button type="button" id="insertSub">Insert (a) / (b) Hint</button></div>
     <div class="section-preview" id="sectionPreview">Build a section here, then insert it into Step 3. You can also paste a complete paper directly without using this helper.</div>
@@ -505,8 +514,11 @@ body.mode-school.wiz-step-4 #saveSetupCard,body.mode-college.wiz-step-4 #saveSet
       <div class="field"><label>Question Number Weight</label>
         <select id="questionNumberWeight"><option value="800">Bold</option><option value="500">Normal</option></select>
       </div>
+      <div class="field academic-only"><label>Default Answer Space</label>
+        <select id="academicAnswerLines"><option value="0">None</option><option value="2">2 Lines</option><option value="4">4 Lines</option><option value="6">6 Lines</option></select>
+      </div>
     </div>
-    <div class="template-note">All question-paper appearance and page-fit controls are together here. Press <b>Save / Update</b> in Institute Profiles to remember the complete style for that institute.</div>
+    <div class="template-note">All question-paper appearance and page-fit controls are together here. Use <b>Save Setup to Institutes</b> when the paper is ready to remember this complete style.</div>
   
     <div class="style-divider"><span>Question & Page Formatting</span></div>
     <div class="grid">
@@ -624,7 +636,7 @@ body.mode-school.wiz-step-4 #saveSetupCard,body.mode-college.wiz-step-4 #saveSet
 </main>
 
 <script>
-// KSR DTP v4.4.0 — UI/save workflow update; MCQ parser locked and unchanged
+// KSR DTP v4.5.0 — Academic paper engine update; MCQ parser locked and unchanged
 const $=id=>document.getElementById(id);
 const ANSWER_MARK=/[●•⬤∙·▪✓✔★*🔴🔵🟢🟡🟠⚫⚪✅]+/gu;
 const LEADING_ANSWER_MARK=/^\s*[●•⬤∙·▪✓✔★*🔴🔵🟢🟡🟠⚫⚪✅]+\s*/u;
@@ -801,25 +813,35 @@ const academicSectionRe=/^\s*(?:(?:section|part|unit|group)\s*[-–—:]?\s*[A-Z
 const academicInstructionRe=/^\s*(?:answer|attempt|write|choose|all questions|any \w+|ఈ క్రింది|క్రింది|అన్నింటికీ|ఏవైనా|సమాధానాలు|సమాధానం|ప్రతి ప్రశ్న|note\s*:|instructions?\s*:)/iu;
 const academicQRe=/^\s*(?:(?:question|ques|q|ప్రశ్న)\s*[-:#.]?\s*)?(\d{1,4})\s*[\.\):\-]\s*(.*)$/iu;
 const academicMarksRe=/(\s*(?:\[|\()\s*\d+(?:\s*[x×*]\s*\d+\s*=\s*\d+)?\s*(?:marks?|m|మార్కులు?)?\s*(?:\]|\))\s*)$/iu;
+const academicTypeMetaRe=/^\s*(?:question\s*type|type)\s*[:\-]\s*(.+)$/iu;
+const academicSpaceMetaRe=/^\s*(?:answer\s*space|writing\s*space)\s*[:\-]\s*(\d+)\s*(?:lines?)?\s*$/iu;
 let academicMaster={raw:null,items:[]};
 function isAcademicMode(){ return ($('paperMode')?.value||'mcq')!=='mcq'; }
+function splitAcademicMarks(text){
+  let t=String(text||'').trim(), marks='';
+  const mm=t.match(academicMarksRe);
+  if(mm){marks=mm[1].trim(); t=t.slice(0,mm.index).trim();}
+  return {text:t,marks};
+}
 function parseAcademic(raw){
   const lines=normalizeInput(raw).split('\n');
-  const out=[]; let cur=null; let section=''; let sectionInstruction='';
+  const out=[]; let cur=null; let section=''; let sectionInstruction=''; let sectionType=''; let sectionAnswerLines=0;
   for(const original of lines){
     const s=original.trim(); if(!s) continue;
     if(academicSectionRe.test(s)){
-      section=s.replace(/[*_#]/g,'').trim(); sectionInstruction=''; cur=null; continue;
+      section=s.replace(/[*_#]/g,'').trim(); sectionInstruction=''; sectionType=''; sectionAnswerLines=0; cur=null; continue;
     }
+    const tm=s.match(academicTypeMetaRe);
+    if(!cur && section && tm){sectionType=(tm[1]||'').trim(); continue;}
+    const am=s.match(academicSpaceMetaRe);
+    if(!cur && section && am){sectionAnswerLines=Math.max(0,Math.min(20,parseInt(am[1]||'0',10)||0)); continue;}
     if(!cur && section && academicInstructionRe.test(s)){
       sectionInstruction=sectionInstruction ? sectionInstruction+' • '+s : s; continue;
     }
     const qm=s.match(academicQRe);
     if(qm){
-      let text=(qm[2]||'').trim(); let marks='';
-      const mm=text.match(academicMarksRe);
-      if(mm){ marks=mm[1].trim(); text=text.slice(0,mm.index).trim(); }
-      cur={sourceNo:qm[1],text,section,sectionInstruction,body:[],options:[],answer:'',marks};
+      const sm=splitAcademicMarks(qm[2]||'');
+      cur={sourceNo:qm[1],text:sm.text,section,sectionInstruction,sectionType,answerLines:sectionAnswerLines,body:[],options:[],answer:'',marks:sm.marks};
       out.push(cur); continue;
     }
     if(!cur){
@@ -1388,7 +1410,7 @@ function applyPaperTemplate(){
 }
 
 const PROFILE_KEY='ksr_dtp_institute_profiles_v1';
-const PROFILE_LAYOUT_IDS=['paperLayout','paperBorder','headerAlign','questionWeight','optionLayout','optionScale','quoteMode','pageMargin','headerBorder','questionBox','pageNumber','logoSize','questionNumberWeight','fontSize','bracket','indent','lineHeight','qGap','keepMarks','sectionMode','pageFitMode','targetPages'];
+const PROFILE_LAYOUT_IDS=['paperLayout','paperBorder','headerAlign','questionWeight','optionLayout','optionScale','quoteMode','pageMargin','headerBorder','questionBox','pageNumber','logoSize','questionNumberWeight','academicAnswerLines','academicNumbering','fontSize','bracket','indent','lineHeight','qGap','keepMarks','sectionMode','pageFitMode','targetPages'];
 
 function getProfiles(){
   try{
@@ -1583,7 +1605,7 @@ function build(){
   const fit=getFitProfile(qs);
 
   $('qstat').textContent='Questions: '+qs.length;
-  $('rangeStat').textContent=qs.length ? (academic?'Numbering: Source numbers preserved':`Numbering: ${start}–${end}`) : 'Numbering: —';
+  $('rangeStat').textContent=qs.length ? (academic?(($('academicNumbering')?.value||'source')==='continuous'?`Numbering: ${start}–${end}`:'Numbering: Source numbers preserved'):`Numbering: ${start}–${end}`) : 'Numbering: —';
   $('ostat').textContent=academic ? 'Mode: Descriptive' : 'Options: '+sm.optionCount;
   $('astat').textContent=academic ? 'Sections: '+sm.sections.length : 'Detected answers: '+sm.answers;
   $('missingStat').textContent=academic ? 'Paper: '+(($('paperMode').value==='school')?'School':'College') : 'Missing answers: '+sm.missing;
@@ -1654,6 +1676,9 @@ function build(){
         const ins=document.createElement('div');
         ins.className='section-instruction'; ins.textContent=q.sectionInstruction; cols.appendChild(ins);
       }
+      if(academic && q.sectionType){
+        const tn=document.createElement('div'); tn.className='section-type-note'; tn.textContent=q.sectionType; cols.appendChild(tn);
+      }
       lastSection=q.section;
     }
 
@@ -1661,7 +1686,7 @@ function build(){
     block.className='qblock '+(q.body&&q.body.length?'has-body':'no-body')+(!academic&&canCompactOptions(q,fit)?' compact-options':'');
     cols.appendChild(block);
 
-    const number=academic ? (q.sourceNo||start+idx) : start+idx;
+    const number=academic ? (($('academicNumbering')?.value||'source')==='continuous' ? start+idx : (q.sourceNo||start+idx)) : start+idx;
     let stemNodes=[];
 
     const first=document.createElement('div');
@@ -1674,9 +1699,13 @@ function build(){
       const d=document.createElement('div');
       d.className='stem';
       const tt=academic?String(t||''):clean(t);
-      if(academic && /^\s*(?:OR|లేదా)\s*$/iu.test(tt)) d.classList.add('or-line');
-      else if(academic && /^\s*(?:\(?[a-zivx]+\)|[a-zivx]+[.)])\s+/iu.test(tt)) d.classList.add('sub-line');
-      d.textContent=tt;
+      if(academic && /^\s*(?:OR|లేదా)\s*$/iu.test(tt)){ d.classList.add('or-line'); d.textContent=tt; }
+      else if(academic){
+        d.classList.add('body-line');
+        if(/^\s*(?:\(?[a-zivx]+\)|[a-zivx]+[.)])\s+/iu.test(tt)) d.classList.add('sub-line');
+        const bm=splitAcademicMarks(tt);
+        d.innerHTML=`<span class="body-text">${esc(bm.text)}</span>${bm.marks?`<span class="body-marks">${esc(bm.marks)}</span>`:''}`;
+      }else d.textContent=tt;
       block.appendChild(d);
       stemNodes.push(d);
     });
@@ -1690,6 +1719,15 @@ function build(){
         const d=document.createElement('div'); d.className='opt';
         d.style.paddingLeft=$('indent').value+'mm'; d.textContent=o.letter+'. '+clean(o.text); ow.appendChild(d);
       });
+    }
+
+    if(academic){
+      const lines=Math.max(0,parseInt(q.answerLines||$('academicAnswerLines')?.value||'0',10)||0);
+      if(lines){
+        const aw=document.createElement('div'); aw.className='answer-space';
+        for(let ai=0;ai<lines;ai++){const al=document.createElement('div');al.className='answer-line';aw.appendChild(al);}
+        block.appendChild(aw);
+      }
     }
 
     const sp=document.createElement('div');
@@ -1712,7 +1750,7 @@ function build(){
 }
 function saveDraft(){
   localStorage.setItem('ksr_dtp_raw',$('raw').value);
-  ['paperMode','className','courseName','semester','subjectName','subjectCode','duration','institute','address','phone','exam','date','marksTotal','startNo','paperLayout','paperBorder','headerAlign','questionWeight','optionLayout','optionScale','quoteMode','pageMargin','headerBorder','questionBox','pageNumber','logoSize','questionNumberWeight','fontSize','bracket','indent','lineHeight','qGap','keepMarks','sectionMode','pageFitMode','targetPages']
+  ['paperMode','className','courseName','semester','subjectName','subjectCode','duration','institute','address','phone','exam','date','marksTotal','startNo','paperLayout','paperBorder','headerAlign','questionWeight','optionLayout','optionScale','quoteMode','pageMargin','headerBorder','questionBox','pageNumber','logoSize','questionNumberWeight','academicAnswerLines','academicNumbering','fontSize','bracket','indent','lineHeight','qGap','keepMarks','sectionMode','pageFitMode','targetPages']
     .forEach(id=>localStorage.setItem('ksr_'+id,$(id).value));
 }
 function answerKey(){
@@ -1783,12 +1821,15 @@ function sectionBuilderText(){
   const inst=($('sectionInstructionInput')?.value||'').trim();
   const marks=($('marksPattern')?.value||'').trim();
   const choice=$('internalChoice')?.value||'none';
+  const answerLines=Math.max(0,parseInt($('sectionAnswerLines')?.value||'0',10)||0);
   let instruction=inst;
   if(marks) instruction+=(instruction?' ':'')+'('+marks+')';
-  if(!instruction && type!=='General Questions') instruction=type;
   if(choice==='or') instruction+=(instruction?' • ':'')+'Internal choice / OR where shown';
   if(choice==='any') instruction+=(instruction?' • ':'')+'Answer any questions as instructed';
-  return name+(instruction?'\n'+instruction:'')+'\n';
+  let meta='';
+  if(type && type!=='General Questions') meta+='Question Type: '+type+'\n';
+  if(answerLines) meta+='Answer Space: '+answerLines+' Lines\n';
+  return name+(instruction?'\n'+instruction:'')+'\n'+meta;
 }
 function updateSectionPreview(){
   if(!$('sectionPreview')) return;
@@ -1832,7 +1873,7 @@ function updatePaperMode(){
 document.querySelectorAll('.wstep').forEach(b=>b.addEventListener('click',()=>setAcademicWizardStep(b.dataset.step,true)));
 $('wizBack').onclick=()=>setAcademicWizardStep(academicWizardStep-1,true);
 $('wizNext').onclick=()=>{ if(academicWizardStep<4) setAcademicWizardStep(academicWizardStep+1,true); else build(); };
-['sectionName','questionType','sectionInstructionInput','marksPattern','internalChoice'].forEach(id=>$(id).addEventListener('input',updateSectionPreview));
+['sectionName','questionType','sectionInstructionInput','marksPattern','internalChoice','sectionAnswerLines'].forEach(id=>$(id).addEventListener('input',updateSectionPreview));
 $('insertSection').onclick=()=>{insertAtQuestionEnd(sectionBuilderText());setAcademicWizardStep(3,true)};
 $('insertOR').onclick=()=>{insertAtQuestionEnd('OR');setAcademicWizardStep(3,true)};
 $('insertSub').onclick=()=>{insertAtQuestionEnd('(a) Sub-question\n(b) Sub-question');setAcademicWizardStep(3,true)};
@@ -2016,7 +2057,7 @@ window.addEventListener('load',()=>{
   updateTemplateNote();
   $('raw').value=localStorage.getItem('ksr_dtp_raw')||'';
   invalidateParsedMaster();
-  ['paperMode','className','courseName','semester','subjectName','subjectCode','duration','institute','address','phone','exam','date','marksTotal','startNo','paperLayout','paperBorder','headerAlign','questionWeight','optionLayout','optionScale','quoteMode','pageMargin','headerBorder','questionBox','pageNumber','logoSize','questionNumberWeight','fontSize','bracket','indent','lineHeight','qGap','keepMarks','sectionMode','pageFitMode','targetPages']
+  ['paperMode','className','courseName','semester','subjectName','subjectCode','duration','institute','address','phone','exam','date','marksTotal','startNo','paperLayout','paperBorder','headerAlign','questionWeight','optionLayout','optionScale','quoteMode','pageMargin','headerBorder','questionBox','pageNumber','logoSize','questionNumberWeight','academicAnswerLines','academicNumbering','fontSize','bracket','indent','lineHeight','qGap','keepMarks','sectionMode','pageFitMode','targetPages']
     .forEach(id=>{const v=localStorage.getItem('ksr_'+id); if(v!==null) $(id).value=v;});
   refreshBranding();
   updateSectionPreview();
@@ -2027,4 +2068,4 @@ showHome();
 </script>
 </body>
 </html>
-<!-- KSR DTP v4.4.0: Clean Paper Workspace + Save-to-Institutes; MCQ Parser Locked -->
+<!-- KSR DTP v4.5.0: Academic Paper Engine; MCQ Parser Locked -->
