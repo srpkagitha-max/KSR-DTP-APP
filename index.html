@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0b3b7a" />
 <link rel="manifest" href="manifest.webmanifest" />
 <title></title>
-<!-- KSR DTP v4.5.0 Academic Paper Engine — MCQ Parser Locked -->
+<!-- KSR DTP v4.6.0 Dynamic Academic Builder — MCQ Parser Locked -->
 <style>
 :root{
   --blue:#087f78;--blue2:#0b9b8d;--ink:#12302d;--muted:#687b78;
@@ -468,11 +468,12 @@ body.mode-school.wiz-step-4 #saveSetupCard,body.mode-college.wiz-step-4 #saveSet
     <div class="structure-grid">
       <div class="field"><label>Section / Part</label><input id="sectionName" placeholder="e.g. SECTION - A"></div>
       <div class="field"><label>Question Type</label><select id="questionType"><option>General Questions</option><option>Fill in the Blanks</option><option>True / False</option><option>Match the Following</option><option>Very Short Answer</option><option>Short Answer</option><option>Long Answer / Essay</option><option>Numericals / Problems</option><option>Passage / Comprehension</option></select></div>
-      <div class="field full"><label>Instruction</label><input id="sectionInstructionInput" placeholder="e.g. Answer any FIVE questions"></div>
-      <div class="field"><label>Marks Pattern</label><input id="marksPattern" placeholder="e.g. 5 × 2 = 10 Marks"></div>
-      <div class="field"><label>Internal Choice</label><select id="internalChoice"><option value="none">No special choice</option><option value="or">OR / Internal Choice</option><option value="any">Answer Any</option></select></div>
-      <div class="field"><label>Answer Writing Space</label><select id="sectionAnswerLines"><option value="0">No answer lines</option><option value="2">2 Lines</option><option value="4">4 Lines</option><option value="6">6 Lines</option><option value="10">10 Lines</option></select></div>
-      <div class="field"><label>Question Numbering</label><select id="academicNumbering"><option value="source">Keep pasted numbers</option><option value="continuous">Continuous numbering</option></select></div>
+      <div class="field full" id="sectionInstructionField"><label>Instruction</label><input id="sectionInstructionInput" placeholder="e.g. Answer any FIVE questions"></div>
+      <div class="field" id="marksPatternField"><label>Marks Pattern</label><input id="marksPattern" placeholder="e.g. 5 × 2 = 10 Marks"></div>
+      <div class="field" id="internalChoiceField"><label>Internal Choice</label><select id="internalChoice"><option value="none">No special choice</option><option value="or">OR / Internal Choice</option><option value="any">Answer Any</option></select></div>
+      <div class="field" id="sectionAnswerLinesField"><label>Answer Writing Space</label><select id="sectionAnswerLines"><option value="0">No answer lines</option><option value="2">2 Lines</option><option value="4">4 Lines</option><option value="6">6 Lines</option><option value="10">10 Lines</option></select></div>
+      <div class="field" id="academicNumberingField"><label>Question Numbering</label><select id="academicNumbering"><option value="source">Keep pasted numbers</option><option value="continuous">Continuous numbering</option></select></div>
+      <div class="field full"><div class="hint" id="questionTypeHint" style="margin:0;padding:10px 12px;border-radius:10px;background:#f3faf9;border:1px solid #dceceb;color:#587078;font-weight:700">General Questions: marks, choice, writing space and numbering can be set here.</div></div>
     </div>
     <div class="structure-actions"><button type="button" class="primary" id="insertSection">Insert Section into Questions</button><button type="button" id="insertOR">Insert OR Line</button><button type="button" id="insertSub">Insert (a) / (b) Hint</button></div>
     <div class="section-preview" id="sectionPreview">Build a section here, then insert it into Step 3. You can also paste a complete paper directly without using this helper.</div>
@@ -636,7 +637,7 @@ body.mode-school.wiz-step-4 #saveSetupCard,body.mode-college.wiz-step-4 #saveSet
 </main>
 
 <script>
-// KSR DTP v4.5.0 — Academic paper engine update; MCQ parser locked and unchanged
+// KSR DTP v4.6.0 — Dynamic academic builder; MCQ parser locked and unchanged
 const $=id=>document.getElementById(id);
 const ANSWER_MARK=/[●•⬤∙·▪✓✔★*🔴🔵🟢🟡🟠⚫⚪✅]+/gu;
 const LEADING_ANSWER_MARK=/^\s*[●•⬤∙·▪✓✔★*🔴🔵🟢🟡🟠⚫⚪✅]+\s*/u;
@@ -1815,6 +1816,31 @@ function setAcademicWizardStep(step,scroll=false){
   if(scroll && $('academicWizard')) $('academicWizard').scrollIntoView({behavior:'smooth',block:'start'});
   if(academicWizardStep===4 && isAcademicMode()) build();
 }
+function updateQuestionTypeControls(){
+  const type=($('questionType')?.value||'General Questions').trim();
+  const show=(id,on=true)=>{const el=$(id); if(el) el.style.display=on?'':'none';};
+  const choiceTypes=new Set(['General Questions','Short Answer','Long Answer / Essay','Numericals / Problems']);
+  const spaceTypes=new Set(['General Questions','Fill in the Blanks','Very Short Answer','Short Answer','Long Answer / Essay','Numericals / Problems','Passage / Comprehension']);
+  show('sectionInstructionField',true);
+  show('marksPatternField',true);
+  show('internalChoiceField',choiceTypes.has(type));
+  show('sectionAnswerLinesField',spaceTypes.has(type));
+  show('academicNumberingField',true);
+  const hints={
+    'General Questions':'General Questions: marks, internal choice, writing space and numbering are available.',
+    'Fill in the Blanks':'Fill in the Blanks: keep marks and numbering simple; add answer space only if students write on the paper.',
+    'True / False':'True / False: marks and numbering are enough; unnecessary answer-space controls are hidden.',
+    'Match the Following':'Match the Following: use marks and numbering. A dedicated Column A / Column B layout will be added in the next academic layout phase.',
+    'Very Short Answer':'Very Short Answer: marks, numbering and a small writing space can be set.',
+    'Short Answer':'Short Answer: marks, OR/internal choice, numbering and writing space can be set.',
+    'Long Answer / Essay':'Long Answer / Essay: marks, OR/internal choice and larger writing space can be set.',
+    'Numericals / Problems':'Numericals / Problems: marks, choice and working-space lines can be set.',
+    'Passage / Comprehension':'Passage / Comprehension: marks, numbering and answer space can be set.'
+  };
+  if($('questionTypeHint')) $('questionTypeHint').textContent=hints[type]||hints['General Questions'];
+  updateSectionPreview();
+}
+
 function sectionBuilderText(){
   const name=($('sectionName')?.value||'').trim()||'SECTION - A';
   const type=($('questionType')?.value||'General Questions').trim();
@@ -1873,7 +1899,11 @@ function updatePaperMode(){
 document.querySelectorAll('.wstep').forEach(b=>b.addEventListener('click',()=>setAcademicWizardStep(b.dataset.step,true)));
 $('wizBack').onclick=()=>setAcademicWizardStep(academicWizardStep-1,true);
 $('wizNext').onclick=()=>{ if(academicWizardStep<4) setAcademicWizardStep(academicWizardStep+1,true); else build(); };
-['sectionName','questionType','sectionInstructionInput','marksPattern','internalChoice','sectionAnswerLines'].forEach(id=>$(id).addEventListener('input',updateSectionPreview));
+['sectionName','sectionInstructionInput','marksPattern','internalChoice','sectionAnswerLines','academicNumbering'].forEach(id=>{
+  $(id).addEventListener('input',updateSectionPreview);
+  $(id).addEventListener('change',updateSectionPreview);
+});
+$('questionType').addEventListener('change',updateQuestionTypeControls);
 $('insertSection').onclick=()=>{insertAtQuestionEnd(sectionBuilderText());setAcademicWizardStep(3,true)};
 $('insertOR').onclick=()=>{insertAtQuestionEnd('OR');setAcademicWizardStep(3,true)};
 $('insertSub').onclick=()=>{insertAtQuestionEnd('(a) Sub-question\n(b) Sub-question');setAcademicWizardStep(3,true)};
@@ -2061,6 +2091,7 @@ window.addEventListener('load',()=>{
     .forEach(id=>{const v=localStorage.getItem('ksr_'+id); if(v!==null) $(id).value=v;});
   refreshBranding();
   updateSectionPreview();
+  updateQuestionTypeControls();
   updatePaperMode();
 });
 
@@ -2068,4 +2099,4 @@ showHome();
 </script>
 </body>
 </html>
-<!-- KSR DTP v4.5.0: Academic Paper Engine; MCQ Parser Locked -->
+<!-- KSR DTP v4.6.0: Dynamic Academic Builder; MCQ Parser Locked -->
