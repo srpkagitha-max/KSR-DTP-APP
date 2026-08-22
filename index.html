@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0b3b7a" />
 <link rel="manifest" href="manifest.webmanifest" />
 <title></title>
-<!-- KSR DTP v4.6.0 Dynamic Academic Builder — MCQ Parser Locked -->
+<!-- KSR DTP v4.7.0 Academic Output Polish — MCQ Parser Locked -->
 <style>
 :root{
   --blue:#087f78;--blue2:#0b9b8d;--ink:#12302d;--muted:#687b78;
@@ -123,22 +123,23 @@ body.mode-school .mcq-only,body.mode-college .mcq-only{display:none!important}
 .paper.academic-paper .first-header{margin-bottom:5mm}
 .paper.academic-paper .columns{column-count:1;column-rule:none;column-gap:0;min-height:250mm}
 .paper.academic-paper .qblock{break-inside:avoid;page-break-inside:avoid;margin-bottom:1.8mm}
-.paper.academic-paper .qstart{font-weight:600;margin-bottom:.7mm}
-.paper.academic-paper .stem{margin-left:5mm;margin-bottom:.7mm}
-.paper.academic-paper .section-head{font-size:13px;text-align:center;border:1px solid #7b8793;border-radius:2mm;padding:1.8mm 2mm;margin:4mm 0 1.5mm;font-weight:800;background:#fafafa;break-after:avoid}
-.paper.academic-paper .section-instruction{text-align:center;font-size:11px;font-weight:600;line-height:1.4;margin:0 0 3mm;color:#28323d;break-after:avoid}
+.paper.academic-paper .qstart{font-weight:600;margin-bottom:.9mm;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:1.2mm;align-items:start}
+.paper.academic-paper .qtext{min-width:0}
+.paper.academic-paper .stem{margin-left:6mm;margin-bottom:.9mm}
+.paper.academic-paper .section-head{font-size:13px;text-align:center;border-top:1.4px solid #5f6d78;border-bottom:1.4px solid #5f6d78;padding:1.5mm 2mm;margin:4mm 0 1.4mm;font-weight:850;background:#fff;break-after:avoid;page-break-after:avoid}
+.paper.academic-paper .section-instruction{text-align:center;font-size:11px;font-weight:650;line-height:1.45;margin:0 0 2.3mm;color:#28323d;break-after:avoid;page-break-after:avoid}
 .paper.academic-paper .academic-meta{display:grid;grid-template-columns:1fr 1fr;gap:1.2mm 8mm;margin-top:2.7mm;padding-top:2.5mm;border-top:1px solid #aab3bc;font-size:10.7px;line-height:1.4;text-align:left}
 .paper.academic-paper .academic-meta .full{grid-column:1/-1}
 .paper.academic-paper .or-line{text-align:center;font-weight:800;letter-spacing:.5px;margin:1.2mm 0}
 .paper.academic-paper .sub-line{padding-left:5mm}
-.paper.academic-paper .marks-inline{float:right;font-weight:700;white-space:nowrap;margin-left:3mm}
-.paper.academic-paper .body-line{position:relative;clear:both}
-.paper.academic-paper .body-line .body-text{display:inline}
-.paper.academic-paper .body-line .body-marks{float:right;font-weight:700;white-space:nowrap;margin-left:3mm}
-.paper.academic-paper .or-line{clear:both;text-align:center;font-weight:900;letter-spacing:1px;margin:2.2mm 10mm;padding:1mm 0;border-top:1px solid #9da8b2;border-bottom:1px solid #9da8b2}
-.paper.academic-paper .answer-space{clear:both;margin:1.2mm 0 0 5mm}
-.paper.academic-paper .answer-line{height:6mm;border-bottom:1px dotted #aeb7bf}
-.paper.academic-paper .section-type-note{text-align:center;font-size:9.5px;font-weight:700;color:#64727f;margin:-1mm 0 2mm}
+.paper.academic-paper .marks-inline{font-weight:800;white-space:nowrap;margin-left:2mm;text-align:right}
+.paper.academic-paper .body-line{clear:both;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2mm;align-items:start}
+.paper.academic-paper .body-line .body-text{min-width:0}
+.paper.academic-paper .body-line .body-marks{font-weight:800;white-space:nowrap;text-align:right}
+.paper.academic-paper .or-line{clear:both!important;display:block!important;text-align:center;font-weight:900;letter-spacing:1.3px;margin:2.5mm 16mm;padding:.8mm 0;border-top:1px solid #9da8b2;border-bottom:1px solid #9da8b2}
+.paper.academic-paper .answer-space{clear:both;margin:1.8mm 0 0 6mm;break-inside:avoid;page-break-inside:avoid}
+.paper.academic-paper .answer-line{height:6.4mm;border-bottom:1px dotted #aeb7bf}
+.paper.academic-paper .section-type-note{text-align:center;font-size:9.4px;font-weight:700;color:#64727f;margin:-.6mm 0 2mm;text-transform:none}
 .academic-help{display:none;border:1px solid #d6e7e4;background:#f8fdfc;border-radius:12px;padding:10px 12px;margin-top:10px;font-size:12px;color:#526864;line-height:1.55}
 body.mode-school .academic-help,body.mode-college .academic-help{display:block}
 @media(max-width:640px){.mode-grid{grid-template-columns:1fr}.academic-fields{grid-template-columns:1fr 1fr!important}.academic-fields .field{grid-column:auto!important}}
@@ -637,7 +638,7 @@ body.mode-school.wiz-step-4 #saveSetupCard,body.mode-college.wiz-step-4 #saveSet
 </main>
 
 <script>
-// KSR DTP v4.6.0 — Dynamic academic builder; MCQ parser locked and unchanged
+// KSR DTP v4.7.0 — Academic output polish; MCQ parser locked and unchanged
 const $=id=>document.getElementById(id);
 const ANSWER_MARK=/[●•⬤∙·▪✓✔★*🔴🔵🟢🟡🟠⚫⚪✅]+/gu;
 const LEADING_ANSWER_MARK=/^\s*[●•⬤∙·▪✓✔★*🔴🔵🟢🟡🟠⚫⚪✅]+\s*/u;
@@ -1692,7 +1693,9 @@ function build(){
 
     const first=document.createElement('div');
     first.className='qstart';
-    first.innerHTML=`<span class="qnum">${number}.</span> ${esc(academic?q.text:clean(q.text))}${academic&&q.marks?` <span class="marks-inline">${esc(q.marks)}</span>`:''}`;
+    first.innerHTML=academic
+      ? `<span class="qnum">${number}.</span><span class="qtext">${esc(q.text)}</span>${q.marks?`<span class="marks-inline">${esc(q.marks)}</span>`:'<span></span>'}`
+      : `<span class="qnum">${number}.</span> ${esc(clean(q.text))}`;
     block.appendChild(first);
     stemNodes.push(first);
 
@@ -2027,12 +2030,16 @@ $('sample').onclick=()=>{
 if(isAcademicMode()){
 $('raw').value=`SECTION - A
 Answer all questions (5 × 1 = 5 Marks)
-1. Fill in the blank: Water boils at ______ °C. [1 Mark]
-2. State True or False: Plants prepare their own food. [1 Mark]
-3. Define photosynthesis. [1 Mark]
+Question Type: Fill in the Blanks
+Answer Space: 2 Lines
+1. Water boils at ______ °C. [1 Mark]
+2. The largest planet in the solar system is ______. [1 Mark]
+3. Plants prepare food by the process of ______. [1 Mark]
 
 SECTION - B
 Answer any TWO (2 × 3 = 6 Marks)
+Question Type: Short Answer
+Answer Space: 4 Lines
 4. Explain any three uses of water. [3 Marks]
 5. Write a short note on the solar system. [3 Marks]
 OR
@@ -2040,9 +2047,13 @@ OR
 
 SECTION - C
 Answer any ONE (1 × 5 = 5 Marks)
+Question Type: Long Answer / Essay
+Answer Space: 6 Lines
 7. Describe the process of photosynthesis. [5 Marks]
-(a) Mention the raw materials.
-(b) Write the importance of sunlight.`;
+(a) Mention the raw materials. [2 Marks]
+(b) Explain the role of sunlight. [3 Marks]
+OR
+8. Explain the importance of forests to human life. [5 Marks]`;
 invalidateAcademicMaster();
 setAcademicWizardStep(3,true);
 build();
@@ -2099,4 +2110,4 @@ showHome();
 </script>
 </body>
 </html>
-<!-- KSR DTP v4.6.0: Dynamic Academic Builder; MCQ Parser Locked -->
+<!-- KSR DTP v4.7.0: Academic Output Polish; MCQ Parser Locked -->
