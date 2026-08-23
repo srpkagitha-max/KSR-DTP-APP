@@ -139,6 +139,13 @@ body.mode-school .mcq-only,body.mode-college .mcq-only{display:none!important}
 .paper.academic-paper .or-line{clear:both!important;display:block!important;text-align:center;font-weight:900;letter-spacing:1.3px;margin:2.5mm 16mm;padding:.8mm 0;border-top:1px solid #9da8b2;border-bottom:1px solid #9da8b2}
 .paper.academic-paper .answer-space{clear:both;margin:1.8mm 0 0 6mm;break-inside:avoid;page-break-inside:avoid}
 .paper.academic-paper .answer-line{height:6.4mm;border-bottom:1px dotted #aeb7bf}
+/* v4.8 — keep internal-choice pairs together when the browser can fit them. */
+.paper.academic-paper .qblock.or-with-next{break-after:avoid-page!important;page-break-after:avoid!important;margin-bottom:.7mm}
+.paper.academic-paper .qblock.or-alternative{break-before:avoid-page!important;page-break-before:avoid!important}
+.paper.academic-paper .qblock.or-with-next + .qblock.or-alternative{margin-top:0}
+.marks-warn{display:none;margin-top:8px;padding:9px 11px;border:1px solid #e5c46a;background:#fff9e8;color:#76540a;border-radius:10px;font-size:12px;font-weight:750;line-height:1.45}
+.marks-warn.ok{display:block;border-color:#b8dfcf;background:#f0fbf7;color:#17604c}
+.marks-warn.bad{display:block}
 .paper.academic-paper .section-type-note{text-align:center;font-size:9.4px;font-weight:700;color:#64727f;margin:-.6mm 0 2mm;text-transform:none}
 .academic-help{display:none;border:1px solid #d6e7e4;background:#f8fdfc;border-radius:12px;padding:10px 12px;margin-top:10px;font-size:12px;color:#526864;line-height:1.55}
 body.mode-school .academic-help,body.mode-college .academic-help{display:block}
@@ -472,7 +479,7 @@ body.mode-school.wiz-step-4 #saveSetupCard,body.mode-college.wiz-step-4 #saveSet
       <div class="field full" id="sectionInstructionField"><label>Instruction</label><input id="sectionInstructionInput" placeholder="e.g. Answer any FIVE questions"></div>
       <div class="field" id="marksPatternField"><label>Marks Pattern</label><input id="marksPattern" placeholder="e.g. 5 × 2 = 10 Marks"></div>
       <div class="field" id="internalChoiceField"><label>Internal Choice</label><select id="internalChoice"><option value="none">No special choice</option><option value="or">OR / Internal Choice</option><option value="any">Answer Any</option></select></div>
-      <div class="field" id="sectionAnswerLinesField"><label>Answer Writing Space</label><select id="sectionAnswerLines"><option value="0">No answer lines</option><option value="2">2 Lines</option><option value="4">4 Lines</option><option value="6">6 Lines</option><option value="10">10 Lines</option></select></div>
+      <div class="field" id="sectionAnswerLinesField"><label>Answer Writing Space</label><select id="sectionAnswerLines"><option value="auto">Auto by Question Type</option><option value="0">No answer lines</option><option value="2">2 Lines</option><option value="4">4 Lines</option><option value="6">6 Lines</option><option value="10">10 Lines</option></select></div>
       <div class="field" id="academicNumberingField"><label>Question Numbering</label><select id="academicNumbering"><option value="source">Keep pasted numbers</option><option value="continuous">Continuous numbering</option></select></div>
       <div class="field full"><div class="hint" id="questionTypeHint" style="margin:0;padding:10px 12px;border-radius:10px;background:#f3faf9;border:1px solid #dceceb;color:#587078;font-weight:700">General Questions: marks, choice, writing space and numbering can be set here.</div></div>
     </div>
@@ -517,7 +524,7 @@ body.mode-school.wiz-step-4 #saveSetupCard,body.mode-college.wiz-step-4 #saveSet
         <select id="questionNumberWeight"><option value="800">Bold</option><option value="500">Normal</option></select>
       </div>
       <div class="field academic-only"><label>Default Answer Space</label>
-        <select id="academicAnswerLines"><option value="0">None</option><option value="2">2 Lines</option><option value="4">4 Lines</option><option value="6">6 Lines</option></select>
+        <select id="academicAnswerLines"><option value="auto">Auto by Question Type</option><option value="0">None</option><option value="2">2 Lines</option><option value="4">4 Lines</option><option value="6">6 Lines</option><option value="10">10 Lines</option></select>
       </div>
     </div>
     <div class="template-note">All question-paper appearance and page-fit controls are together here. Use <b>Save Setup to Institutes</b> when the paper is ready to remember this complete style.</div>
@@ -563,7 +570,7 @@ body.mode-school.wiz-step-4 #saveSetupCard,body.mode-college.wiz-step-4 #saveSet
 <div class="field" style="grid-column:span 2"><label>Smart Fit Range</label>
       <div id="pageRange" class="chip" style="border-radius:10px;min-height:38px;display:flex;align-items:center">Paste questions to calculate minimum / maximum pages</div>
     </div>
-<div class="hint target-pages-note">Minimum uses safe compact option rows where they fit. Maximum keeps options one below another with relaxed spacing. Target Pages automatically balances font size, spacing, option layout and the final quote box together inside the selected page count.</div>
+<div class="hint target-pages-note">Minimum uses safe compact option rows where they fit. Maximum keeps options one below another with relaxed spacing. Target Pages automatically balances font size, spacing, option layout and the final quote box together inside the selected page count. Academic Auto Answer Space also reduces unnecessary blank areas by question type.</div>
 </div>
 
   
@@ -597,7 +604,9 @@ body.mode-school.wiz-step-4 #saveSetupCard,body.mode-college.wiz-step-4 #saveSet
     <span class="chip" id="missingStat">Missing answers: 0</span>
     <span class="chip" id="issueStat">Issues: 0</span>
     <span class="chip" id="pdfSyncStat">PDF Sync: —</span>
+    <span class="chip academic-only" id="marksStat">Marks: —</span>
   </div>
+  <div id="marksWarn" class="marks-warn"></div>
   <div id="warn" class="warn"></div>
   <div id="safetyPanel" class="warn" style="display:none;background:#eef7ff;border-color:#bdd9f7;color:#123c72"></div>
 
@@ -816,7 +825,7 @@ const academicInstructionRe=/^\s*(?:answer|attempt|write|choose|all questions|an
 const academicQRe=/^\s*(?:(?:question|ques|q|ప్రశ్న)\s*[-:#.]?\s*)?(\d{1,4})\s*[\.\):\-]\s*(.*)$/iu;
 const academicMarksRe=/(\s*(?:\[|\()\s*\d+(?:\s*[x×*]\s*\d+\s*=\s*\d+)?\s*(?:marks?|m|మార్కులు?)?\s*(?:\]|\))\s*)$/iu;
 const academicTypeMetaRe=/^\s*(?:question\s*type|type)\s*[:\-]\s*(.+)$/iu;
-const academicSpaceMetaRe=/^\s*(?:answer\s*space|writing\s*space)\s*[:\-]\s*(\d+)\s*(?:lines?)?\s*$/iu;
+const academicSpaceMetaRe=/^\s*(?:answer\s*space|writing\s*space)\s*[:\-]\s*(auto|\d+)\s*(?:lines?)?\s*$/iu;
 let academicMaster={raw:null,items:[]};
 function isAcademicMode(){ return ($('paperMode')?.value||'mcq')!=='mcq'; }
 function splitAcademicMarks(text){
@@ -827,16 +836,16 @@ function splitAcademicMarks(text){
 }
 function parseAcademic(raw){
   const lines=normalizeInput(raw).split('\n');
-  const out=[]; let cur=null; let section=''; let sectionInstruction=''; let sectionType=''; let sectionAnswerLines=0;
+  const out=[]; let cur=null; let section=''; let sectionInstruction=''; let sectionType=''; let sectionAnswerLines='auto';
   for(const original of lines){
     const s=original.trim(); if(!s) continue;
     if(academicSectionRe.test(s)){
-      section=s.replace(/[*_#]/g,'').trim(); sectionInstruction=''; sectionType=''; sectionAnswerLines=0; cur=null; continue;
+      section=s.replace(/[*_#]/g,'').trim(); sectionInstruction=''; sectionType=''; sectionAnswerLines='auto'; cur=null; continue;
     }
     const tm=s.match(academicTypeMetaRe);
     if(!cur && section && tm){sectionType=(tm[1]||'').trim(); continue;}
     const am=s.match(academicSpaceMetaRe);
-    if(!cur && section && am){sectionAnswerLines=Math.max(0,Math.min(20,parseInt(am[1]||'0',10)||0)); continue;}
+    if(!cur && section && am){sectionAnswerLines=String(am[1]||'auto').toLowerCase()==='auto'?'auto':Math.max(0,Math.min(20,parseInt(am[1]||'0',10)||0)); continue;}
     if(!cur && section && academicInstructionRe.test(s)){
       sectionInstruction=sectionInstruction ? sectionInstruction+' • '+s : s; continue;
     }
@@ -861,6 +870,50 @@ function getAcademicQuestions(){
   return academicMaster.items;
 }
 function invalidateAcademicMaster(){ academicMaster={raw:null,items:[]}; }
+function academicDefaultAnswerLines(type){
+  const t=String(type||'').toLowerCase();
+  if(/fill|true|false|match/.test(t)) return 0;
+  if(/very short/.test(t)) return 2;
+  if(/short answer/.test(t)) return 4;
+  if(/long answer|essay/.test(t)) return 6;
+  if(/numerical|problem/.test(t)) return 4;
+  if(/passage|comprehension/.test(t)) return 2;
+  return 0;
+}
+function resolveAcademicAnswerLines(q){
+  const own=q?.answerLines;
+  if(own!==undefined && own!==null && String(own)!=='' && String(own)!=='auto') return Math.max(0,parseInt(own,10)||0);
+  const global=String($('academicAnswerLines')?.value||'auto');
+  if(global!=='auto') return Math.max(0,parseInt(global,10)||0);
+  return academicDefaultAnswerLines(q?.sectionType||'');
+}
+function academicSectionTotals(qs){
+  const seen=new Set(); let total=0, found=0;
+  for(const q of qs){
+    const key=q.section||'__default__';
+    if(seen.has(key)) continue; seen.add(key);
+    const ins=String(q.sectionInstruction||'');
+    let m=ins.match(/(?:[x×*]\s*\d+\s*=\s*)(\d+(?:\.\d+)?)\s*(?:marks?)?/iu);
+    if(!m) m=ins.match(/\(\s*\d+\s*[x×*]\s*\d+\s*=\s*(\d+(?:\.\d+)?)\s*(?:marks?)?\s*\)/iu);
+    if(m){total+=Number(m[1])||0;found++;}
+  }
+  return {total,found,sections:seen.size};
+}
+function updateAcademicMarksValidation(qs){
+  const stat=$('marksStat'), box=$('marksWarn');
+  if(!stat||!box||!isAcademicMode()) return;
+  const declared=Number($('marksTotal')?.value||0)||0;
+  const calc=academicSectionTotals(qs);
+  if(!calc.found){stat.textContent='Marks: Not calculated';box.className='marks-warn';box.textContent='';return;}
+  stat.textContent=`Marks: ${calc.total}${declared?' / '+declared:''}`;
+  if(declared && Math.abs(calc.total-declared)>0.001){
+    box.className='marks-warn bad';
+    box.textContent=`Marks Check: Section patterns total ${calc.total}, but Max Marks is ${declared}. Please verify before PDF.`;
+  }else{
+    box.className='marks-warn ok';
+    box.textContent=`Marks Check: Section total ${calc.total}${declared?' matches Max Marks':''}.`;
+  }
+}
 function getActiveQuestions(){ return isAcademicMode()?getAcademicQuestions():getParsedQuestions(); }
 
 function clean(s){
@@ -1612,6 +1665,7 @@ function build(){
   $('astat').textContent=academic ? 'Sections: '+sm.sections.length : 'Detected answers: '+sm.answers;
   $('missingStat').textContent=academic ? 'Paper: '+(($('paperMode').value==='school')?'School':'College') : 'Missing answers: '+sm.missing;
   $('issueStat').textContent='Issues: '+issues.length;
+  if(academic) updateAcademicMarksValidation(qs);
   $('warn').style.display=issues.length?'block':'none';
   $('warn').textContent=issues.length ? (issues.slice(0,6).join(' • ')+(issues.length>6?` • +${issues.length-6} more`:"")) : '';
 
@@ -1686,6 +1740,12 @@ function build(){
 
     const block=document.createElement('div');
     block.className='qblock '+(q.body&&q.body.length?'has-body':'no-body')+(!academic&&canCompactOptions(q,fit)?' compact-options':'');
+    if(academic){
+      const hasOr=(q.body||[]).some(t=>/^\s*(?:OR|లేదా)\s*$/iu.test(String(t||'')));
+      const prevHasOr=idx>0 && (qs[idx-1].body||[]).some(t=>/^\s*(?:OR|లేదా)\s*$/iu.test(String(t||'')));
+      if(hasOr && idx<qs.length-1 && qs[idx+1].section===q.section) block.classList.add('or-with-next');
+      if(prevHasOr && qs[idx-1].section===q.section) block.classList.add('or-alternative');
+    }
     cols.appendChild(block);
 
     const number=academic ? (($('academicNumbering')?.value||'source')==='continuous' ? start+idx : (q.sourceNo||start+idx)) : start+idx;
@@ -1726,7 +1786,7 @@ function build(){
     }
 
     if(academic){
-      const lines=Math.max(0,parseInt(q.answerLines||$('academicAnswerLines')?.value||'0',10)||0);
+      const lines=resolveAcademicAnswerLines(q);
       if(lines){
         const aw=document.createElement('div'); aw.className='answer-space';
         for(let ai=0;ai<lines;ai++){const al=document.createElement('div');al.className='answer-line';aw.appendChild(al);}
@@ -1791,6 +1851,15 @@ function printPaper(){
     );
     return;
   }
+  if(isAcademicMode()){
+    const qs=getAcademicQuestions();
+    const declared=Number($('marksTotal')?.value||0)||0;
+    const calc=academicSectionTotals(qs);
+    if(declared && calc.found && Math.abs(calc.total-declared)>0.001){
+      const ok=confirm(`Marks Check Warning\n\nSection patterns total: ${calc.total}\nMax Marks: ${declared}\n\nContinue to Print / PDF anyway?`);
+      if(!ok) return;
+    }
+  }
   const oldTitle=document.title;
   document.title=' ';
   setTimeout(()=>{
@@ -1850,14 +1919,14 @@ function sectionBuilderText(){
   const inst=($('sectionInstructionInput')?.value||'').trim();
   const marks=($('marksPattern')?.value||'').trim();
   const choice=$('internalChoice')?.value||'none';
-  const answerLines=Math.max(0,parseInt($('sectionAnswerLines')?.value||'0',10)||0);
+  const answerLines=String($('sectionAnswerLines')?.value||'auto')==='auto'?'auto':Math.max(0,parseInt($('sectionAnswerLines')?.value||'0',10)||0);
   let instruction=inst;
   if(marks) instruction+=(instruction?' ':'')+'('+marks+')';
   if(choice==='or') instruction+=(instruction?' • ':'')+'Internal choice / OR where shown';
   if(choice==='any') instruction+=(instruction?' • ':'')+'Answer any questions as instructed';
   let meta='';
   if(type && type!=='General Questions') meta+='Question Type: '+type+'\n';
-  if(answerLines) meta+='Answer Space: '+answerLines+' Lines\n';
+  if(answerLines==='auto') meta+='Answer Space: Auto\n'; else if(answerLines) meta+='Answer Space: '+answerLines+' Lines\n';
   return name+(instruction?'\n'+instruction:'')+'\n'+meta;
 }
 function updateSectionPreview(){
@@ -2031,7 +2100,7 @@ if(isAcademicMode()){
 $('raw').value=`SECTION - A
 Answer all questions (5 × 1 = 5 Marks)
 Question Type: Fill in the Blanks
-Answer Space: 2 Lines
+Answer Space: Auto
 1. Water boils at ______ °C. [1 Mark]
 2. The largest planet in the solar system is ______. [1 Mark]
 3. Plants prepare food by the process of ______. [1 Mark]
@@ -2039,7 +2108,7 @@ Answer Space: 2 Lines
 SECTION - B
 Answer any TWO (2 × 3 = 6 Marks)
 Question Type: Short Answer
-Answer Space: 4 Lines
+Answer Space: Auto
 4. Explain any three uses of water. [3 Marks]
 5. Write a short note on the solar system. [3 Marks]
 OR
@@ -2048,7 +2117,7 @@ OR
 SECTION - C
 Answer any ONE (1 × 5 = 5 Marks)
 Question Type: Long Answer / Essay
-Answer Space: 6 Lines
+Answer Space: Auto
 7. Describe the process of photosynthesis. [5 Marks]
 (a) Mention the raw materials. [2 Marks]
 (b) Explain the role of sunlight. [3 Marks]
