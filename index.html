@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0b3b7a" />
 <link rel="manifest" href="manifest.webmanifest" />
 <title></title>
-<!-- KSR DTP v5.3.0 Phase 2 Complete Academic DTP — MCQ Parser Locked -->
+<!-- KSR DTP v5.3.1 Phase 2 Final Academic Engine — MCQ Parser Locked -->
 <style>
 :root{
   --blue:#087f78;--blue2:#0b9b8d;--ink:#12302d;--muted:#687b78;
@@ -998,6 +998,24 @@ function resolveAcademicAnswerLines(q){
   if(global!=='auto') return Math.max(0,parseInt(global,10)||0);
   return academicDefaultAnswerLines(q?.sectionType||'');
 }
+function academicQuestionMarkConsistency(qs){
+  const issues=[]; const seen=new Set();
+  for(const q of qs){
+    const sec=q.section||'__default__';
+    if(seen.has(sec)) continue; seen.add(sec);
+    const group=qs.filter(x=>(x.section||'__default__')===sec);
+    const ins=String(q.sectionInstruction||'');
+    const m=ins.match(/(\d+)\s*[x×*]\s*(\d+(?:\.\d+)?)\s*=\s*(\d+(?:\.\d+)?)/iu);
+    if(!m) continue;
+    const unit=Number(m[2]);
+    for(const x of group){
+      const mm=String(x.marks||'').match(/(\d+(?:\.\d+)?)/);
+      if(mm && Math.abs(Number(mm[1])-unit)>.001) issues.push(`${sec}: ${x.sourceNo||'?'} shows ${Number(mm[1])} mark(s), pattern expects ${unit}`);
+    }
+  }
+  return issues;
+}
+
 function academicSectionTotals(qs){
   const seen=new Set(); let total=0, found=0;
   for(const q of qs){
@@ -1032,7 +1050,7 @@ function updateAcademicMarksValidation(qs){
     if(!String($('exam')?.value||'').trim()) missing.push('Exam');
     if(!qs.length) missing.push('Questions');
     const marksMismatch=declared && calc.found && Math.abs(calc.total-declared)>0.001;
-    const formatIssues=academicValidationIssues(qs);
+    const formatIssues=academicValidationIssues(qs).concat(academicQuestionMarkConsistency(qs));
     ready.className='academic-readiness '+(!missing.length&&!marksMismatch&&!formatIssues.length?'ready':'review');
     ready.textContent=!missing.length&&!marksMismatch&&!formatIssues.length
       ? `Ready to Print • ${qs.length} questions • ${calc.sections} section${calc.sections===1?'':'s'}${calc.found?' • '+calc.total+' marks':''}`
@@ -2093,7 +2111,7 @@ function build(){
       block.appendChild(table);
     } else q.body.forEach(t=>{
       const d=document.createElement('div'); d.className='stem'; const tt=academic?String(t||''):clean(t);
-      if(academic && /^\s*(?:OR|లేదా)\s*$/iu.test(tt)){ d.classList.add('or-line'); d.dataset.choice='1'; d.innerHTML='<span class="or-label">'+esc(tt)+'</span>'; }
+      if(academic && /^\s*(?:OR|లేదా)\s*$/iu.test(tt)){ block.dataset.choiceAfter='1'; return; }
       else if(academic && /^\s*\[?DIAGRAM\]?\s*$/iu.test(tt)){ addDiagramSpace(block,q.diagramSpace==='none'?'medium':q.diagramSpace); return; }
       else if(academic){
         d.classList.add('body-line'); if(/^\s*(?:\(?[a-zivx]+\)|[a-zivx]+[.)])\s+/iu.test(tt)) d.classList.add('sub-line');
@@ -2125,6 +2143,9 @@ function build(){
         block.appendChild(aw);
       }
       if(q.diagramSpace && q.diagramSpace!=='none' && !(q.body||[]).some(t=>/^\s*\[?DIAGRAM\]?\s*$/iu.test(String(t||'')))) addDiagramSpace(block,q.diagramSpace);
+      if(block.dataset.choiceAfter==='1'){
+        const od=document.createElement('div'); od.className='or-line'; od.dataset.choice='1'; od.innerHTML='<span class="or-label">OR</span>'; block.appendChild(od);
+      }
     }
 
     const sp=document.createElement('div');
@@ -2531,4 +2552,4 @@ showHome();
 </script>
 </body>
 </html>
-<!-- KSR DTP v5.3.0: Phase 2 Complete Academic DTP; MCQ Parser Locked -->
+<!-- KSR DTP v5.3.1: Phase 2 Final Academic Engine; MCQ Parser Locked -->
