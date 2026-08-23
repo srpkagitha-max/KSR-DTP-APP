@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0b3b7a" />
 <link rel="manifest" href="manifest.webmanifest" />
 <title></title>
-<!-- KSR DTP v4.7.0 Academic Output Polish — MCQ Parser Locked -->
+<!-- KSR DTP v5.1.0 Major Academic Formats — MCQ Parser Locked -->
 <style>
 :root{
   --blue:#087f78;--blue2:#0b9b8d;--ink:#12302d;--muted:#687b78;
@@ -317,6 +317,23 @@ body.mode-school.wiz-step-4 #rawFieldWrap,body.mode-college.wiz-step-4 #rawField
   
 }
 
+
+/* v5.1 — Major Academic Formats: premium OR, match table, diagram space, auto balance */
+.paper.academic-paper .or-line{display:flex!important;align-items:center;gap:3mm;margin:2.2mm 9mm!important;padding:0!important;border:0!important;color:#223942;font-weight:900;letter-spacing:.7px;line-height:1.2;font-size:0}
+.paper.academic-paper .or-line::before,.paper.academic-paper .or-line::after{content:"";height:1px;background:#a8b5ba;flex:1 1 auto}
+.paper.academic-paper .or-label{display:inline-block;font-size:9.5px!important;line-height:1;border:1px solid #aab8bc;background:#f6f9f9;border-radius:999px;padding:1.1mm 2.4mm;min-width:12mm;text-align:center;color:#203a41;font-weight:900}
+.paper.academic-paper .match-table{width:calc(100% - 10mm);margin:1.8mm 0 1mm 6mm;border-collapse:collapse;table-layout:fixed;font-size:.96em}
+.paper.academic-paper .match-table th{background:#f5f8f8;font-weight:800;text-align:left;border:1px solid #b9c3c7;padding:1.5mm 2mm}
+.paper.academic-paper .match-table td{border:1px solid #c7d0d3;padding:1.6mm 2mm;vertical-align:top;word-wrap:break-word}
+.paper.academic-paper .diagram-space{margin:2mm 0 1mm 6mm;border:1px dashed #98a8ad;border-radius:2mm;position:relative;background:#fff;break-inside:avoid;page-break-inside:avoid}
+.paper.academic-paper .diagram-space.small{height:28mm}.paper.academic-paper .diagram-space.medium{height:45mm}.paper.academic-paper .diagram-space.large{height:65mm}
+.paper.academic-paper .diagram-space::before{content:"Diagram / Working Space";position:absolute;top:2mm;left:3mm;font-size:8px;color:#859398;font-weight:700;letter-spacing:.2px}
+.paper.academic-paper .college-ticket{grid-column:1/-1;margin-top:.8mm;padding-top:1.4mm;border-top:1px dotted #bac4c8;font-size:10px}
+.setup-name-row{display:none;margin-top:9px}.save-setup-card .setup-name-row{display:block;grid-column:1/-1}
+.setup-name-row label{display:block;font-size:11px;font-weight:850;color:#426067;margin-bottom:5px}.setup-name-row input{width:100%;box-sizing:border-box}
+.paper.academic-paper.academic-balanced .section-head{margin-top:4.8mm}.paper.academic-paper.academic-balanced .qblock{margin-bottom:2.2mm}
+@media print{.paper.academic-paper .match-table,.paper.academic-paper .diagram-space{break-inside:avoid;page-break-inside:avoid}}
+
 /* v5.0 — consolidated Academic Production Engine stability */
 @media print{
   /* Critical blank-page fix: the screen preview keeps a 250mm visual floor.
@@ -498,6 +515,7 @@ body.mode-school.wiz-step-4 #saveSetupCard,body.mode-college.wiz-step-4 #saveSet
       <div class="field" id="marksPatternField"><label>Marks Pattern</label><input id="marksPattern" placeholder="e.g. 5 × 2 = 10 Marks"></div>
       <div class="field" id="internalChoiceField"><label>Internal Choice</label><select id="internalChoice"><option value="none">No special choice</option><option value="or">OR / Internal Choice</option><option value="any">Answer Any</option></select></div>
       <div class="field" id="sectionAnswerLinesField"><label>Answer Writing Space</label><select id="sectionAnswerLines"><option value="auto">Auto by Question Type</option><option value="0">No answer lines</option><option value="2">2 Lines</option><option value="4">4 Lines</option><option value="6">6 Lines</option><option value="10">10 Lines</option></select></div>
+      <div class="field" id="sectionDiagramSpaceField"><label>Diagram / Working Space</label><select id="sectionDiagramSpace"><option value="none">None</option><option value="small">Small Box</option><option value="medium">Medium Box</option><option value="large">Large Box</option></select></div>
       <div class="field" id="academicNumberingField"><label>Question Numbering</label><select id="academicNumbering"><option value="source">Keep pasted numbers</option><option value="continuous">Continuous numbering</option></select></div>
       <div class="field full"><div class="hint" id="questionTypeHint" style="margin:0;padding:10px 12px;border-radius:10px;background:#f3faf9;border:1px solid #dceceb;color:#587078;font-weight:700">General Questions: marks, choice, writing space and numbering can be set here.</div></div>
     </div>
@@ -631,6 +649,7 @@ body.mode-school.wiz-step-4 #saveSetupCard,body.mode-college.wiz-step-4 #saveSet
 
   <div class="save-setup-card" id="saveSetupCard">
     <div class="save-setup-copy"><b>Use this paper regularly?</b><span>Save the institute and this paper setup. Next time open Institutes → Institute Name → Paper Type and add only the new paper details/questions.</span></div>
+    <div class="setup-name-row"><label>Paper Template Name <span style="font-weight:500;color:#819095">(Optional)</span></label><input id="setupName" placeholder="e.g. Unit Test / Monthly Test / Annual Exam"></div>
     <button type="button" class="save-setup-btn" id="saveSetupToInstitutes">Save Setup to Institutes</button>
     <div class="save-setup-status" id="saveSetupStatus"></div>
   </div>
@@ -666,7 +685,7 @@ body.mode-school.wiz-step-4 #saveSetupCard,body.mode-college.wiz-step-4 #saveSet
 </main>
 
 <script>
-// KSR DTP v4.7.0 — Academic output polish; MCQ parser locked and unchanged
+// KSR DTP v5.1.0 — Major Academic Formats; MCQ parser locked and unchanged
 const $=id=>document.getElementById(id);
 const ANSWER_MARK=/[●•⬤∙·▪✓✔★*🔴🔵🟢🟡🟠⚫⚪✅]+/gu;
 const LEADING_ANSWER_MARK=/^\s*[●•⬤∙·▪✓✔★*🔴🔵🟢🟡🟠⚫⚪✅]+\s*/u;
@@ -845,6 +864,7 @@ const academicQRe=/^\s*(?:(?:question|ques|q|ప్రశ్న)\s*[-:#.]?\s*)?(
 const academicMarksRe=/(\s*(?:\[|\()\s*\d+(?:\s*[x×*]\s*\d+\s*=\s*\d+)?\s*(?:marks?|m|మార్కులు?)?\s*(?:\]|\))\s*)$/iu;
 const academicTypeMetaRe=/^\s*(?:question\s*type|type)\s*[:\-]\s*(.+)$/iu;
 const academicSpaceMetaRe=/^\s*(?:answer\s*space|writing\s*space)\s*[:\-]\s*(auto|\d+)\s*(?:lines?)?\s*$/iu;
+const academicDiagramMetaRe=/^\s*(?:diagram\s*space|working\s*space)\s*[:\-]\s*(none|small|medium|large)\s*$/iu;
 let academicMaster={raw:null,items:[]};
 function isAcademicMode(){ return ($('paperMode')?.value||'mcq')!=='mcq'; }
 function splitAcademicMarks(text){
@@ -855,23 +875,25 @@ function splitAcademicMarks(text){
 }
 function parseAcademic(raw){
   const lines=normalizeInput(raw).split('\n');
-  const out=[]; let cur=null; let section=''; let sectionInstruction=''; let sectionType=''; let sectionAnswerLines='auto';
+  const out=[]; let cur=null; let section=''; let sectionInstruction=''; let sectionType=''; let sectionAnswerLines='auto'; let sectionDiagramSpace='none';
   for(const original of lines){
     const s=original.trim(); if(!s) continue;
     if(academicSectionRe.test(s)){
-      section=s.replace(/[*_#]/g,'').trim(); sectionInstruction=''; sectionType=''; sectionAnswerLines='auto'; cur=null; continue;
+      section=s.replace(/[*_#]/g,'').trim(); sectionInstruction=''; sectionType=''; sectionAnswerLines='auto'; sectionDiagramSpace='none'; cur=null; continue;
     }
     const tm=s.match(academicTypeMetaRe);
     if(!cur && section && tm){sectionType=(tm[1]||'').trim(); continue;}
     const am=s.match(academicSpaceMetaRe);
     if(!cur && section && am){sectionAnswerLines=String(am[1]||'auto').toLowerCase()==='auto'?'auto':Math.max(0,Math.min(20,parseInt(am[1]||'0',10)||0)); continue;}
+    const dm=s.match(academicDiagramMetaRe);
+    if(!cur && section && dm){sectionDiagramSpace=String(dm[1]||'none').toLowerCase(); continue;}
     if(!cur && section && academicInstructionRe.test(s)){
       sectionInstruction=sectionInstruction ? sectionInstruction+' • '+s : s; continue;
     }
     const qm=s.match(academicQRe);
     if(qm){
       const sm=splitAcademicMarks(qm[2]||'');
-      cur={sourceNo:qm[1],text:sm.text,section,sectionInstruction,sectionType,answerLines:sectionAnswerLines,body:[],options:[],answer:'',marks:sm.marks};
+      cur={sourceNo:qm[1],text:sm.text,section,sectionInstruction,sectionType,answerLines:sectionAnswerLines,diagramSpace:sectionDiagramSpace,body:[],options:[],answer:'',marks:sm.marks};
       out.push(cur); continue;
     }
     if(!cur){
@@ -940,12 +962,51 @@ function updateAcademicMarksValidation(qs){
     if(!String($('exam')?.value||'').trim()) missing.push('Exam');
     if(!qs.length) missing.push('Questions');
     const marksMismatch=declared && calc.found && Math.abs(calc.total-declared)>0.001;
-    ready.className='academic-readiness '+(!missing.length&&!marksMismatch?'ready':'review');
-    ready.textContent=!missing.length&&!marksMismatch
+    const formatIssues=academicValidationIssues(qs);
+    ready.className='academic-readiness '+(!missing.length&&!marksMismatch&&!formatIssues.length?'ready':'review');
+    ready.textContent=!missing.length&&!marksMismatch&&!formatIssues.length
       ? `Ready to Print • ${qs.length} questions • ${calc.sections} section${calc.sections===1?'':'s'}${calc.found?' • '+calc.total+' marks':''}`
-      : `Review before PDF${missing.length?' • Missing: '+missing.join(', '):''}${marksMismatch?' • Marks mismatch: '+calc.total+' / '+declared:''}`;
+      : `Review before PDF${missing.length?' • Missing: '+missing.join(', '):''}${marksMismatch?' • Marks mismatch: '+calc.total+' / '+declared:''}${formatIssues.length?' • '+formatIssues.slice(0,2).join(' • '):''}`;
   }
 }
+
+function academicValidationIssues(qs){
+  const issues=[]; const seenNos=new Set();
+  qs.forEach((q,i)=>{
+    const n=String(q.sourceNo||'').trim();
+    if(n){if(seenNos.has(n)) issues.push(`Duplicate source question number: ${n}`); else seenNos.add(n);}
+    const hasOr=(q.body||[]).some(t=>/^\s*(?:OR|లేదా)\s*$/iu.test(String(t||'')));
+    if(hasOr && (!qs[i+1] || qs[i+1].section!==q.section)) issues.push(`Q${n||i+1}: OR has no following alternative in the same section`);
+    if(/match the following/i.test(String(q.sectionType||''))){
+      const pairs=(q.body||[]).filter(t=>/[|↔⇔]|\s=>\s/.test(String(t||'')));
+      if(!pairs.length) issues.push(`Q${n||i+1}: Match the Following needs Column A | Column B pairs`);
+    }
+  });
+  return issues;
+}
+function splitMatchPair(line){
+  const s=String(line||''); const parts=s.split(/\s*(?:\||↔|⇔|=>)\s*/);
+  if(parts.length<2) return null; return [parts.shift().trim(),parts.join(' | ').trim()];
+}
+function addDiagramSpace(block,size){
+  const s=String(size||'none').toLowerCase(); if(!['small','medium','large'].includes(s)) return;
+  const d=document.createElement('div'); d.className='diagram-space '+s; block.appendChild(d);
+}
+function balanceAcademicAuto(hdr,cols){
+  if(!isAcademicMode() || ($('pageFitMode')?.value||'auto')!=='auto') return;
+  const initial=previewPageMetrics(hdr,cols); if(!initial.pages || initial.lastFill>=.82) return;
+  let font=parseFloat(cols.style.fontSize)||parseFloat($('fontSize').value||12);
+  let line=parseFloat(cols.style.lineHeight)||parseFloat($('lineHeight').value||1.38);
+  const gaps=[...cols.querySelectorAll('.qgap')]; let gap=gaps.length?parseFloat(gaps[0].style.height||$('qGap').value||1.2):1.2;
+  const base={font,line,gap}; let best={...base};
+  for(let i=0;i<36;i++){
+    const trial={font:Math.min(15.4,best.font*1.006),line:Math.min(1.62,best.line+.0035),gap:Math.min(3.2,best.gap+.055)};
+    setFitTypography(cols,trial.font,trial.line,trial.gap,NaN,NaN); const m=previewPageMetrics(hdr,cols);
+    if(m.pages===initial.pages){best=trial;if(m.lastFill>=.88)break;}else{setFitTypography(cols,best.font,best.line,best.gap,NaN,NaN);break;}
+  }
+  if(best.font>base.font+0.05||best.gap>base.gap+0.05) $('paper').classList.add('academic-balanced');
+}
+
 function getActiveQuestions(){ return isAcademicMode()?getAcademicQuestions():getParsedQuestions(); }
 
 function clean(s){
@@ -1538,7 +1599,7 @@ function currentProfileData(existingId=''){
     address:($('address').value||'').trim(),
     phone:($('phone').value||'').trim(),
     logo:instituteLogo||'',
-    paperSetup:{paperMode:$('paperMode').value||'mcq',className:$('className').value||'',courseName:$('courseName').value||'',semester:$('semester').value||'',subjectName:$('subjectName').value||'',subjectCode:$('subjectCode').value||'',duration:$('duration').value||'',marksTotal:$('marksTotal').value||''},
+    paperSetup:{paperMode:$('paperMode').value||'mcq',setupName:($('setupName')?.value||'').trim(),className:$('className').value||'',courseName:$('courseName').value||'',semester:$('semester').value||'',subjectName:$('subjectName').value||'',subjectCode:$('subjectCode').value||'',duration:$('duration').value||'',marksTotal:$('marksTotal').value||''},
     layout,
     updatedAt:Date.now()
   };
@@ -1554,6 +1615,7 @@ function applyProfile(p){
   $('logoFile').value='';
   if(p.paperSetup){
     ['paperMode','className','courseName','semester','subjectName','subjectCode','duration','marksTotal'].forEach(id=>{if(p.paperSetup[id]!==undefined) $(id).value=String(p.paperSetup[id]);});
+    if($('setupName')) $('setupName').value=p.paperSetup.setupName||'';
   }
   if(p.layout){
     PROFILE_LAYOUT_IDS.forEach(id=>{
@@ -1573,7 +1635,8 @@ function saveCurrentProfile(){
   // If no profile is selected, update an exact same-name profile; otherwise create a new one.
   if(!id){
     const mode=$('paperMode').value||'mcq';
-    const same=profiles.find(p=>(p.name||'').trim().toLowerCase()===name.toLowerCase() && (p.paperSetup?.paperMode||'mcq')===mode);
+    const setupName=String($('setupName')?.value||'').trim().toLowerCase();
+    const same=profiles.find(p=>(p.name||'').trim().toLowerCase()===name.toLowerCase() && (p.paperSetup?.paperMode||'mcq')===mode && String(p.paperSetup?.setupName||'').trim().toLowerCase()===setupName);
     if(same) id=same.id;
   }
   const data=currentProfileData(id);
@@ -1585,7 +1648,7 @@ function saveCurrentProfile(){
   saveDraft();
   if(!$(`institutesScreen`).classList.contains('hidden')) renderInstituteNames();
   const st=$('saveSetupStatus');
-  if(st){st.style.display='block';st.textContent='Saved successfully. Open Home → Institutes to reuse this setup with new questions.';}
+  if(st){st.style.display='block';st.textContent='Saved successfully. Open Home → Institutes to reuse this named paper template with new questions.';}
   return true;
 }
 function saveAsNewInstitute(){
@@ -1597,7 +1660,8 @@ function saveAsNewInstitute(){
 
   const profiles=getProfiles();
   const mode=$('paperMode').value||'mcq';
-  const same=profiles.find(p=>(p.name||'').trim().toLowerCase()===newName.toLowerCase() && (p.paperSetup?.paperMode||'mcq')===mode);
+  const setupName=String($('setupName')?.value||'').trim().toLowerCase();
+  const same=profiles.find(p=>(p.name||'').trim().toLowerCase()===newName.toLowerCase() && (p.paperSetup?.paperMode||'mcq')===mode && String(p.paperSetup?.setupName||'').trim().toLowerCase()===setupName);
   if(same){
     alert('This institute already has a saved setup for the selected paper mode. Use Save / Update or choose another paper mode.');
     return;
@@ -1686,7 +1750,7 @@ function build(){
   const qs=getActiveQuestions();
   const start=Math.max(1,parseInt($('startNo').value||'1',10));
   const end=qs.length ? start+qs.length-1 : 0;
-  const issues=academic ? qs.flatMap((q,i)=>!q.text?[`Q${i+1}: question text missing`]:[]) : analyze(qs);
+  const issues=academic ? qs.flatMap((q,i)=>!q.text?[`Q${i+1}: question text missing`]:[]).concat(academicValidationIssues(qs)) : analyze(qs);
   const sm=academic ? {optionCount:0,answers:0,missing:0,suspicious:issues.length,sections:[...new Set(qs.map(q=>q.section).filter(Boolean))]} : getSafetySummary(qs,issues);
   refreshPageTargets(qs);
   const fit=getFitProfile(qs);
@@ -1744,6 +1808,7 @@ function build(){
       <div><b>Subject:</b> ${esc($('subjectName').value||'__________')}</div>
       ${$('paperMode').value==='college'&&$('subjectCode').value?`<div><b>Subject Code:</b> ${esc($('subjectCode').value)}</div>`:''}
       <div><b>Time:</b> ${esc($('duration').value||'__________')}</div>
+      ${$('paperMode').value==='college'?`<div class="college-ticket"><b>Hall Ticket / Reg. No:</b> ______________________________</div>`:''}
     </div>`:''}`;
   paper.appendChild(hdr);
 
@@ -1792,19 +1857,21 @@ function build(){
     block.appendChild(first);
     stemNodes.push(first);
 
-    q.body.forEach(t=>{
-      const d=document.createElement('div');
-      d.className='stem';
-      const tt=academic?String(t||''):clean(t);
-      if(academic && /^\s*(?:OR|లేదా)\s*$/iu.test(tt)){ d.classList.add('or-line'); d.textContent=tt; }
+    const isMatch=academic && /match the following/i.test(String(q.sectionType||''));
+    const matchPairs=isMatch ? (q.body||[]).map(splitMatchPair).filter(Boolean) : [];
+    if(isMatch && matchPairs.length){
+      const table=document.createElement('table'); table.className='match-table';
+      table.innerHTML='<thead><tr><th>Column A</th><th>Column B</th></tr></thead><tbody>'+matchPairs.map(p=>`<tr><td>${esc(p[0])}</td><td>${esc(p[1])}</td></tr>`).join('')+'</tbody>';
+      block.appendChild(table);
+    } else q.body.forEach(t=>{
+      const d=document.createElement('div'); d.className='stem'; const tt=academic?String(t||''):clean(t);
+      if(academic && /^\s*(?:OR|లేదా)\s*$/iu.test(tt)){ d.classList.add('or-line'); d.dataset.choice='1'; d.innerHTML='<span class="or-label">'+esc(tt)+'</span>'; }
+      else if(academic && /^\s*\[?DIAGRAM\]?\s*$/iu.test(tt)){ addDiagramSpace(block,q.diagramSpace==='none'?'medium':q.diagramSpace); return; }
       else if(academic){
-        d.classList.add('body-line');
-        if(/^\s*(?:\(?[a-zivx]+\)|[a-zivx]+[.)])\s+/iu.test(tt)) d.classList.add('sub-line');
-        const bm=splitAcademicMarks(tt);
-        d.innerHTML=`<span class="body-text">${esc(bm.text)}</span>${bm.marks?`<span class="body-marks">${esc(bm.marks)}</span>`:''}`;
+        d.classList.add('body-line'); if(/^\s*(?:\(?[a-zivx]+\)|[a-zivx]+[.)])\s+/iu.test(tt)) d.classList.add('sub-line');
+        const bm=splitAcademicMarks(tt); d.innerHTML=`<span class="body-text">${esc(bm.text)}</span>${bm.marks?`<span class="body-marks">${esc(bm.marks)}</span>`:''}`;
       }else d.textContent=tt;
-      block.appendChild(d);
-      stemNodes.push(d);
+      block.appendChild(d); stemNodes.push(d);
     });
 
     if(!academic){
@@ -1825,6 +1892,7 @@ function build(){
         for(let ai=0;ai<lines;ai++){const al=document.createElement('div');al.className='answer-line';aw.appendChild(al);}
         block.appendChild(aw);
       }
+      if(q.diagramSpace && q.diagramSpace!=='none' && !(q.body||[]).some(t=>/^\s*\[?DIAGRAM\]?\s*$/iu.test(String(t||'')))) addDiagramSpace(block,q.diagramSpace);
     }
 
     const sp=document.createElement('div');
@@ -1837,6 +1905,7 @@ function build(){
   // Selected pages now contain BOTH the supplied questions and the quote box.
   addEndQuoteForFit(fit,cols);
   calibrateTargetPages(fit,hdr,cols);
+  balanceAcademicAuto(hdr,cols);
 
   const renderedCount=cols.querySelectorAll('.qblock').length;
   $('pdfSyncStat').textContent = renderedCount===qs.length
@@ -1930,6 +1999,7 @@ function updateQuestionTypeControls(){
   show('marksPatternField',true);
   show('internalChoiceField',choiceTypes.has(type));
   show('sectionAnswerLinesField',spaceTypes.has(type));
+  show('sectionDiagramSpaceField',new Set(['General Questions','Long Answer / Essay','Numericals / Problems']).has(type));
   show('academicNumberingField',true);
   const hints={
     'General Questions':'General Questions: marks, internal choice, writing space and numbering are available.',
@@ -1953,6 +2023,7 @@ function sectionBuilderText(){
   const marks=($('marksPattern')?.value||'').trim();
   const choice=$('internalChoice')?.value||'none';
   const answerLines=String($('sectionAnswerLines')?.value||'auto')==='auto'?'auto':Math.max(0,parseInt($('sectionAnswerLines')?.value||'0',10)||0);
+  const diagramSpace=String($('sectionDiagramSpace')?.value||'none');
   let instruction=inst;
   if(marks) instruction+=(instruction?' ':'')+'('+marks+')';
   if(choice==='or') instruction+=(instruction?' • ':'')+'Internal choice / OR where shown';
@@ -1960,6 +2031,7 @@ function sectionBuilderText(){
   let meta='';
   if(type && type!=='General Questions') meta+='Question Type: '+type+'\n';
   if(answerLines==='auto') meta+='Answer Space: Auto\n'; else if(answerLines) meta+='Answer Space: '+answerLines+' Lines\n';
+  if(diagramSpace!=='none') meta+='Diagram Space: '+diagramSpace+'\n';
   return name+(instruction?'\n'+instruction:'')+'\n'+meta;
 }
 function updateSectionPreview(){
@@ -2056,7 +2128,7 @@ function renderInstitutePaperTypes(name){
   $('institutesTitle').textContent=name; $('institutesBack').textContent='← Institutes';
   const box=$('instituteCards');
   if(!profiles.length){renderInstituteNames();return;}
-  box.innerHTML=profiles.map(p=>{const mode=p.paperSetup?.paperMode||'mcq';const extra=p.paperSetup?.subjectName||p.paperSetup?.className||p.paperSetup?.courseName||'';return `<div class="institute-card paper-type-card" data-profile-type="${esc(p.id)}"><div class="paper-type-copy"><b>${esc(modeLabel(mode))}</b>${extra?`<span>${esc(extra)}</span>`:''}</div><span class="type-pill">Open ›</span></div>`;}).join('');
+  box.innerHTML=profiles.map(p=>{const mode=p.paperSetup?.paperMode||'mcq';const setup=p.paperSetup?.setupName||'';const extra=p.paperSetup?.subjectName||p.paperSetup?.className||p.paperSetup?.courseName||'';return `<div class="institute-card paper-type-card" data-profile-type="${esc(p.id)}"><div class="paper-type-copy"><b>${esc(setup||modeLabel(mode))}</b><span>${esc(modeLabel(mode))}${extra?' • '+esc(extra):''}</span></div><span class="type-pill">Open ›</span></div>`;}).join('');
   box.querySelectorAll('[data-profile-type]').forEach(card=>card.onclick=()=>renderInstituteDetails(card.dataset.profileType));
 }
 function renderInstituteDetails(id){
@@ -2066,11 +2138,11 @@ function renderInstituteDetails(id){
   const ps=p.paperSetup||{}, mode=ps.paperMode||'mcq';
   const rows=[];
   const add=(label,value,full=false)=>{if(String(value||'').trim())rows.push(`<div class="detail-item${full?' full':''}"><b>${esc(label)}</b><span>${esc(value)}</span></div>`)};
-  add('Institute',p.name,true); add('Paper Type',modeLabel(mode));
+  add('Institute',p.name,true); add('Paper Type',modeLabel(mode)); add('Template',ps.setupName);
   if(mode==='school'){add('Class / Grade',ps.className);add('Subject',ps.subjectName)}
   if(mode==='college'){add('Course / Programme',ps.courseName);add('Year / Semester',ps.semester);add('Subject',ps.subjectName);add('Subject Code',ps.subjectCode)}
   add('Duration',ps.duration); add('Max Marks',ps.marksTotal); add('Address',p.address,true); add('Phone',p.phone,true);
-  $('instituteCards').innerHTML=`<div class="institute-detail"><h3>${esc(p.name||'Unnamed Institute')}</h3><div class="detail-mode">${esc(modeLabel(mode))}</div><div class="detail-grid">${rows.join('')||'<div class="detail-item full"><span>Saved paper setup is ready.</span></div>'}</div><div class="institute-detail-actions"><button type="button" class="new-paper-btn" id="detailNewPaper">New Question Paper</button><button type="button" class="edit-inst-btn" id="detailEditSetup">Edit Setup</button><button type="button" class="delete-inst-btn" id="detailDeleteSetup">Delete Setup</button></div></div>`;
+  $('instituteCards').innerHTML=`<div class="institute-detail"><h3>${esc(p.name||'Unnamed Institute')}</h3><div class="detail-mode">${esc(ps.setupName||modeLabel(mode))}</div><div class="detail-grid">${rows.join('')||'<div class="detail-item full"><span>Saved paper setup is ready.</span></div>'}</div><div class="institute-detail-actions"><button type="button" class="new-paper-btn" id="detailNewPaper">New Question Paper</button><button type="button" class="edit-inst-btn" id="detailEditSetup">Edit Setup</button><button type="button" class="delete-inst-btn" id="detailDeleteSetup">Delete Setup</button></div></div>`;
   $('detailNewPaper').onclick=()=>{
     applyProfile(p); $('profileSelect').value=p.id; $('exam').value=''; $('date').value=''; $('raw').value=''; invalidateParsedMaster(); invalidateAcademicMaster(); build(); showPaperWorkspace(true);
   };
@@ -2084,6 +2156,7 @@ document.querySelectorAll('[data-paper-choice]').forEach(card=>card.onclick=()=>
   $('paperMode').value=mode; updatePaperMode();
   // A fresh Paper Mode starts independently. The locked MCQ parser is untouched.
   $('profileSelect').value='';
+  if($('setupName')) $('setupName').value='';
   const saveStatus=$('saveSetupStatus'); if(saveStatus) saveStatus.style.display='none';
   $('raw').value=''; invalidateParsedMaster(); invalidateAcademicMaster(); build();
   showPaperWorkspace(false);
@@ -2155,7 +2228,7 @@ Answer Space: Auto
 (a) Mention the raw materials. [2 Marks]
 (b) Explain the role of sunlight. [3 Marks]
 OR
-8. Explain the importance of forests to human life. [5 Marks]`;
+8. Explain the importance of forests to human life. [5 Marks]\n\nSECTION - D\nAnswer all questions (1 × 5 = 5 Marks)\nQuestion Type: Match the Following\n9. Match the following. [5 Marks]\nA. Photosynthesis | 1. Green plants\nB. Jupiter | 2. Largest planet\nC. 100 °C | 3. Boiling point of water`;
 invalidateAcademicMaster();
 setAcademicWizardStep(3,true);
 build();
@@ -2212,4 +2285,4 @@ showHome();
 </script>
 </body>
 </html>
-<!-- KSR DTP v4.7.0: Academic Output Polish; MCQ Parser Locked -->
+<!-- KSR DTP v5.1.0: Major Academic Formats; MCQ Parser Locked -->
