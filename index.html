@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0b3b7a" />
 <link rel="manifest" href="manifest.webmanifest" />
 <title></title>
-<!-- KSR DTP v5.2.0 Smart Pagination 2.0 — MCQ Parser Locked -->
+<!-- KSR DTP v5.2.1 Phase 1 Pagination Lock — MCQ Parser Locked -->
 <style>
 :root{
   --blue:#087f78;--blue2:#0b9b8d;--ink:#12302d;--muted:#687b78;
@@ -351,6 +351,25 @@ body.mode-school .pagination-note,body.mode-college .pagination-note{display:blo
 @media print{
  .paper.academic-paper.pagination-compact .section-head{margin-top:2.5mm}
  .paper.academic-paper .choice-pair{break-inside:avoid-page!important;page-break-inside:avoid!important}
+}
+
+/* v5.2.1 — Phase 1 pagination lock: recover wasted vertical space before shrinking type */
+.paper.academic-paper.pagination-tight .first-header{margin-bottom:4.2mm!important;padding-top:3.3mm!important;padding-bottom:3mm!important}
+.paper.academic-paper.pagination-tight .section-head{margin-top:2.1mm!important;margin-bottom:.8mm!important;padding:.9mm 1.5mm!important}
+.paper.academic-paper.pagination-tight .section-instruction{margin-bottom:.8mm!important;line-height:1.25!important}
+.paper.academic-paper.pagination-tight .section-type-note{margin-bottom:.8mm!important}
+.paper.academic-paper.pagination-tight.qbox-on .qblock{padding:1.05mm 1.35mm!important;margin-bottom:.8mm!important;border-radius:1.35mm!important}
+.paper.academic-paper.pagination-tight .qstart{margin-bottom:.35mm!important}
+.paper.academic-paper.pagination-tight .stem{margin-bottom:.35mm!important}
+.paper.academic-paper.pagination-tight .or-line{margin-top:.75mm!important;margin-bottom:.75mm!important}
+.paper.academic-paper.pagination-tight .match-table{margin-top:.65mm!important;margin-bottom:.25mm!important}
+.paper.academic-paper.pagination-tight .match-table th,.paper.academic-paper.pagination-tight .match-table td{padding:1.05mm 1.5mm!important}
+.paper.academic-paper.pagination-tight .qgap{max-height:.55mm!important}
+.paper.academic-paper.pagination-tight .answer-line{height:5.4mm!important}
+.paper.academic-paper.pagination-tight .academic-meta{margin-top:1.7mm!important;padding-top:1.6mm!important;gap:.7mm 8mm!important}
+@media print{
+ .paper.academic-paper.pagination-tight .first-header{margin-bottom:4mm!important}
+ .paper.academic-paper.pagination-tight .qblock.match-question{break-inside:avoid-page!important;page-break-inside:avoid!important}
 }
 
 /* v5.0 — consolidated Academic Production Engine stability */
@@ -1086,39 +1105,58 @@ function setAcademicPaginationStatus(hdr,cols,changed=false){
     note.className='pagination-note '+(sparse?'warn':'good');
     note.textContent=sparse
       ? `Smart Pagination: last page is only ${Math.round(sim.lastFill*100)}% used. The engine protected sections/choices; try “Prefer Fewer Pages” or Target Pages if you want tighter packing.`
-      : `Smart Pagination: ${sim.pages} page${sim.pages===1?'':'s'} balanced${changed?' after automatic compaction':''}. OR choices and Match tables are protected from awkward splits.`;
+      : `Smart Pagination: ${sim.pages} page${sim.pages===1?'':'s'} balanced${changed?' after spacing-first packing':''}. Readability is protected before font reduction; OR choices and Match tables stay together.`;
   }
 }
 function smartAcademicPagination(hdr,cols){
   if(!isAcademicMode()) return;
   const pref=$('academicPagination')?.value||'smart';
   groupAcademicChoicePairs(cols);
-  cols.closest('.paper')?.classList.remove('pagination-compact','pagination-relaxed');
-  if(pref==='preserve'){setAcademicPaginationStatus(hdr,cols,false);return;}
   const paper=cols.closest('.paper');
+  paper?.classList.remove('pagination-compact','pagination-relaxed','pagination-tight');
+  if(pref==='preserve'){setAcademicPaginationStatus(hdr,cols,false);return;}
+
+  // Phase 1 rule: reclaim decorative spacing before reducing readable text.
+  // This specifically handles a small final section/table being pushed alone
+  // to the next A4 page by keep-together rules.
   let base=simulatedAcademicPagination(hdr,cols);
-  const wantCompact=pref==='compact'||(pref==='smart'&&base.pages>1&&base.lastFill<.38);
+  const sparse=base.pages>1&&base.lastFill<.46;
+  const wantCompact=pref==='compact'||(pref==='smart'&&sparse);
   if(!wantCompact){setAcademicPaginationStatus(hdr,cols,false);return;}
+
   const startFont=parseFloat(cols.style.fontSize)||parseFloat($('fontSize').value||12);
   const startLine=parseFloat(cols.style.lineHeight)||parseFloat($('lineHeight').value||1.38);
   const gaps=[...cols.querySelectorAll('.qgap')];
   const startGap=gaps.length?(parseFloat(gaps[0].style.height)||parseFloat($('qGap').value||1.2)):1.2;
-  const minFont=Math.max(10.4,startFont*.90), minLine=Math.max(1.20,startLine-.14), minGap=Math.max(.35,startGap*.32);
-  const original={font:startFont,line:startLine,gap:startGap}; let best={...original}, bestSim=base, changed=false;
-  paper?.classList.add('pagination-compact','pagination-relaxed');
-  for(let i=1;i<=28;i++){
-    const t=i/28;
+  const original={font:startFont,line:startLine,gap:startGap};
+  let best={...original}, bestSim=base, changed=false;
+
+  // Pass A: spacing/padding recovery only — no font shrink.
+  paper?.classList.add('pagination-compact','pagination-tight','pagination-relaxed');
+  setFitTypography(cols,startFont,Math.max(1.27,startLine-.055),Math.max(.55,startGap*.55),NaN,NaN);
+  let spacingSim=simulatedAcademicPagination(hdr,cols);
+  if(spacingSim.pages<bestSim.pages || (spacingSim.pages===bestSim.pages&&spacingSim.lastFill>bestSim.lastFill+.02)){
+    best={font:startFont,line:Math.max(1.27,startLine-.055),gap:Math.max(.55,startGap*.55)};bestSim=spacingSim;changed=true;
+  }
+  if(spacingSim.pages<base.pages){
+    setAcademicPaginationStatus(hdr,cols,true);return;
+  }
+
+  // Pass B: only if still sparse, allow a small readable typography reduction.
+  const minFont=Math.max(10.8,startFont*.93), minLine=Math.max(1.23,startLine-.10), minGap=Math.max(.42,startGap*.38);
+  for(let i=1;i<=24;i++){
+    const t=i/24;
     const trial={font:startFont+(minFont-startFont)*t,line:startLine+(minLine-startLine)*t,gap:startGap+(minGap-startGap)*t};
     setFitTypography(cols,trial.font,trial.line,trial.gap,NaN,NaN);
     const sim=simulatedAcademicPagination(hdr,cols);
-    if(sim.pages<bestSim.pages || (sim.pages===bestSim.pages && sim.lastFill>bestSim.lastFill+.02)){
+    if(sim.pages<bestSim.pages || (sim.pages===bestSim.pages&&sim.lastFill>bestSim.lastFill+.02)){
       best=trial;bestSim=sim;changed=true;
     }
-    if(sim.pages<base.pages && (pref==='compact'||sim.lastFill>=.46)) break;
+    if(sim.pages<base.pages) break;
   }
   setFitTypography(cols,best.font,best.line,best.gap,NaN,NaN);
   if(!changed && pref==='smart'){
-    paper?.classList.remove('pagination-compact','pagination-relaxed');
+    paper?.classList.remove('pagination-compact','pagination-tight','pagination-relaxed');
     setFitTypography(cols,original.font,original.line,original.gap,NaN,NaN);
   }
   setAcademicPaginationStatus(hdr,cols,changed);
@@ -2405,4 +2443,4 @@ showHome();
 </script>
 </body>
 </html>
-<!-- KSR DTP v5.2.0: Smart Pagination 2.0; MCQ Parser Locked -->
+<!-- KSR DTP v5.2.1: Phase 1 Pagination Lock; MCQ Parser Locked -->
