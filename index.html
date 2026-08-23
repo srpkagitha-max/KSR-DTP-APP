@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0b3b7a" />
 <link rel="manifest" href="manifest.webmanifest" />
 <title></title>
-<!-- KSR DTP v5.1.0 Major Academic Formats — MCQ Parser Locked -->
+<!-- KSR DTP v5.2.0 Smart Pagination 2.0 — MCQ Parser Locked -->
 <style>
 :root{
   --blue:#087f78;--blue2:#0b9b8d;--ink:#12302d;--muted:#687b78;
@@ -333,6 +333,25 @@ body.mode-school.wiz-step-4 #rawFieldWrap,body.mode-college.wiz-step-4 #rawField
 .setup-name-row label{display:block;font-size:11px;font-weight:850;color:#426067;margin-bottom:5px}.setup-name-row input{width:100%;box-sizing:border-box}
 .paper.academic-paper.academic-balanced .section-head{margin-top:4.8mm}.paper.academic-paper.academic-balanced .qblock{margin-bottom:2.2mm}
 @media print{.paper.academic-paper .match-table,.paper.academic-paper .diagram-space{break-inside:avoid;page-break-inside:avoid}}
+/* v5.2 — Smart Pagination 2.0 */
+.paper.academic-paper .choice-pair{break-inside:avoid-page;page-break-inside:avoid;margin:0;padding:0}
+.paper.academic-paper .choice-pair>.qblock{break-inside:auto!important;page-break-inside:auto!important}
+.paper.academic-paper .qblock.match-question{break-inside:avoid-page!important;page-break-inside:avoid!important}
+.paper.academic-paper.pagination-compact .section-head{margin-top:2.7mm;padding-top:1.1mm;padding-bottom:1.1mm}
+.paper.academic-paper.pagination-compact .section-instruction{margin-bottom:1.4mm;line-height:1.32}
+.paper.academic-paper.pagination-compact .section-type-note{margin-bottom:1.3mm}
+.paper.academic-paper.pagination-compact .qblock{margin-bottom:1mm}
+.paper.academic-paper.pagination-compact .or-line{margin-top:1.3mm!important;margin-bottom:1.3mm!important}
+.paper.academic-paper.pagination-compact .match-table{margin-top:1.1mm;margin-bottom:.6mm}
+.paper.academic-paper.pagination-relaxed .qblock:not(.match-question){break-inside:auto;page-break-inside:auto}
+.pagination-note{display:none;margin-top:8px;padding:9px 11px;border-radius:10px;border:1px solid #c9dce5;background:#f5fbff;color:#315768;font-size:11px;line-height:1.45;font-weight:700}
+body.mode-school .pagination-note,body.mode-college .pagination-note{display:block}
+.pagination-note.good{border-color:#b9dfcf;background:#f2fbf7;color:#17604c}
+.pagination-note.warn{border-color:#e7ca7a;background:#fff9e9;color:#73560d}
+@media print{
+ .paper.academic-paper.pagination-compact .section-head{margin-top:2.5mm}
+ .paper.academic-paper .choice-pair{break-inside:avoid-page!important;page-break-inside:avoid!important}
+}
 
 /* v5.0 — consolidated Academic Production Engine stability */
 @media print{
@@ -562,6 +581,9 @@ body.mode-school.wiz-step-4 #saveSetupCard,body.mode-college.wiz-step-4 #saveSet
       <div class="field academic-only"><label>Default Answer Space</label>
         <select id="academicAnswerLines"><option value="auto">Auto by Question Type</option><option value="0">None</option><option value="2">2 Lines</option><option value="4">4 Lines</option><option value="6">6 Lines</option><option value="10">10 Lines</option></select>
       </div>
+      <div class="field academic-only"><label>Academic Pagination</label>
+        <select id="academicPagination"><option value="smart">Smart Balance</option><option value="preserve">Preserve Spacious Layout</option><option value="compact">Prefer Fewer Pages</option></select>
+      </div>
     </div>
     <div class="template-note">All question-paper appearance and page-fit controls are together here. Use <b>Save Setup to Institutes</b> when the paper is ready to remember this complete style.</div>
   
@@ -606,7 +628,7 @@ body.mode-school.wiz-step-4 #saveSetupCard,body.mode-college.wiz-step-4 #saveSet
 <div class="field" style="grid-column:span 2"><label>Smart Fit Range</label>
       <div id="pageRange" class="chip" style="border-radius:10px;min-height:38px;display:flex;align-items:center">Paste questions to calculate minimum / maximum pages</div>
     </div>
-<div class="hint target-pages-note">Minimum uses safe compact option rows where they fit. Maximum keeps options one below another with relaxed spacing. Target Pages automatically balances font size, spacing, option layout and the final quote box together inside the selected page count. Academic Auto Answer Space also reduces unnecessary blank areas by question type.</div>
+<div class="hint target-pages-note">Minimum uses safe compact option rows where they fit. Maximum keeps options one below another with relaxed spacing. Target Pages automatically balances font size, spacing, option layout and the final quote box together inside the selected page count. Academic Auto Answer Space reduces unnecessary blank areas by question type. Smart Pagination 2.0 also balances sparse last pages while protecting OR choices and Match tables.</div>
 </div>
 
   
@@ -641,9 +663,11 @@ body.mode-school.wiz-step-4 #saveSetupCard,body.mode-college.wiz-step-4 #saveSet
     <span class="chip" id="issueStat">Issues: 0</span>
     <span class="chip" id="pdfSyncStat">PDF Sync: —</span>
     <span class="chip academic-only" id="marksStat">Marks: —</span>
+    <span class="chip academic-only" id="paginationStat">Pagination: —</span>
   </div>
   <div id="marksWarn" class="marks-warn"></div>
 <div id="academicReadiness" class="academic-readiness"></div>
+<div id="paginationNote" class="pagination-note"></div>
   <div id="warn" class="warn"></div>
   <div id="safetyPanel" class="warn" style="display:none;background:#eef7ff;border-color:#bdd9f7;color:#123c72"></div>
 
@@ -685,7 +709,7 @@ body.mode-school.wiz-step-4 #saveSetupCard,body.mode-college.wiz-step-4 #saveSet
 </main>
 
 <script>
-// KSR DTP v5.1.0 — Major Academic Formats; MCQ parser locked and unchanged
+// KSR DTP v5.2.0 — Smart Pagination 2.0; MCQ parser locked and unchanged
 const $=id=>document.getElementById(id);
 const ANSWER_MARK=/[●•⬤∙·▪✓✔★*🔴🔵🟢🟡🟠⚫⚪✅]+/gu;
 const LEADING_ANSWER_MARK=/^\s*[●•⬤∙·▪✓✔★*🔴🔵🟢🟡🟠⚫⚪✅]+\s*/u;
@@ -1005,6 +1029,99 @@ function balanceAcademicAuto(hdr,cols){
     if(m.pages===initial.pages){best=trial;if(m.lastFill>=.88)break;}else{setFitTypography(cols,best.font,best.line,best.gap,NaN,NaN);break;}
   }
   if(best.font>base.font+0.05||best.gap>base.gap+0.05) $('paper').classList.add('academic-balanced');
+}
+
+
+function elementOuterHeight(el){
+  if(!el) return 0;
+  const cs=getComputedStyle(el), mt=parseFloat(cs.marginTop||0)||0, mb=parseFloat(cs.marginBottom||0)||0;
+  return el.getBoundingClientRect().height+mt+mb;
+}
+function groupAcademicChoicePairs(cols){
+  if(!cols) return;
+  [...cols.querySelectorAll('.choice-pair')].forEach(w=>{while(w.firstChild)w.parentNode.insertBefore(w.firstChild,w);w.remove();});
+  const blocks=[...cols.children];
+  for(let i=0;i<blocks.length-1;i++){
+    const a=blocks[i], b=blocks[i+1];
+    if(!(a.classList?.contains('qblock')&&a.classList.contains('or-with-next'))) continue;
+    if(!(b.classList?.contains('qblock')&&b.classList.contains('or-alternative'))) continue;
+    const wrap=document.createElement('div'); wrap.className='choice-pair';
+    cols.insertBefore(wrap,a); wrap.appendChild(a); wrap.appendChild(b);
+    i++;
+  }
+}
+function simulatedAcademicPagination(hdr,cols){
+  const base=previewPageMetrics(hdr,cols), pagePx=base.printablePx;
+  const hs=getComputedStyle(hdr), headerH=hdr.offsetHeight+(parseFloat(hs.marginBottom||0)||0);
+  let page=1, used=Math.min(pagePx,headerH), fills=[];
+  const nodes=[...cols.children];
+  const isAtomic=el=>el.classList?.contains('choice-pair')||el.classList?.contains('match-question')||el.classList?.contains('section-head')||el.classList?.contains('section-instruction')||el.classList?.contains('section-type-note');
+  for(let i=0;i<nodes.length;i++){
+    const el=nodes[i]; let h=elementOuterHeight(el);
+    if(el.classList?.contains('section-head')){
+      for(let j=i+1;j<nodes.length && j<=i+3;j++){
+        const n=nodes[j];
+        if(n.classList?.contains('section-instruction')||n.classList?.contains('section-type-note')||n.classList?.contains('qblock')||n.classList?.contains('choice-pair')) h+=elementOuterHeight(n);
+        if(n.classList?.contains('qblock')||n.classList?.contains('choice-pair')) break;
+      }
+    }
+    const remaining=pagePx-used;
+    if(isAtomic(el) && h<=pagePx && h>remaining+0.5){fills.push(Math.min(1,used/pagePx));page++;used=0;}
+    const actual=elementOuterHeight(el);
+    if(actual<=pagePx-used+0.5){used+=actual;continue;}
+    if(isAtomic(el)&&actual<=pagePx){fills.push(Math.min(1,used/pagePx));page++;used=actual;continue;}
+    let left=actual;
+    while(left>pagePx-used+0.5){left-=Math.max(0,pagePx-used);fills.push(Math.min(1,used/pagePx));page++;used=0;if(left<=0)break;}
+    used+=Math.max(0,left);
+  }
+  fills.push(Math.min(1,used/pagePx));
+  return {pages:page,lastFill:fills[fills.length-1]||0,fills,pagePx};
+}
+function setAcademicPaginationStatus(hdr,cols,changed=false){
+  if(!isAcademicMode()) return;
+  const sim=simulatedAcademicPagination(hdr,cols), stat=$('paginationStat'), note=$('paginationNote');
+  if(stat) stat.textContent=`Pagination: ${sim.pages} page${sim.pages===1?'':'s'} • Last ${Math.round(sim.lastFill*100)}%`;
+  if(note){
+    const sparse=sim.pages>1&&sim.lastFill<.34;
+    note.className='pagination-note '+(sparse?'warn':'good');
+    note.textContent=sparse
+      ? `Smart Pagination: last page is only ${Math.round(sim.lastFill*100)}% used. The engine protected sections/choices; try “Prefer Fewer Pages” or Target Pages if you want tighter packing.`
+      : `Smart Pagination: ${sim.pages} page${sim.pages===1?'':'s'} balanced${changed?' after automatic compaction':''}. OR choices and Match tables are protected from awkward splits.`;
+  }
+}
+function smartAcademicPagination(hdr,cols){
+  if(!isAcademicMode()) return;
+  const pref=$('academicPagination')?.value||'smart';
+  groupAcademicChoicePairs(cols);
+  cols.closest('.paper')?.classList.remove('pagination-compact','pagination-relaxed');
+  if(pref==='preserve'){setAcademicPaginationStatus(hdr,cols,false);return;}
+  const paper=cols.closest('.paper');
+  let base=simulatedAcademicPagination(hdr,cols);
+  const wantCompact=pref==='compact'||(pref==='smart'&&base.pages>1&&base.lastFill<.38);
+  if(!wantCompact){setAcademicPaginationStatus(hdr,cols,false);return;}
+  const startFont=parseFloat(cols.style.fontSize)||parseFloat($('fontSize').value||12);
+  const startLine=parseFloat(cols.style.lineHeight)||parseFloat($('lineHeight').value||1.38);
+  const gaps=[...cols.querySelectorAll('.qgap')];
+  const startGap=gaps.length?(parseFloat(gaps[0].style.height)||parseFloat($('qGap').value||1.2)):1.2;
+  const minFont=Math.max(10.4,startFont*.90), minLine=Math.max(1.20,startLine-.14), minGap=Math.max(.35,startGap*.32);
+  const original={font:startFont,line:startLine,gap:startGap}; let best={...original}, bestSim=base, changed=false;
+  paper?.classList.add('pagination-compact','pagination-relaxed');
+  for(let i=1;i<=28;i++){
+    const t=i/28;
+    const trial={font:startFont+(minFont-startFont)*t,line:startLine+(minLine-startLine)*t,gap:startGap+(minGap-startGap)*t};
+    setFitTypography(cols,trial.font,trial.line,trial.gap,NaN,NaN);
+    const sim=simulatedAcademicPagination(hdr,cols);
+    if(sim.pages<bestSim.pages || (sim.pages===bestSim.pages && sim.lastFill>bestSim.lastFill+.02)){
+      best=trial;bestSim=sim;changed=true;
+    }
+    if(sim.pages<base.pages && (pref==='compact'||sim.lastFill>=.46)) break;
+  }
+  setFitTypography(cols,best.font,best.line,best.gap,NaN,NaN);
+  if(!changed && pref==='smart'){
+    paper?.classList.remove('pagination-compact','pagination-relaxed');
+    setFitTypography(cols,original.font,original.line,original.gap,NaN,NaN);
+  }
+  setAcademicPaginationStatus(hdr,cols,changed);
 }
 
 function getActiveQuestions(){ return isAcademicMode()?getAcademicQuestions():getParsedQuestions(); }
@@ -1558,7 +1675,7 @@ function applyPaperTemplate(){
 }
 
 const PROFILE_KEY='ksr_dtp_institute_profiles_v1';
-const PROFILE_LAYOUT_IDS=['paperLayout','paperBorder','headerAlign','questionWeight','optionLayout','optionScale','quoteMode','pageMargin','headerBorder','questionBox','pageNumber','logoSize','questionNumberWeight','academicAnswerLines','academicNumbering','fontSize','bracket','indent','lineHeight','qGap','keepMarks','sectionMode','pageFitMode','targetPages'];
+const PROFILE_LAYOUT_IDS=['paperLayout','paperBorder','headerAlign','questionWeight','optionLayout','optionScale','quoteMode','pageMargin','headerBorder','questionBox','pageNumber','logoSize','questionNumberWeight','academicAnswerLines','academicPagination','academicNumbering','fontSize','bracket','indent','lineHeight','qGap','keepMarks','sectionMode','pageFitMode','targetPages'];
 
 function getProfiles(){
   try{
@@ -1858,6 +1975,7 @@ function build(){
     stemNodes.push(first);
 
     const isMatch=academic && /match the following/i.test(String(q.sectionType||''));
+    if(isMatch) block.classList.add('match-question');
     const matchPairs=isMatch ? (q.body||[]).map(splitMatchPair).filter(Boolean) : [];
     if(isMatch && matchPairs.length){
       const table=document.createElement('table'); table.className='match-table';
@@ -1904,8 +2022,10 @@ function build(){
   // Include the quote in the physical page-fit calculation.
   // Selected pages now contain BOTH the supplied questions and the quote box.
   addEndQuoteForFit(fit,cols);
+  smartAcademicPagination(hdr,cols);
   calibrateTargetPages(fit,hdr,cols);
   balanceAcademicAuto(hdr,cols);
+  if(academic) setAcademicPaginationStatus(hdr,cols,false);
 
   const renderedCount=cols.querySelectorAll('.qblock').length;
   $('pdfSyncStat').textContent = renderedCount===qs.length
@@ -1916,7 +2036,7 @@ function build(){
 }
 function saveDraft(){
   localStorage.setItem('ksr_dtp_raw',$('raw').value);
-  ['paperMode','className','courseName','semester','subjectName','subjectCode','duration','institute','address','phone','exam','date','marksTotal','startNo','paperLayout','paperBorder','headerAlign','questionWeight','optionLayout','optionScale','quoteMode','pageMargin','headerBorder','questionBox','pageNumber','logoSize','questionNumberWeight','academicAnswerLines','academicNumbering','fontSize','bracket','indent','lineHeight','qGap','keepMarks','sectionMode','pageFitMode','targetPages']
+  ['paperMode','className','courseName','semester','subjectName','subjectCode','duration','institute','address','phone','exam','date','marksTotal','startNo','paperLayout','paperBorder','headerAlign','questionWeight','optionLayout','optionScale','quoteMode','pageMargin','headerBorder','questionBox','pageNumber','logoSize','questionNumberWeight','academicAnswerLines','academicPagination','academicNumbering','fontSize','bracket','indent','lineHeight','qGap','keepMarks','sectionMode','pageFitMode','targetPages']
     .forEach(id=>localStorage.setItem('ksr_'+id,$(id).value));
 }
 function answerKey(){
@@ -2273,7 +2393,7 @@ window.addEventListener('load',()=>{
   updateTemplateNote();
   $('raw').value=localStorage.getItem('ksr_dtp_raw')||'';
   invalidateParsedMaster();
-  ['paperMode','className','courseName','semester','subjectName','subjectCode','duration','institute','address','phone','exam','date','marksTotal','startNo','paperLayout','paperBorder','headerAlign','questionWeight','optionLayout','optionScale','quoteMode','pageMargin','headerBorder','questionBox','pageNumber','logoSize','questionNumberWeight','academicAnswerLines','academicNumbering','fontSize','bracket','indent','lineHeight','qGap','keepMarks','sectionMode','pageFitMode','targetPages']
+  ['paperMode','className','courseName','semester','subjectName','subjectCode','duration','institute','address','phone','exam','date','marksTotal','startNo','paperLayout','paperBorder','headerAlign','questionWeight','optionLayout','optionScale','quoteMode','pageMargin','headerBorder','questionBox','pageNumber','logoSize','questionNumberWeight','academicAnswerLines','academicPagination','academicNumbering','fontSize','bracket','indent','lineHeight','qGap','keepMarks','sectionMode','pageFitMode','targetPages']
     .forEach(id=>{const v=localStorage.getItem('ksr_'+id); if(v!==null) $(id).value=v;});
   refreshBranding();
   updateSectionPreview();
@@ -2285,4 +2405,4 @@ showHome();
 </script>
 </body>
 </html>
-<!-- KSR DTP v5.1.0: Major Academic Formats; MCQ Parser Locked -->
+<!-- KSR DTP v5.2.0: Smart Pagination 2.0; MCQ Parser Locked -->
