@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0b3b7a" />
 <link rel="manifest" href="manifest.webmanifest" />
 <title></title>
-<!-- KSR DTP v5.2.1 Phase 1 Pagination Lock — MCQ Parser Locked -->
+<!-- KSR DTP v5.3.0 Phase 2 Complete Academic DTP — MCQ Parser Locked -->
 <style>
 :root{
   --blue:#087f78;--blue2:#0b9b8d;--ink:#12302d;--muted:#687b78;
@@ -426,6 +426,26 @@ body.mode-school.wiz-step-3 #saveSetupCard,body.mode-college.wiz-step-3 #saveSet
 body.mode-school.wiz-step-4 #saveSetupCard,body.mode-college.wiz-step-4 #saveSetupCard{display:grid}
 @media(max-width:520px){.save-setup-card{grid-template-columns:1fr}.save-setup-btn{width:100%}.save-setup-status{grid-column:auto}}
 @media print{#saveSetupCard{display:none!important}}
+
+/* v5.3.0 — Phase 2 Complete Academic DTP */
+.academic-presets{grid-column:1/-1;border:1px solid #d7e8e5;background:#fbfefd;border-radius:12px;padding:10px}
+.academic-presets .preset-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:end}
+.academic-presets .preset-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}
+.academic-presets button{border:0;border-radius:9px;padding:9px 11px;font-weight:800;background:#e8f6f4;color:#08746d}
+.academic-presets button.primary{background:#0b8f86;color:#fff}
+.academic-helper-grid{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}
+.academic-helper-grid button{border:0;border-radius:9px;padding:9px 11px;font-weight:800;background:#eef7f6;color:#176f69}
+.qblock .passage-box{border:1px solid #cfdedd;background:#f8fbfb;border-radius:8px;padding:8px 10px;margin:6px 0;font-weight:500;line-height:1.45}
+.qblock .assertion-line,.qblock .reason-line{border-left:3px solid #9bc9c3;background:#f7fbfa;padding:5px 8px;margin:4px 0;border-radius:0 7px 7px 0}
+.qblock .assertion-line .body-text::before{content:'Assertion (A): ';font-weight:800}
+.qblock .reason-line .body-text::before{content:'Reason (R): ';font-weight:800}
+.qblock .source-label{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.35px;color:#55736f;margin:5px 0 2px}
+.blueprint-status{display:none;margin-top:7px;padding:8px 10px;border-radius:9px;background:#eef8f6;border:1px solid #d5e9e5;color:#416a66;font-size:11px;font-weight:700;line-height:1.4}
+body.mode-school .blueprint-status,body.mode-college .blueprint-status{display:block}
+.validation-detail{display:none;margin-top:7px;padding:8px 10px;border-radius:9px;background:#fffaf0;border:1px solid #ead9a8;color:#6a5620;font-size:10.5px;line-height:1.45}
+body.mode-school .validation-detail,body.mode-college .validation-detail{display:block}
+@media(max-width:560px){.academic-presets .preset-row{grid-template-columns:1fr}.academic-presets .preset-row button{width:100%}}
+
 </style>
 <style id="dynamicPrintStyle">
 @media print{
@@ -547,8 +567,12 @@ body.mode-school.wiz-step-4 #saveSetupCard,body.mode-college.wiz-step-4 #saveSet
   <div class="academic-structure" id="academicStructure">
     <div class="template-top"><b>Section & Marks Builder</b><span>Optional helper</span></div>
     <div class="structure-grid">
+      <div class="academic-presets">
+        <div class="preset-row"><div class="field" style="margin:0"><label>Quick Academic Format</label><select id="academicFormatPreset"><option value="custom">Custom Section</option><option value="school-basic">School Basic — Fill / Short / Long</option><option value="school-complete">School Complete — Objective + Descriptive</option><option value="college-sem">College Semester — Part A / B / C</option><option value="college-choice">College Internal Choice — Units + OR</option></select></div><button type="button" class="primary" id="applyAcademicPreset">Load Format</button></div>
+        <div class="hint" style="margin-top:7px">Loads only a blank section structure. It does not insert old questions.</div>
+      </div>
       <div class="field"><label>Section / Part</label><input id="sectionName" placeholder="e.g. SECTION - A"></div>
-      <div class="field"><label>Question Type</label><select id="questionType"><option>General Questions</option><option>Fill in the Blanks</option><option>True / False</option><option>Match the Following</option><option>Very Short Answer</option><option>Short Answer</option><option>Long Answer / Essay</option><option>Numericals / Problems</option><option>Passage / Comprehension</option></select></div>
+      <div class="field"><label>Question Type</label><select id="questionType"><option>General Questions</option><option>Fill in the Blanks</option><option>True / False</option><option>Match the Following</option><option>Very Short Answer</option><option>Short Answer</option><option>Long Answer / Essay</option><option>Numericals / Problems</option><option>Passage / Comprehension</option><option>Case Study / Source Based</option><option>Assertion / Reason</option><option>Definitions / One Word</option></select></div>
       <div class="field full" id="sectionInstructionField"><label>Instruction</label><input id="sectionInstructionInput" placeholder="e.g. Answer any FIVE questions"></div>
       <div class="field" id="marksPatternField"><label>Marks Pattern</label><input id="marksPattern" placeholder="e.g. 5 × 2 = 10 Marks"></div>
       <div class="field" id="internalChoiceField"><label>Internal Choice</label><select id="internalChoice"><option value="none">No special choice</option><option value="or">OR / Internal Choice</option><option value="any">Answer Any</option></select></div>
@@ -558,6 +582,7 @@ body.mode-school.wiz-step-4 #saveSetupCard,body.mode-college.wiz-step-4 #saveSet
       <div class="field full"><div class="hint" id="questionTypeHint" style="margin:0;padding:10px 12px;border-radius:10px;background:#f3faf9;border:1px solid #dceceb;color:#587078;font-weight:700">General Questions: marks, choice, writing space and numbering can be set here.</div></div>
     </div>
     <div class="structure-actions"><button type="button" class="primary" id="insertSection">Insert Section into Questions</button><button type="button" id="insertOR">Insert OR Line</button><button type="button" id="insertSub">Insert (a) / (b) Hint</button></div>
+    <div class="academic-helper-grid"><button type="button" id="insertPassage">Insert Passage Hint</button><button type="button" id="insertAssertionReason">Insert Assertion / Reason</button><button type="button" id="insertMatchRows">Insert Match Rows</button><button type="button" id="insertDiagramHint">Insert Diagram Space</button></div>
     <div class="section-preview" id="sectionPreview">Build a section here, then insert it into Step 3. You can also paste a complete paper directly without using this helper.</div>
   </div>
 
@@ -686,14 +711,16 @@ body.mode-school.wiz-step-4 #saveSetupCard,body.mode-college.wiz-step-4 #saveSet
   </div>
   <div id="marksWarn" class="marks-warn"></div>
 <div id="academicReadiness" class="academic-readiness"></div>
+<div id="academicValidationDetail" class="validation-detail"></div>
 <div id="paginationNote" class="pagination-note"></div>
   <div id="warn" class="warn"></div>
   <div id="safetyPanel" class="warn" style="display:none;background:#eef7ff;border-color:#bdd9f7;color:#123c72"></div>
 
   <div class="save-setup-card" id="saveSetupCard">
-    <div class="save-setup-copy"><b>Use this paper regularly?</b><span>Save the institute and this paper setup. Next time open Institutes → Institute Name → Paper Type and add only the new paper details/questions.</span></div>
+    <div class="save-setup-copy"><b>Use this paper regularly?</b><span>Save the institute, paper style and academic section structure. Next time open Institutes → Institute Name → Paper Type; the section blueprint loads automatically and you add only new questions.</span></div>
     <div class="setup-name-row"><label>Paper Template Name <span style="font-weight:500;color:#819095">(Optional)</span></label><input id="setupName" placeholder="e.g. Unit Test / Monthly Test / Annual Exam"></div>
     <button type="button" class="save-setup-btn" id="saveSetupToInstitutes">Save Setup to Institutes</button>
+    <div class="blueprint-status" id="blueprintStatus">Academic section structure will be saved with this institute template, but question text will not be reused.</div>
     <div class="save-setup-status" id="saveSetupStatus"></div>
   </div>
 
@@ -956,12 +983,12 @@ function getAcademicQuestions(){
 function invalidateAcademicMaster(){ academicMaster={raw:null,items:[]}; }
 function academicDefaultAnswerLines(type){
   const t=String(type||'').toLowerCase();
-  if(/fill|true|false|match/.test(t)) return 0;
+  if(/fill|true|false|match|definitions|one word|assertion/.test(t)) return 0;
   if(/very short/.test(t)) return 2;
   if(/short answer/.test(t)) return 4;
   if(/long answer|essay/.test(t)) return 6;
   if(/numerical|problem/.test(t)) return 4;
-  if(/passage|comprehension/.test(t)) return 2;
+  if(/passage|comprehension|case study|source based/.test(t)) return 2;
   return 0;
 }
 function resolveAcademicAnswerLines(q){
@@ -1010,12 +1037,50 @@ function updateAcademicMarksValidation(qs){
     ready.textContent=!missing.length&&!marksMismatch&&!formatIssues.length
       ? `Ready to Print • ${qs.length} questions • ${calc.sections} section${calc.sections===1?'':'s'}${calc.found?' • '+calc.total+' marks':''}`
       : `Review before PDF${missing.length?' • Missing: '+missing.join(', '):''}${marksMismatch?' • Marks mismatch: '+calc.total+' / '+declared:''}${formatIssues.length?' • '+formatIssues.slice(0,2).join(' • '):''}`;
+    const vd=$('academicValidationDetail');
+    if(vd){
+      const visibleMarks=qs.filter(q=>q.marks).length;
+      const bp=extractAcademicBlueprint($('raw')?.value||'');
+      vd.textContent=`Academic QA • Questions ${qs.length} • Marks shown ${visibleMarks}/${qs.length} • Sections ${calc.sections} • Saved section blueprint ${bp?'available':'not available'}${formatIssues.length?' • Issues: '+formatIssues.slice(0,3).join(' | '):' • Structure looks consistent'}`;
+    }
   }
 }
 
+
+function extractAcademicBlueprint(raw){
+  if(!isAcademicMode()) return '';
+  const lines=normalizeInput(String(raw||'')).split('\n');
+  const keep=[]; let inSection=false;
+  for(const original of lines){
+    const t=original.trim(); if(!t) continue;
+    if(academicSectionRe.test(t)){keep.push(t);inSection=true;continue;}
+    if(!inSection) continue;
+    if(academicInstructionRe.test(t)||academicTypeMetaRe.test(t)||academicSpaceMetaRe.test(t)||academicDiagramMetaRe.test(t)){keep.push(t);continue;}
+    if(/^\s*(?:numbering|question\s*numbering)\s*[:\-]/iu.test(t)){keep.push(t);continue;}
+  }
+  return keep.join('\n');
+}
+function academicPresetText(key){
+  const P={
+    'school-basic':`SECTION - A\nAnswer all questions (5 × 1 = 5 Marks)\nQuestion Type: Fill in the Blanks\nAnswer Space: 0\n\nSECTION - B\nAnswer any FIVE questions (5 × 2 = 10 Marks)\nQuestion Type: Short Answer\nAnswer Space: 4 Lines\n\nSECTION - C\nAnswer any THREE questions (3 × 5 = 15 Marks)\nQuestion Type: Long Answer / Essay\nAnswer Space: 6 Lines`,
+    'school-complete':`SECTION - A\nAnswer all questions (5 × 1 = 5 Marks)\nQuestion Type: Definitions / One Word\nAnswer Space: 0\n\nSECTION - B\nAnswer all questions (5 × 1 = 5 Marks)\nQuestion Type: True / False\nAnswer Space: 0\n\nSECTION - C\nAnswer any FIVE questions (5 × 2 = 10 Marks)\nQuestion Type: Short Answer\nAnswer Space: 4 Lines\n\nSECTION - D\nAnswer any TWO questions (2 × 5 = 10 Marks)\nQuestion Type: Long Answer / Essay\nAnswer Space: 6 Lines`,
+    'college-sem':`PART - A\nAnswer all questions (10 × 2 = 20 Marks)\nQuestion Type: Very Short Answer\nAnswer Space: 2 Lines\n\nPART - B\nAnswer any FIVE questions (5 × 6 = 30 Marks)\nQuestion Type: Short Answer\nAnswer Space: 4 Lines\n\nPART - C\nAnswer any TWO questions (2 × 10 = 20 Marks)\nQuestion Type: Long Answer / Essay\nAnswer Space: 6 Lines`,
+    'college-choice':`UNIT - I\nAnswer either question as instructed\nQuestion Type: Long Answer / Essay\nAnswer Space: 6 Lines\n\nUNIT - II\nAnswer either question as instructed\nQuestion Type: Long Answer / Essay\nAnswer Space: 6 Lines\n\nUNIT - III\nAnswer either question as instructed\nQuestion Type: Numericals / Problems\nAnswer Space: 4 Lines\nDiagram Space: medium`
+  };
+  return P[key]||'';
+}
+function applyAcademicFormatPreset(){
+  const key=String($('academicFormatPreset')?.value||'custom'); if(key==='custom') return;
+  const txt=academicPresetText(key); if(!txt) return;
+  const raw=$('raw'); raw.value=txt+'\n\n1. Your first question here. [1 Mark]';
+  raw.dispatchEvent(new Event('input',{bubbles:true}));
+  setAcademicWizardStep(3,true);
+}
+
 function academicValidationIssues(qs){
-  const issues=[]; const seenNos=new Set();
+  const issues=[]; const seenNos=new Set(); const sections=new Map();
   qs.forEach((q,i)=>{
+    const sk=q.section||'Unsectioned'; if(!sections.has(sk)) sections.set(sk,[]); sections.get(sk).push(q);
     const n=String(q.sourceNo||'').trim();
     if(n){if(seenNos.has(n)) issues.push(`Duplicate source question number: ${n}`); else seenNos.add(n);}
     const hasOr=(q.body||[]).some(t=>/^\s*(?:OR|లేదా)\s*$/iu.test(String(t||'')));
@@ -1024,8 +1089,15 @@ function academicValidationIssues(qs){
       const pairs=(q.body||[]).filter(t=>/[|↔⇔]|\s=>\s/.test(String(t||'')));
       if(!pairs.length) issues.push(`Q${n||i+1}: Match the Following needs Column A | Column B pairs`);
     }
+    if(/assertion\s*\/\s*reason/i.test(String(q.sectionType||''))){
+      const body=(q.body||[]).join(' ');
+      if(!/assertion\s*(?:\(a\))?\s*:/i.test(body)||!/reason\s*(?:\(r\))?\s*:/i.test(body)) issues.push(`Q${n||i+1}: Assertion / Reason needs both Assertion: and Reason: lines`);
+    }
+    if(/passage|comprehension|case study|source based/i.test(String(q.sectionType||'')) && !(q.body||[]).length) issues.push(`Q${n||i+1}: passage/source text is missing`);
+    if(!q.marks && !/fill|true|false|definitions|one word|match/i.test(String(q.sectionType||''))) issues.push(`Q${n||i+1}: marks not shown`);
   });
-  return issues;
+  sections.forEach((arr,name)=>{if(!arr.length) issues.push(`${name}: no questions detected`);});
+  return [...new Set(issues)];
 }
 function splitMatchPair(line){
   const s=String(line||''); const parts=s.split(/\s*(?:\||↔|⇔|=>)\s*/);
@@ -1754,7 +1826,7 @@ function currentProfileData(existingId=''){
     address:($('address').value||'').trim(),
     phone:($('phone').value||'').trim(),
     logo:instituteLogo||'',
-    paperSetup:{paperMode:$('paperMode').value||'mcq',setupName:($('setupName')?.value||'').trim(),className:$('className').value||'',courseName:$('courseName').value||'',semester:$('semester').value||'',subjectName:$('subjectName').value||'',subjectCode:$('subjectCode').value||'',duration:$('duration').value||'',marksTotal:$('marksTotal').value||''},
+    paperSetup:{paperMode:$('paperMode').value||'mcq',setupName:($('setupName')?.value||'').trim(),className:$('className').value||'',courseName:$('courseName').value||'',semester:$('semester').value||'',subjectName:$('subjectName').value||'',subjectCode:$('subjectCode').value||'',duration:$('duration').value||'',marksTotal:$('marksTotal').value||'',academicBlueprint:isAcademicMode()?extractAcademicBlueprint($('raw')?.value||''):''},
     layout,
     updatedAt:Date.now()
   };
@@ -2025,7 +2097,11 @@ function build(){
       else if(academic && /^\s*\[?DIAGRAM\]?\s*$/iu.test(tt)){ addDiagramSpace(block,q.diagramSpace==='none'?'medium':q.diagramSpace); return; }
       else if(academic){
         d.classList.add('body-line'); if(/^\s*(?:\(?[a-zivx]+\)|[a-zivx]+[.)])\s+/iu.test(tt)) d.classList.add('sub-line');
-        const bm=splitAcademicMarks(tt); d.innerHTML=`<span class="body-text">${esc(bm.text)}</span>${bm.marks?`<span class="body-marks">${esc(bm.marks)}</span>`:''}`;
+        const bm=splitAcademicMarks(tt);
+        if(/^\s*(?:passage|source|case study)\s*:/iu.test(bm.text)){d.classList.add('passage-box');d.innerHTML=`<span class="body-text">${esc(bm.text)}</span>`;}
+        else if(/^\s*assertion\s*(?:\(a\))?\s*:/iu.test(bm.text)){d.classList.add('assertion-line');d.innerHTML=`<span class="body-text">${esc(bm.text.replace(/^\s*assertion\s*(?:\(a\))?\s*:\s*/iu,''))}</span>${bm.marks?`<span class="body-marks">${esc(bm.marks)}</span>`:''}`;}
+        else if(/^\s*reason\s*(?:\(r\))?\s*:/iu.test(bm.text)){d.classList.add('reason-line');d.innerHTML=`<span class="body-text">${esc(bm.text.replace(/^\s*reason\s*(?:\(r\))?\s*:\s*/iu,''))}</span>${bm.marks?`<span class="body-marks">${esc(bm.marks)}</span>`:''}`;}
+        else d.innerHTML=`<span class="body-text">${esc(bm.text)}</span>${bm.marks?`<span class="body-marks">${esc(bm.marks)}</span>`:''}`;
       }else d.textContent=tt;
       block.appendChild(d); stemNodes.push(d);
     });
@@ -2151,24 +2227,27 @@ function setAcademicWizardStep(step,scroll=false){
 function updateQuestionTypeControls(){
   const type=($('questionType')?.value||'General Questions').trim();
   const show=(id,on=true)=>{const el=$(id); if(el) el.style.display=on?'':'none';};
-  const choiceTypes=new Set(['General Questions','Short Answer','Long Answer / Essay','Numericals / Problems']);
-  const spaceTypes=new Set(['General Questions','Fill in the Blanks','Very Short Answer','Short Answer','Long Answer / Essay','Numericals / Problems','Passage / Comprehension']);
+  const choiceTypes=new Set(['General Questions','Short Answer','Long Answer / Essay','Numericals / Problems','Passage / Comprehension','Case Study / Source Based','Assertion / Reason']);
+  const spaceTypes=new Set(['General Questions','Fill in the Blanks','Very Short Answer','Short Answer','Long Answer / Essay','Numericals / Problems','Passage / Comprehension','Case Study / Source Based','Definitions / One Word']);
   show('sectionInstructionField',true);
   show('marksPatternField',true);
   show('internalChoiceField',choiceTypes.has(type));
   show('sectionAnswerLinesField',spaceTypes.has(type));
-  show('sectionDiagramSpaceField',new Set(['General Questions','Long Answer / Essay','Numericals / Problems']).has(type));
+  show('sectionDiagramSpaceField',new Set(['General Questions','Long Answer / Essay','Numericals / Problems','Case Study / Source Based']).has(type));
   show('academicNumberingField',true);
   const hints={
     'General Questions':'General Questions: marks, internal choice, writing space and numbering are available.',
     'Fill in the Blanks':'Fill in the Blanks: keep marks and numbering simple; add answer space only if students write on the paper.',
     'True / False':'True / False: marks and numbering are enough; unnecessary answer-space controls are hidden.',
-    'Match the Following':'Match the Following: use marks and numbering. A dedicated Column A / Column B layout will be added in the next academic layout phase.',
+    'Match the Following':'Match the Following: use A. item | 1. match rows for an automatic two-column table.',
     'Very Short Answer':'Very Short Answer: marks, numbering and a small writing space can be set.',
     'Short Answer':'Short Answer: marks, OR/internal choice, numbering and writing space can be set.',
     'Long Answer / Essay':'Long Answer / Essay: marks, OR/internal choice and larger writing space can be set.',
     'Numericals / Problems':'Numericals / Problems: marks, choice and working-space lines can be set.',
-    'Passage / Comprehension':'Passage / Comprehension: marks, numbering and answer space can be set.'
+    'Passage / Comprehension':'Passage / Comprehension: paste Passage: text followed by sub-questions.',
+    'Case Study / Source Based':'Case Study / Source Based: paste Source: or Case Study: text and then sub-questions.',
+    'Assertion / Reason':'Assertion / Reason: use Assertion: and Reason: lines; the PDF styles both automatically.',
+    'Definitions / One Word':'Definitions / One Word: compact school-style one-mark questions.'
   };
   if($('questionTypeHint')) $('questionTypeHint').textContent=hints[type]||hints['General Questions'];
   updateSectionPreview();
@@ -2241,7 +2320,12 @@ $('wizNext').onclick=()=>{ if(academicWizardStep<4) setAcademicWizardStep(academ
 $('questionType').addEventListener('change',updateQuestionTypeControls);
 $('insertSection').onclick=()=>{insertAtQuestionEnd(sectionBuilderText());setAcademicWizardStep(3,true)};
 $('insertOR').onclick=()=>{insertAtQuestionEnd('OR');setAcademicWizardStep(3,true)};
-$('insertSub').onclick=()=>{insertAtQuestionEnd('(a) Sub-question\n(b) Sub-question');setAcademicWizardStep(3,true)};
+$('insertSub').onclick=()=>{insertAtQuestionEnd('(a) Sub-question [2 Marks]\n(b) Sub-question [3 Marks]');setAcademicWizardStep(3,true)};
+$('insertPassage').onclick=()=>{insertAtQuestionEnd('Passage: Paste the passage / source text here.\n(a) First sub-question [2 Marks]\n(b) Second sub-question [2 Marks]');setAcademicWizardStep(3,true)};
+$('insertAssertionReason').onclick=()=>{insertAtQuestionEnd('Assertion: Enter the assertion statement.\nReason: Enter the reason statement.');setAcademicWizardStep(3,true)};
+$('insertMatchRows').onclick=()=>{insertAtQuestionEnd('A. Item one | 1. Match one\nB. Item two | 2. Match two\nC. Item three | 3. Match three');setAcademicWizardStep(3,true)};
+$('insertDiagramHint').onclick=()=>{insertAtQuestionEnd('[DIAGRAM]');setAcademicWizardStep(3,true)};
+$('applyAcademicPreset').onclick=applyAcademicFormatPreset;
 
 let instituteNav={level:'institutes',name:'',profileId:''};
 function modeLabel(mode='mcq'){
@@ -2296,13 +2380,17 @@ function renderInstituteDetails(id){
   const ps=p.paperSetup||{}, mode=ps.paperMode||'mcq';
   const rows=[];
   const add=(label,value,full=false)=>{if(String(value||'').trim())rows.push(`<div class="detail-item${full?' full':''}"><b>${esc(label)}</b><span>${esc(value)}</span></div>`)};
-  add('Institute',p.name,true); add('Paper Type',modeLabel(mode)); add('Template',ps.setupName);
+  add('Institute',p.name,true); add('Paper Type',modeLabel(mode)); add('Template',ps.setupName); if(ps.academicBlueprint) add('Section Structure','Saved — ready for new questions');
   if(mode==='school'){add('Class / Grade',ps.className);add('Subject',ps.subjectName)}
   if(mode==='college'){add('Course / Programme',ps.courseName);add('Year / Semester',ps.semester);add('Subject',ps.subjectName);add('Subject Code',ps.subjectCode)}
   add('Duration',ps.duration); add('Max Marks',ps.marksTotal); add('Address',p.address,true); add('Phone',p.phone,true);
   $('instituteCards').innerHTML=`<div class="institute-detail"><h3>${esc(p.name||'Unnamed Institute')}</h3><div class="detail-mode">${esc(ps.setupName||modeLabel(mode))}</div><div class="detail-grid">${rows.join('')||'<div class="detail-item full"><span>Saved paper setup is ready.</span></div>'}</div><div class="institute-detail-actions"><button type="button" class="new-paper-btn" id="detailNewPaper">New Question Paper</button><button type="button" class="edit-inst-btn" id="detailEditSetup">Edit Setup</button><button type="button" class="delete-inst-btn" id="detailDeleteSetup">Delete Setup</button></div></div>`;
   $('detailNewPaper').onclick=()=>{
-    applyProfile(p); $('profileSelect').value=p.id; $('exam').value=''; $('date').value=''; $('raw').value=''; invalidateParsedMaster(); invalidateAcademicMaster(); build(); showPaperWorkspace(true);
+    applyProfile(p); $('profileSelect').value=p.id; $('exam').value=''; $('date').value='';
+    const blueprint=String(p.paperSetup?.academicBlueprint||'').trim();
+    $('raw').value=(p.paperSetup?.paperMode&&p.paperSetup.paperMode!=='mcq'&&blueprint)?blueprint+'\n\n1. ':'';
+    invalidateParsedMaster(); invalidateAcademicMaster(); build(); showPaperWorkspace(true);
+    if(blueprint){setAcademicWizardStep(3,false);const bs=$('blueprintStatus');if(bs)bs.textContent='Saved section structure loaded. Add only the new questions; old question text was not reused.';}
   };
   $('detailEditSetup').onclick=()=>{applyProfile(p);$('profileSelect').value=p.id;showPaperWorkspace(true)};
   $('detailDeleteSetup').onclick=()=>{if(confirm('Delete this saved '+modeLabel(mode)+' setup for '+(p.name||'this institute')+'?')){putProfiles(getProfiles().filter(x=>x.id!==p.id));renderProfileSelect();renderInstitutePaperTypes(p.name||'')}};
@@ -2443,4 +2531,4 @@ showHome();
 </script>
 </body>
 </html>
-<!-- KSR DTP v5.2.1: Phase 1 Pagination Lock; MCQ Parser Locked -->
+<!-- KSR DTP v5.3.0: Phase 2 Complete Academic DTP; MCQ Parser Locked -->
