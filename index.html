@@ -317,6 +317,24 @@ body.mode-school.wiz-step-4 #rawFieldWrap,body.mode-college.wiz-step-4 #rawField
   
 }
 
+/* v5.0 — consolidated Academic Production Engine stability */
+@media print{
+  /* Critical blank-page fix: the screen preview keeps a 250mm visual floor.
+     In print that floor plus the first-page header can create a phantom page. */
+  .paper.academic-paper .columns{min-height:0!important;height:auto!important}
+  .paper{width:100%!important;height:auto!important;min-height:0!important;box-sizing:border-box!important;overflow:visible!important}
+  .paper-shell{overflow:visible!important}
+  .paper.academic-paper .section-head{break-after:avoid-page!important;page-break-after:avoid!important}
+  .paper.academic-paper .section-instruction,.paper.academic-paper .section-type-note{break-after:avoid-page!important;page-break-after:avoid!important}
+  .paper.academic-paper .qblock.section-first{break-before:avoid-page!important;page-break-before:avoid!important}
+  .paper.academic-paper .or-with-next,.paper.academic-paper .or-alternative{break-inside:avoid-page!important}
+}
+.paper.academic-paper .qblock.section-first{break-before:avoid-page;page-break-before:avoid}
+.academic-readiness{display:none;margin-top:8px;padding:10px 11px;border-radius:10px;border:1px solid #cfe3df;background:#f5fbfa;color:#315e60;font-size:11px;line-height:1.5;font-weight:700}
+body.mode-school .academic-readiness,body.mode-college .academic-readiness{display:block}
+.academic-readiness.ready{border-color:#b8dfcf;background:#f0fbf7;color:#17604c}
+.academic-readiness.review{border-color:#e5c46a;background:#fff9e8;color:#76540a}
+
 /* v4.3 clean home + paper-mode chooser + institute hierarchy */
 .home-screen,.paper-mode-screen{max-width:760px;margin:0 auto;padding:28px 16px 42px}
 .home-actions{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:0}
@@ -607,6 +625,7 @@ body.mode-school.wiz-step-4 #saveSetupCard,body.mode-college.wiz-step-4 #saveSet
     <span class="chip academic-only" id="marksStat">Marks: —</span>
   </div>
   <div id="marksWarn" class="marks-warn"></div>
+<div id="academicReadiness" class="academic-readiness"></div>
   <div id="warn" class="warn"></div>
   <div id="safetyPanel" class="warn" style="display:none;background:#eef7ff;border-color:#bdd9f7;color:#123c72"></div>
 
@@ -912,6 +931,19 @@ function updateAcademicMarksValidation(qs){
   }else{
     box.className='marks-warn ok';
     box.textContent=`Marks Check: Section total ${calc.total}${declared?' matches Max Marks':''}.`;
+  }
+  const ready=$('academicReadiness');
+  if(ready){
+    const missing=[];
+    if(!String($('institute')?.value||'').trim()) missing.push('Institute');
+    if(!String($('subjectName')?.value||'').trim()) missing.push('Subject');
+    if(!String($('exam')?.value||'').trim()) missing.push('Exam');
+    if(!qs.length) missing.push('Questions');
+    const marksMismatch=declared && calc.found && Math.abs(calc.total-declared)>0.001;
+    ready.className='academic-readiness '+(!missing.length&&!marksMismatch?'ready':'review');
+    ready.textContent=!missing.length&&!marksMismatch
+      ? `Ready to Print • ${qs.length} questions • ${calc.sections} section${calc.sections===1?'':'s'}${calc.found?' • '+calc.total+' marks':''}`
+      : `Review before PDF${missing.length?' • Missing: '+missing.join(', '):''}${marksMismatch?' • Marks mismatch: '+calc.total+' / '+declared:''}`;
   }
 }
 function getActiveQuestions(){ return isAcademicMode()?getAcademicQuestions():getParsedQuestions(); }
@@ -1741,6 +1773,7 @@ function build(){
     const block=document.createElement('div');
     block.className='qblock '+(q.body&&q.body.length?'has-body':'no-body')+(!academic&&canCompactOptions(q,fit)?' compact-options':'');
     if(academic){
+      if(q.section && (idx===0 || qs[idx-1].section!==q.section)) block.classList.add('section-first');
       const hasOr=(q.body||[]).some(t=>/^\s*(?:OR|లేదా)\s*$/iu.test(String(t||'')));
       const prevHasOr=idx>0 && (qs[idx-1].body||[]).some(t=>/^\s*(?:OR|లేదా)\s*$/iu.test(String(t||'')));
       if(hasOr && idx<qs.length-1 && qs[idx+1].section===q.section) block.classList.add('or-with-next');
