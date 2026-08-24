@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0b3b7a" />
 <link rel="manifest" href="manifest.webmanifest" />
 <title></title>
-<!-- KSR DTP v5.6.0 Smart Global Reflow — MCQ Parser Locked -->
+<!-- KSR DTP v5.7.0 Adaptive Answer Space Engine — MCQ Parser Locked -->
 <style>
 :root{
   --blue:#087f78;--blue2:#0b9b8d;--ink:#12302d;--muted:#687b78;
@@ -380,6 +380,20 @@ body.mode-school .pagination-note,body.mode-college .pagination-note{display:blo
 
 
 
+
+/* v5.7 — Adaptive Answer Space Engine: reclaim AUTO writing space before creating an orphan page */
+.paper.academic-paper.adaptive-space-1 .answer-line{height:4.85mm!important}
+.paper.academic-paper.adaptive-space-1.qbox-on .qblock{padding-top:1.2mm!important;padding-bottom:1.15mm!important}
+.paper.academic-paper.adaptive-space-1 .section-head{margin-top:1.9mm!important}
+.paper.academic-paper.adaptive-space-1 .section-instruction{margin-bottom:.7mm!important}
+.paper.academic-paper.adaptive-space-2 .answer-line{height:4.3mm!important}
+.paper.academic-paper.adaptive-space-2.qbox-on .qblock{padding-top:.95mm!important;padding-bottom:.9mm!important}
+.paper.academic-paper.adaptive-space-2 .section-head{margin-top:1.55mm!important;padding-top:.7mm!important;padding-bottom:.7mm!important}
+.paper.academic-paper.adaptive-space-2 .section-instruction{margin-bottom:.45mm!important;line-height:1.2!important}
+.paper.academic-paper.adaptive-space-2 .section-type-note{margin-bottom:.45mm!important}
+.paper.academic-paper.adaptive-space-2 .or-line{margin-top:.5mm!important;margin-bottom:.5mm!important}
+.paper.academic-paper.adaptive-space-2 .match-table th,.paper.academic-paper.adaptive-space-2 .match-table td{padding:.85mm 1.25mm!important}
+.pagination-note.adaptive{border-color:#78c7ad;background:#eefaf6;color:#0d5a46}
 /* v5.6 — Smart Global Reflow + 2-page optimization */
 .paper.academic-paper.global-reflow .answer-line{height:5.0mm}
 .paper.academic-paper.global-reflow .section-head{margin-top:1.45mm!important;margin-bottom:.45mm!important;padding:.58mm 1.1mm!important}
@@ -803,7 +817,7 @@ body.mode-school .validation-detail,body.mode-college .validation-detail{display
 </main>
 
 <script>
-// KSR DTP v5.6.0 — Smart Global Reflow + 2-Page Optimization; MCQ parser locked and unchanged
+// KSR DTP v5.7.0 — Adaptive Answer Space Engine + Orphan Page Elimination; MCQ parser locked and unchanged
 const $=id=>document.getElementById(id);
 const ANSWER_MARK=/[●•⬤∙·▪✓✔★*🔴🔵🟢🟡🟠⚫⚪✅]+/gu;
 const LEADING_ANSWER_MARK=/^\s*[●•⬤∙·▪✓✔★*🔴🔵🟢🟡🟠⚫⚪✅]+\s*/u;
@@ -1269,10 +1283,10 @@ function setAcademicPaginationStatus(hdr,cols,changed=false){
   if(stat) stat.textContent=`Pagination: ${sim.pages} page${sim.pages===1?'':'s'} • Last ${Math.round(sim.lastFill*100)}%`;
   if(note){
     const sparse=sim.pages>1&&sim.lastFill<.34;
-    note.className='pagination-note '+(sparse?'warn':'good')+(cols.dataset.globalReflow==='1'?' reflow':'');
+    note.className='pagination-note '+(sparse?'warn':'good')+(cols.dataset.globalReflow==='1'?' adaptive':'');
     note.textContent=sparse
-      ? `Smart Global Reflow: ${sim.pages} pages remain; final page is ${Math.round(sim.lastFill*100)}% used. Manual answer-space settings, OR alternatives and Match tables are protected.`
-      : `Smart Global Reflow: ${sim.pages} page${sim.pages===1?'':'s'} balanced${changed?' after whole-paper optimization':''}. Auto answer space was adjusted only where safe; manual writing space stays untouched.`;
+      ? `Adaptive Answer Space: ${sim.pages} pages remain; final page is ${Math.round(sim.lastFill*100)}% used. Only AUTO writing space may shrink; manual answer-space, OR alternatives and Match tables are protected.`
+      : `Adaptive Answer Space: ${sim.pages} page${sim.pages===1?'':'s'} balanced${changed?' after whole-paper optimization':''}. ${cols.dataset.adaptiveLinesRemoved||0} auto line(s) reclaimed; manual writing space stays untouched.`;
   }
 }
 function adaptiveAcademicAnswerSpace(hdr,cols){
@@ -1349,16 +1363,8 @@ function globalAcademicReflow(hdr,cols){
   const baseLine=parseFloat(cols.style.lineHeight)||parseFloat($('lineHeight').value||1.38);
   const gaps=[...cols.querySelectorAll('.qgap')];
   const baseGap=gaps.length?(parseFloat(gaps[0].style.height)||parseFloat($('qGap').value||1.2)):1.2;
-  const pageTarget=Math.max(1,originalSim.pages-1); // try to remove one sparse/orphan page first
-  const score=s=>{
-    const mean=s.fills.reduce((a,b)=>a+b,0)/Math.max(1,s.fills.length);
-    const variance=s.fills.reduce((a,b)=>a+(b-mean)*(b-mean),0)/Math.max(1,s.fills.length);
-    const orphan=(s.pages>1 && s.lastFill<.33)?40:0;
-    const pagesPenalty=s.pages*120;
-    const targetBonus=s.pages<=pageTarget?-45:0;
-    return pagesPenalty+orphan+variance*38+Math.abs(.78-s.lastFill)*9+targetBonus;
-  };
-  let best={sim:originalSim,score:score(originalSim),counts:new Map(snapshots),font:baseFont,line:baseLine,gap:baseGap,reflow:false};
+  const sparseLast=originalSim.pages>1 && originalSim.lastFill<.40;
+  const pageTarget=Math.max(1, originalSim.pages-(sparseLast||pref==='compact'?1:0));
 
   const restoreCounts=(counts)=>{
     for(const [b,count] of counts){
@@ -1368,52 +1374,72 @@ function globalAcademicReflow(hdr,cols){
     }
   };
   const captureCounts=()=>new Map(autoBlocks.map(b=>[b,b.querySelectorAll('.answer-line').length]));
-  const consider=(font,line,gap,reflow)=>{
+  const totalAutoLines=counts=>[...counts.values()].reduce((a,b)=>a+b,0);
+  const score=s=>{
+    const mean=s.fills.reduce((a,b)=>a+b,0)/Math.max(1,s.fills.length);
+    const variance=s.fills.reduce((a,b)=>a+(b-mean)*(b-mean),0)/Math.max(1,s.fills.length);
+    const orphan=(s.pages>1&&s.lastFill<.36)?70:0;
+    const pagePenalty=s.pages*180;
+    const targetBonus=s.pages<=pageTarget?-100:0;
+    return pagePenalty+orphan+variance*42+Math.abs(.72-s.lastFill)*10+targetBonus;
+  };
+  let best={sim:originalSim,score:score(originalSim),counts:new Map(snapshots),font:baseFont,line:baseLine,gap:baseGap,level:0};
+  const consider=(level,font,line,gap)=>{
+    paper?.classList.toggle('adaptive-space-1',level===1);
+    paper?.classList.toggle('adaptive-space-2',level===2);
     setFitTypography(cols,font,line,gap,NaN,NaN); void cols.offsetHeight;
     const sim=simulatedAcademicPagination(hdr,cols), sc=score(sim);
-    if(sc<best.score-.05){best={sim,score:sc,counts:captureCounts(),font,line,gap,reflow};}
+    if(sc<best.score-.05){best={sim,score:sc,counts:captureCounts(),font,line,gap,level};}
     return sim;
   };
 
-  // Phase A: global spacing presets — no font shrink.
-  const presets=[
-    {line:Math.max(1.25,baseLine-.045),gap:Math.max(.52,baseGap*.55),reflow:true},
-    {line:Math.max(1.22,baseLine-.075),gap:Math.max(.42,baseGap*.42),reflow:true}
-  ];
-  for(const p of presets){paper?.classList.add('global-reflow');const sim=consider(baseFont,p.line,p.gap,true);if(sim.pages<=pageTarget&&sim.lastFill>.28)break;}
+  // Stage 1 — keep all answer lines, only tighten decorative spacing/line height slightly.
+  consider(1,baseFont,Math.max(1.24,baseLine-.045),Math.max(.48,baseGap*.5));
 
-  // Phase B: remove only AUTO writing lines, from later and larger blocks first.
-  for(let step=0;step<160;step++){
-    const candidates=autoBlocks.filter(b=>b.querySelectorAll('.answer-line').length>minFor(b));
-    if(!candidates.length) break;
-    candidates.sort((a,b)=>{
-      const ea=a.querySelectorAll('.answer-line').length-minFor(a), eb=b.querySelectorAll('.answer-line').length-minFor(b);
-      if(eb!==ea) return eb-ea;
+  // Stage 2 — proportional AUTO-space recovery. One line is removed from each eligible
+  // question per round so the paper stays visually fair instead of crushing a single answer.
+  for(let round=0;round<8;round++){
+    let removedThisRound=0;
+    const ordered=[...autoBlocks].sort((a,b)=>{
+      const ae=a.querySelectorAll('.answer-line').length-minFor(a), be=b.querySelectorAll('.answer-line').length-minFor(b);
+      if(be!==ae) return be-ae;
       return autoBlocks.indexOf(b)-autoBlocks.indexOf(a);
     });
-    const b=candidates[0], ls=b.querySelectorAll('.answer-line'); ls[ls.length-1].remove();
-    const sim=consider(baseFont,Math.max(1.22,baseLine-.075),Math.max(.42,baseGap*.42),true);
-    if(sim.pages<=pageTarget && sim.lastFill>=.30) break;
+    for(const b of ordered){
+      const ls=b.querySelectorAll('.answer-line');
+      if(ls.length>minFor(b)){ls[ls.length-1].remove();removedThisRound++;}
+    }
+    if(!removedThisRound) break;
+    const sim=consider(round<2?1:2,baseFont,Math.max(1.22,baseLine-.07),Math.max(.40,baseGap*.38));
+    if(sim.pages<=pageTarget && sim.lastFill>=.22) break;
   }
 
-  // Phase C: tiny typography adjustment only when it can eliminate an orphan page.
-  if(best.sim.pages>pageTarget && originalSim.lastFill<.45){
-    for(let i=1;i<=12;i++){
-      const t=i/12, f=baseFont+(Math.max(10.9,baseFont*.95)-baseFont)*t;
-      const l=baseLine+(Math.max(1.20,baseLine-.09)-baseLine)*t;
-      const g=baseGap+(Math.max(.38,baseGap*.36)-baseGap)*t;
-      const sim=consider(f,l,g,true); if(sim.pages<=pageTarget&&sim.lastFill>=.28) break;
+  // Stage 3 — only if an orphan page still exists, use a very small typography reduction.
+  if(best.sim.pages>pageTarget && sparseLast){
+    for(let i=1;i<=8;i++){
+      const t=i/8;
+      const f=baseFont+(Math.max(11.0,baseFont*.965)-baseFont)*t;
+      const l=baseLine+(Math.max(1.20,baseLine-.10)-baseLine)*t;
+      const g=baseGap+(Math.max(.36,baseGap*.32)-baseGap)*t;
+      const sim=consider(2,f,l,g);
+      if(sim.pages<=pageTarget&&sim.lastFill>=.20) break;
     }
   }
 
-  const improved=best.sim.pages<originalSim.pages || (best.sim.pages===originalSim.pages && (best.sim.lastFill>originalSim.lastFill+.14 || best.score<score(originalSim)-8));
+  const improved=best.sim.pages<originalSim.pages ||
+    (best.sim.pages===originalSim.pages && (best.sim.lastFill>originalSim.lastFill+.12 || best.score<score(originalSim)-12));
   if(!improved){
-    restoreCounts(snapshots); setFitTypography(cols,baseFont,baseLine,baseGap,NaN,NaN); paper?.classList.remove('global-reflow'); void cols.offsetHeight;
+    restoreCounts(snapshots); setFitTypography(cols,baseFont,baseLine,baseGap,NaN,NaN);
+    paper?.classList.remove('adaptive-space-1','adaptive-space-2','global-reflow');
+    delete cols.dataset.globalReflow; delete cols.dataset.adaptiveLinesRemoved; void cols.offsetHeight;
     return {changed:false,sim:originalSim};
   }
   restoreCounts(best.counts); setFitTypography(cols,best.font,best.line,best.gap,NaN,NaN);
-  paper?.classList.toggle('global-reflow',!!best.reflow); paper?.classList.add('a4-pack-active');
-  cols.dataset.globalReflow='1'; void cols.offsetHeight;
+  paper?.classList.toggle('adaptive-space-1',best.level===1);
+  paper?.classList.toggle('adaptive-space-2',best.level===2);
+  paper?.classList.add('a4-pack-active','global-reflow');
+  const removed=Math.max(0,totalAutoLines(snapshots)-totalAutoLines(best.counts));
+  cols.dataset.globalReflow='1'; cols.dataset.adaptiveLinesRemoved=String(removed); void cols.offsetHeight;
   return {changed:true,sim:simulatedAcademicPagination(hdr,cols)};
 }
 
@@ -1422,7 +1448,7 @@ function smartAcademicPagination(hdr,cols){
   const pref=$('academicPagination')?.value||'smart';
   groupAcademicChoicePairs(cols);
   const paper=cols.closest('.paper');
-  paper?.classList.remove('pagination-compact','pagination-relaxed','pagination-tight','answer-space-adapted','a4-pack-active','a4-pack-dense','global-reflow');
+  paper?.classList.remove('pagination-compact','pagination-relaxed','pagination-tight','answer-space-adapted','a4-pack-active','a4-pack-dense','global-reflow','adaptive-space-1','adaptive-space-2');
   delete cols.dataset.globalReflow;
   if(pref==='preserve'){setAcademicPaginationStatus(hdr,cols,false);return;}
 
@@ -2321,7 +2347,7 @@ function build(){
       if(ownAuto&&globalAuto){
         block.dataset.autoSpace='1';
         const type=String(q?.sectionType||'').toLowerCase();
-        block.dataset.answerMin=String(/long answer|essay/.test(type)?3:/short answer|numerical|problem/.test(type)?2:/very short|passage|comprehension|case study|source based/.test(type)?1:0);
+        block.dataset.answerMin=String(/long answer|essay/.test(type)?2:/short answer|numerical|problem/.test(type)?1:/very short|passage|comprehension|case study|source based/.test(type)?0:0);
       }
       if(lines){
         const aw=document.createElement('div'); aw.className='answer-space';
@@ -2741,4 +2767,4 @@ showHome();
 </script>
 </body>
 </html>
-<!-- KSR DTP v5.6.0: Smart Global Reflow + 2-Page Optimization; MCQ Parser Locked -->
+<!-- KSR DTP v5.7.0: Adaptive Answer Space Engine + Orphan Page Elimination; MCQ Parser Locked -->
