@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0b3b7a" />
 <link rel="manifest" href="manifest.webmanifest" />
 <title></title>
-<!-- KSR DTP v5.3.1 Phase 2 Final Academic Engine — MCQ Parser Locked -->
+<!-- KSR DTP v5.4.0 Smart Pagination & Marks Engine — MCQ Parser Locked -->
 <style>
 :root{
   --blue:#087f78;--blue2:#0b9b8d;--ink:#12302d;--muted:#687b78;
@@ -371,6 +371,12 @@ body.mode-school .pagination-note,body.mode-college .pagination-note{display:blo
  .paper.academic-paper.pagination-tight .first-header{margin-bottom:4mm!important}
  .paper.academic-paper.pagination-tight .qblock.match-question{break-inside:avoid-page!important;page-break-inside:avoid!important}
 }
+
+/* v5.4 — Smart Pagination & Marks Engine */
+.paper.academic-paper.answer-space-adapted .answer-space{opacity:.99}
+.paper.academic-paper.answer-space-adapted .answer-line{min-height:4.8mm}
+.pagination-note.adapted{border-color:#a8d6c4;background:#f1fbf6;color:#135944}
+.marks-warn.detail{white-space:normal}
 
 /* v5.0 — consolidated Academic Production Engine stability */
 @media print{
@@ -1015,6 +1021,31 @@ function academicQuestionMarkConsistency(qs){
   }
   return issues;
 }
+function academicSectionCountConsistency(qs){
+  const issues=[]; const seen=new Set();
+  for(const q of qs){
+    const sec=q.section||'__default__';
+    if(seen.has(sec)) continue; seen.add(sec);
+    const group=qs.filter(x=>(x.section||'__default__')===sec);
+    const ins=String(q.sectionInstruction||'');
+    const pattern=ins.match(/(\d+)\s*[x×*]\s*(\d+(?:\.\d+)?)\s*=\s*(\d+(?:\.\d+)?)/iu);
+    if(!pattern) continue;
+    const expected=Number(pattern[1]);
+    // Only enforce the count when the instruction says all questions are compulsory.
+    // “Answer any N” legitimately allows more printed alternatives than N.
+    const allRequired=/\banswer\s+all\b|all\s+questions|అన్నింటికీ|అన్ని\s*ప్రశ్న/iu.test(ins);
+    if(!allRequired) continue;
+    // An OR alternative belongs to the same choice slot as the question before it.
+    let slots=0;
+    for(let i=0;i<group.length;i++){
+      const prev=i>0?group[i-1]:null;
+      const prevHasOr=prev&&(prev.body||[]).some(t=>/^\s*(?:OR|లేదా)\s*$/iu.test(String(t||'')));
+      if(!prevHasOr) slots++;
+    }
+    if(expected && slots!==expected) issues.push(`${sec}: pattern expects ${expected} compulsory question${expected===1?'':'s'}, but ${slots} detected`);
+  }
+  return issues;
+}
 
 function academicSectionTotals(qs){
   const seen=new Set(); let total=0, found=0;
@@ -1050,7 +1081,7 @@ function updateAcademicMarksValidation(qs){
     if(!String($('exam')?.value||'').trim()) missing.push('Exam');
     if(!qs.length) missing.push('Questions');
     const marksMismatch=declared && calc.found && Math.abs(calc.total-declared)>0.001;
-    const formatIssues=academicValidationIssues(qs).concat(academicQuestionMarkConsistency(qs));
+    const formatIssues=academicValidationIssues(qs).concat(academicQuestionMarkConsistency(qs),academicSectionCountConsistency(qs));
     ready.className='academic-readiness '+(!missing.length&&!marksMismatch&&!formatIssues.length?'ready':'review');
     ready.textContent=!missing.length&&!marksMismatch&&!formatIssues.length
       ? `Ready to Print • ${qs.length} questions • ${calc.sections} section${calc.sections===1?'':'s'}${calc.found?' • '+calc.total+' marks':''}`
@@ -1195,15 +1226,63 @@ function setAcademicPaginationStatus(hdr,cols,changed=false){
     note.className='pagination-note '+(sparse?'warn':'good');
     note.textContent=sparse
       ? `Smart Pagination: last page is only ${Math.round(sim.lastFill*100)}% used. The engine protected sections/choices; try “Prefer Fewer Pages” or Target Pages if you want tighter packing.`
-      : `Smart Pagination: ${sim.pages} page${sim.pages===1?'':'s'} balanced${changed?' after spacing-first packing':''}. Readability is protected before font reduction; OR choices and Match tables stay together.`;
+      : `Smart Pagination: ${sim.pages} page${sim.pages===1?'':'s'} balanced${changed?' after spacing/auto-answer-space packing':''}. Readability is protected before font reduction; explicit writing-space choices stay untouched; OR choices and Match tables stay together.`;
   }
 }
+function adaptiveAcademicAnswerSpace(hdr,cols){
+  if(!isAcademicMode()) return false;
+  const pref=$('academicPagination')?.value||'smart';
+  if(pref==='preserve') return false;
+  const original=simulatedAcademicPagination(hdr,cols);
+  if(!(original.pages>1 && original.lastFill<.48)) return false;
+
+  // Only auto-generated writing space may be reduced. Explicit user line counts stay untouched.
+  const blocks=[...cols.querySelectorAll('.qblock[data-auto-space="1"]')];
+  if(!blocks.length) return false;
+  const snapshots=new Map(blocks.map(b=>[b,b.querySelectorAll('.answer-line').length]));
+  const candidates=()=>blocks.filter(b=>{
+    const now=b.querySelectorAll('.answer-line').length;
+    const min=Math.max(0,parseInt(b.dataset.answerMin||'0',10)||0);
+    return now>min;
+  }).sort((a,b)=>{
+    const ap=a.closest('.choice-pair')?1:0, bp=b.closest('.choice-pair')?1:0;
+    if(ap!==bp) return bp-ap; // fix OR-pair overflow before unrelated spaces
+    return 0; // preserve document order
+  });
+
+  let current=original, removed=0;
+  for(let step=0;step<80;step++){
+    const list=candidates(); if(!list.length) break;
+    const b=list[step%list.length]||list[0];
+    const lines=b.querySelectorAll('.answer-line');
+    if(!lines.length) continue;
+    lines[lines.length-1].remove(); removed++; void cols.offsetHeight;
+    const sim=simulatedAcademicPagination(hdr,cols);
+    current=sim;
+    if(sim.pages<original.pages){
+      cols.closest('.paper')?.classList.add('answer-space-adapted');
+      cols.dataset.answerSpaceAdapted=String(removed);
+      return true; // one-page reduction per render keeps writing space conservative
+    }
+  }
+  // No page-count benefit: restore exactly what the user/auto rules originally produced.
+  for(const [b,count] of snapshots){
+    const aw=b.querySelector('.answer-space'); if(!aw) continue;
+    while(aw.querySelectorAll('.answer-line').length<count){
+      const al=document.createElement('div'); al.className='answer-line'; aw.appendChild(al);
+    }
+  }
+  void cols.offsetHeight;
+  return false;
+}
+
 function smartAcademicPagination(hdr,cols){
   if(!isAcademicMode()) return;
   const pref=$('academicPagination')?.value||'smart';
   groupAcademicChoicePairs(cols);
   const paper=cols.closest('.paper');
-  paper?.classList.remove('pagination-compact','pagination-relaxed','pagination-tight');
+  paper?.classList.remove('pagination-compact','pagination-relaxed','pagination-tight','answer-space-adapted');
+  const answerSpaceChanged=adaptiveAcademicAnswerSpace(hdr,cols);
   if(pref==='preserve'){setAcademicPaginationStatus(hdr,cols,false);return;}
 
   // Phase 1 rule: reclaim decorative spacing before reducing readable text.
@@ -1229,7 +1308,7 @@ function smartAcademicPagination(hdr,cols){
     best={font:startFont,line:Math.max(1.27,startLine-.055),gap:Math.max(.55,startGap*.55)};bestSim=spacingSim;changed=true;
   }
   if(spacingSim.pages<base.pages){
-    setAcademicPaginationStatus(hdr,cols,true);return;
+    setAcademicPaginationStatus(hdr,cols,true||answerSpaceChanged);return;
   }
 
   // Pass B: only if still sparse, allow a small readable typography reduction.
@@ -1249,7 +1328,7 @@ function smartAcademicPagination(hdr,cols){
     paper?.classList.remove('pagination-compact','pagination-tight','pagination-relaxed');
     setFitTypography(cols,original.font,original.line,original.gap,NaN,NaN);
   }
-  setAcademicPaginationStatus(hdr,cols,changed);
+  setAcademicPaginationStatus(hdr,cols,changed||answerSpaceChanged);
 }
 
 function getActiveQuestions(){ return isAcademicMode()?getAcademicQuestions():getParsedQuestions(); }
@@ -2137,6 +2216,13 @@ function build(){
 
     if(academic){
       const lines=resolveAcademicAnswerLines(q);
+      const ownAuto=(q?.answerLines===undefined||q?.answerLines===null||String(q.answerLines)===''||String(q.answerLines)==='auto');
+      const globalAuto=String($('academicAnswerLines')?.value||'auto')==='auto';
+      if(ownAuto&&globalAuto){
+        block.dataset.autoSpace='1';
+        const type=String(q?.sectionType||'').toLowerCase();
+        block.dataset.answerMin=String(/long answer|essay/.test(type)?4:/short answer|numerical|problem/.test(type)?2:/very short|passage|comprehension|case study|source based/.test(type)?1:0);
+      }
       if(lines){
         const aw=document.createElement('div'); aw.className='answer-space';
         for(let ai=0;ai<lines;ai++){const al=document.createElement('div');al.className='answer-line';aw.appendChild(al);}
@@ -2552,4 +2638,4 @@ showHome();
 </script>
 </body>
 </html>
-<!-- KSR DTP v5.3.1: Phase 2 Final Academic Engine; MCQ Parser Locked -->
+<!-- KSR DTP v5.4.0: Smart Pagination & Marks Engine; MCQ Parser Locked -->
