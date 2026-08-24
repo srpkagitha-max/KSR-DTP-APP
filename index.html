@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0b3b7a" />
 <link rel="manifest" href="manifest.webmanifest" />
 <title></title>
-<!-- KSR DTP v5.8.0 Continuous Question Flow — MCQ Parser Locked -->
+<!-- KSR DTP v5.9.0 Continuous Flow Hardening + Print Validation — MCQ Parser Locked -->
 <style>
 :root{
   --blue:#087f78;--blue2:#0b9b8d;--ink:#12302d;--muted:#687b78;
@@ -552,6 +552,22 @@ body.mode-school .validation-detail,body.mode-college .validation-detail{display
   break-inside:avoid!important;
   page-break-inside:avoid!important;
 }
+/* v5.9 — Section-intro orphan protection without forcing the first question onto one page.
+   The intro stays with the START of the first question; the question itself may continue naturally. */
+.paper.academic-paper .section-intro{
+  break-after:avoid-page!important;
+  page-break-after:avoid!important;
+}
+.paper.academic-paper .section-intro .section-head,
+.paper.academic-paper .section-intro .section-instruction,
+.paper.academic-paper .section-intro .section-type-note{
+  break-inside:avoid!important;
+  page-break-inside:avoid!important;
+}
+/* Keep a question number/stem start and each sub-line intact, but permit the remaining body/answer lines to flow. */
+.paper.academic-paper .qstart{break-after:avoid-page!important;page-break-after:avoid!important}
+.paper.academic-paper .body-line.sub-line{break-inside:avoid!important;page-break-inside:avoid!important}
+
 /* Diagram/working boxes remain atomic because splitting a drawing box is not useful. */
 .paper.academic-paper .diagram-space{break-inside:avoid!important;page-break-inside:avoid!important}
 @media print{
@@ -1352,7 +1368,7 @@ function setAcademicPaginationStatus(hdr,cols,changed=false){
     note.className='pagination-note '+(sparse?'warn':'good')+(cols.dataset.globalReflow==='1'?' adaptive':'');
     note.textContent=sparse
       ? `Adaptive Answer Space: ${sim.pages} pages remain; final page is ${Math.round(sim.lastFill*100)}% used. Only AUTO writing space may shrink; manual answer-space, OR alternatives and Match tables are protected.`
-      : `Adaptive Answer Space: ${sim.pages} page${sim.pages===1?'':'s'} balanced${changed?' after whole-paper optimization':''}. ${cols.dataset.adaptiveLinesRemoved||0} auto line(s) reclaimed; manual writing space stays untouched.`;
+      : `Continuous Flow: ${sim.pages} page${sim.pages===1?'':'s'} balanced${changed?' after whole-paper optimization':''}. Questions may continue onto the next page; OR labels, table rows and diagram boxes stay protected. ${cols.dataset.adaptiveLinesRemoved||0} auto line(s) reclaimed.`;
   }
 }
 function adaptiveAcademicAnswerSpace(hdr,cols){
@@ -2337,17 +2353,20 @@ function build(){
   let lastSection='';
   qs.forEach((q,idx)=>{
     if((academic || $('sectionMode').value==='1') && q.section && q.section!==lastSection){
+      const intro=document.createElement('div');
+      intro.className='section-intro';
       const sh=document.createElement('div');
       sh.className='section-head';
       sh.textContent=q.section;
-      cols.appendChild(sh);
+      intro.appendChild(sh);
       if(academic && q.sectionInstruction){
         const ins=document.createElement('div');
-        ins.className='section-instruction'; ins.textContent=q.sectionInstruction; cols.appendChild(ins);
+        ins.className='section-instruction'; ins.textContent=q.sectionInstruction; intro.appendChild(ins);
       }
       if(academic && q.sectionType){
-        const tn=document.createElement('div'); tn.className='section-type-note'; tn.textContent=q.sectionType; cols.appendChild(tn);
+        const tn=document.createElement('div'); tn.className='section-type-note'; tn.textContent=q.sectionType; intro.appendChild(tn);
       }
+      cols.appendChild(intro);
       lastSection=q.section;
     }
 
@@ -2493,7 +2512,15 @@ function printPaper(){
     const qs=getAcademicQuestions();
     const declared=Number($('marksTotal')?.value||0)||0;
     const calc=academicSectionTotals(qs);
-    if(declared && calc.found && Math.abs(calc.total-declared)>0.001){
+    const formatIssues=academicValidationIssues(qs)
+      .concat(academicQuestionMarkConsistency(qs),academicSectionCountConsistency(qs));
+    const marksMismatch=declared && calc.found && Math.abs(calc.total-declared)>0.001;
+    const serious=formatIssues.filter(x=>/pattern expects|OR|Match|passage|Assertion|Reason|duplicate/i.test(String(x)));
+    if(serious.length){
+      const ok=confirm(`Academic QA Warning\n\n${serious.slice(0,5).join('\n')}\n\nThe paper may contain a structural/marks error. Continue to Print / PDF anyway?`);
+      if(!ok) return;
+    }
+    if(marksMismatch){
       const ok=confirm(`Marks Check Warning\n\nSection patterns total: ${calc.total}\nMax Marks: ${declared}\n\nContinue to Print / PDF anyway?`);
       if(!ok) return;
     }
