@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0b3b7a" />
 <link rel="manifest" href="manifest.webmanifest" />
 <title></title>
-<!-- KSR DTP v5.4.0 Smart Pagination & Marks Engine — MCQ Parser Locked -->
+<!-- KSR DTP v5.5.0 A4 Page Packing Engine — MCQ Parser Locked -->
 <style>
 :root{
   --blue:#087f78;--blue2:#0b9b8d;--ink:#12302d;--muted:#687b78;
@@ -378,6 +378,32 @@ body.mode-school .pagination-note,body.mode-college .pagination-note{display:blo
 .pagination-note.adapted{border-color:#a8d6c4;background:#f1fbf6;color:#135944}
 .marks-warn.detail{white-space:normal}
 
+
+/* v5.5 — A4 Page Packing Engine
+   Choice packing is now tail-based: the first alternative may use remaining page space,
+   while the OR label stays with the next alternative. This prevents large blank areas. */
+.paper.academic-paper .choice-pair{display:block!important;break-inside:auto!important;page-break-inside:auto!important}
+.paper.academic-paper .choice-tail{break-inside:avoid-page;page-break-inside:avoid;margin:0;padding:0}
+.paper.academic-paper .choice-tail>.or-line{break-after:avoid-page;page-break-after:avoid!important}
+.paper.academic-paper .choice-tail>.qblock{break-before:avoid-page;page-break-before:avoid!important}
+.paper.academic-paper .qblock.or-with-next{break-after:auto!important;page-break-after:auto!important}
+.paper.academic-paper .qblock.or-alternative{break-before:auto!important;page-break-before:auto!important}
+.paper.academic-paper.a4-pack-active .answer-line{height:5.55mm}
+.paper.academic-paper.a4-pack-dense .answer-line{height:5.05mm}
+.paper.academic-paper.a4-pack-dense .section-head{margin-top:1.8mm!important;margin-bottom:.65mm!important;padding:.75mm 1.3mm!important}
+.paper.academic-paper.a4-pack-dense .section-instruction{margin-bottom:.65mm!important;line-height:1.22!important}
+.paper.academic-paper.a4-pack-dense .section-type-note{margin-bottom:.65mm!important}
+.paper.academic-paper.a4-pack-dense.qbox-on .qblock{padding:.9mm 1.2mm!important;margin-bottom:.65mm!important}
+.paper.academic-paper.a4-pack-dense .qstart,.paper.academic-paper.a4-pack-dense .stem{margin-bottom:.25mm!important}
+.paper.academic-paper.a4-pack-dense .match-table th,.paper.academic-paper.a4-pack-dense .match-table td{padding:.9mm 1.35mm!important}
+.paper.academic-paper.a4-pack-dense .or-line{margin-top:.55mm!important;margin-bottom:.55mm!important}
+.pagination-note.pack{border-color:#9fd6c4;background:#effbf6;color:#125a48}
+@media print{
+ .paper.academic-paper .choice-tail{break-inside:avoid-page!important;page-break-inside:avoid!important}
+ .paper.academic-paper .qblock.or-with-next{break-after:auto!important;page-break-after:auto!important}
+ .paper.academic-paper .qblock.or-alternative{break-before:auto!important;page-break-before:auto!important}
+}
+
 /* v5.0 — consolidated Academic Production Engine stability */
 @media print{
   /* Critical blank-page fix: the screen preview keeps a 250mm visual floor.
@@ -631,8 +657,8 @@ body.mode-school .validation-detail,body.mode-college .validation-detail{display
       <div class="field academic-only"><label>Default Answer Space</label>
         <select id="academicAnswerLines"><option value="auto">Auto by Question Type</option><option value="0">None</option><option value="2">2 Lines</option><option value="4">4 Lines</option><option value="6">6 Lines</option><option value="10">10 Lines</option></select>
       </div>
-      <div class="field academic-only"><label>Academic Pagination</label>
-        <select id="academicPagination"><option value="smart">Smart Balance</option><option value="preserve">Preserve Spacious Layout</option><option value="compact">Prefer Fewer Pages</option></select>
+      <div class="field academic-only"><label>A4 Page Packing</label>
+        <select id="academicPagination"><option value="smart">Smart A4 Packing</option><option value="preserve">Preserve Spacious Layout</option><option value="compact">Prefer Fewer Pages</option></select>
       </div>
     </div>
     <div class="template-note">All question-paper appearance and page-fit controls are together here. Use <b>Save Setup to Institutes</b> when the paper is ready to remember this complete style.</div>
@@ -678,7 +704,7 @@ body.mode-school .validation-detail,body.mode-college .validation-detail{display
 <div class="field" style="grid-column:span 2"><label>Smart Fit Range</label>
       <div id="pageRange" class="chip" style="border-radius:10px;min-height:38px;display:flex;align-items:center">Paste questions to calculate minimum / maximum pages</div>
     </div>
-<div class="hint target-pages-note">Minimum uses safe compact option rows where they fit. Maximum keeps options one below another with relaxed spacing. Target Pages automatically balances font size, spacing, option layout and the final quote box together inside the selected page count. Academic Auto Answer Space reduces unnecessary blank areas by question type. Smart Pagination 2.0 also balances sparse last pages while protecting OR choices and Match tables.</div>
+<div class="hint target-pages-note">Minimum uses safe compact option rows where they fit. Maximum keeps options one below another with relaxed spacing. Target Pages automatically balances font size, spacing, option layout and the final quote box together inside the selected page count. Academic Auto Answer Space reduces unnecessary blank areas by question type. A4 Page Packing keeps OR with the alternative question, preserves Match tables, and reduces only auto-generated answer space when a sparse last page can be avoided.</div>
 </div>
 
   
@@ -761,7 +787,7 @@ body.mode-school .validation-detail,body.mode-college .validation-detail{display
 </main>
 
 <script>
-// KSR DTP v5.2.0 — Smart Pagination 2.0; MCQ parser locked and unchanged
+// KSR DTP v5.5.0 — A4 Page Packing Engine; MCQ parser locked and unchanged
 const $=id=>document.getElementById(id);
 const ANSWER_MARK=/[●•⬤∙·▪✓✔★*🔴🔵🟢🟡🟠⚫⚪✅]+/gu;
 const LEADING_ANSWER_MARK=/^\s*[●•⬤∙·▪✓✔★*🔴🔵🟢🟡🟠⚫⚪✅]+\s*/u;
@@ -1179,15 +1205,19 @@ function elementOuterHeight(el){
 }
 function groupAcademicChoicePairs(cols){
   if(!cols) return;
-  [...cols.querySelectorAll('.choice-pair')].forEach(w=>{while(w.firstChild)w.parentNode.insertBefore(w.firstChild,w);w.remove();});
-  const blocks=[...cols.children];
-  for(let i=0;i<blocks.length-1;i++){
-    const a=blocks[i], b=blocks[i+1];
+  // unwrap previous versions first
+  [...cols.querySelectorAll('.choice-pair,.choice-tail')].forEach(w=>{while(w.firstChild)w.parentNode.insertBefore(w.firstChild,w);w.remove();});
+  const nodes=[...cols.children];
+  for(let i=0;i<nodes.length-2;i++){
+    const a=nodes[i], orNode=nodes[i+1], b=nodes[i+2];
     if(!(a.classList?.contains('qblock')&&a.classList.contains('or-with-next'))) continue;
+    if(!(orNode.classList?.contains('or-line')&&orNode.dataset.choice==='1')) continue;
     if(!(b.classList?.contains('qblock')&&b.classList.contains('or-alternative'))) continue;
-    const wrap=document.createElement('div'); wrap.className='choice-pair';
-    cols.insertBefore(wrap,a); wrap.appendChild(a); wrap.appendChild(b);
-    i++;
+    // Keep OR + next alternative together, but allow the first alternative to occupy
+    // the previous page. This is the key packing rule for school/college papers.
+    const tail=document.createElement('div'); tail.className='choice-tail';
+    cols.insertBefore(tail,orNode); tail.appendChild(orNode); tail.appendChild(b);
+    i+=2;
   }
 }
 function simulatedAcademicPagination(hdr,cols){
@@ -1195,14 +1225,14 @@ function simulatedAcademicPagination(hdr,cols){
   const hs=getComputedStyle(hdr), headerH=hdr.offsetHeight+(parseFloat(hs.marginBottom||0)||0);
   let page=1, used=Math.min(pagePx,headerH), fills=[];
   const nodes=[...cols.children];
-  const isAtomic=el=>el.classList?.contains('choice-pair')||el.classList?.contains('match-question')||el.classList?.contains('section-head')||el.classList?.contains('section-instruction')||el.classList?.contains('section-type-note');
+  const isAtomic=el=>el.classList?.contains('choice-tail')||el.classList?.contains('match-question')||el.classList?.contains('section-head')||el.classList?.contains('section-instruction')||el.classList?.contains('section-type-note');
   for(let i=0;i<nodes.length;i++){
     const el=nodes[i]; let h=elementOuterHeight(el);
     if(el.classList?.contains('section-head')){
       for(let j=i+1;j<nodes.length && j<=i+3;j++){
         const n=nodes[j];
-        if(n.classList?.contains('section-instruction')||n.classList?.contains('section-type-note')||n.classList?.contains('qblock')||n.classList?.contains('choice-pair')) h+=elementOuterHeight(n);
-        if(n.classList?.contains('qblock')||n.classList?.contains('choice-pair')) break;
+        if(n.classList?.contains('section-instruction')||n.classList?.contains('section-type-note')||n.classList?.contains('qblock')||n.classList?.contains('choice-tail')) h+=elementOuterHeight(n);
+        if(n.classList?.contains('qblock')||n.classList?.contains('choice-tail')) break;
       }
     }
     const remaining=pagePx-used;
@@ -1225,8 +1255,8 @@ function setAcademicPaginationStatus(hdr,cols,changed=false){
     const sparse=sim.pages>1&&sim.lastFill<.34;
     note.className='pagination-note '+(sparse?'warn':'good');
     note.textContent=sparse
-      ? `Smart Pagination: last page is only ${Math.round(sim.lastFill*100)}% used. The engine protected sections/choices; try “Prefer Fewer Pages” or Target Pages if you want tighter packing.`
-      : `Smart Pagination: ${sim.pages} page${sim.pages===1?'':'s'} balanced${changed?' after spacing/auto-answer-space packing':''}. Readability is protected before font reduction; explicit writing-space choices stay untouched; OR choices and Match tables stay together.`;
+      ? `A4 Page Packing: last page is only ${Math.round(sim.lastFill*100)}% used. Auto writing space and choice-tail packing were applied where safe; manual writing space remains unchanged.`
+      : `A4 Page Packing: ${sim.pages} page${sim.pages===1?'':'s'} balanced${changed?' after A4 packing':''}. OR stays with the alternative question, Match tables stay intact, and manual writing-space choices remain untouched.`;
   }
 }
 function adaptiveAcademicAnswerSpace(hdr,cols){
@@ -1234,46 +1264,57 @@ function adaptiveAcademicAnswerSpace(hdr,cols){
   const pref=$('academicPagination')?.value||'smart';
   if(pref==='preserve') return false;
   const original=simulatedAcademicPagination(hdr,cols);
-  if(!(original.pages>1 && original.lastFill<.48)) return false;
+  if(original.pages<2) return false;
+  const orphan=original.lastFill<.42;
+  if(!orphan && pref!=='compact') return false;
 
-  // Only auto-generated writing space may be reduced. Explicit user line counts stay untouched.
+  // Only auto-generated writing space may be reduced. Manual 2/4/6/10-line choices are sacred.
   const blocks=[...cols.querySelectorAll('.qblock[data-auto-space="1"]')];
   if(!blocks.length) return false;
   const snapshots=new Map(blocks.map(b=>[b,b.querySelectorAll('.answer-line').length]));
-  const candidates=()=>blocks.filter(b=>{
-    const now=b.querySelectorAll('.answer-line').length;
-    const min=Math.max(0,parseInt(b.dataset.answerMin||'0',10)||0);
-    return now>min;
-  }).sort((a,b)=>{
-    const ap=a.closest('.choice-pair')?1:0, bp=b.closest('.choice-pair')?1:0;
-    if(ap!==bp) return bp-ap; // fix OR-pair overflow before unrelated spaces
-    return 0; // preserve document order
-  });
+  const minFor=b=>Math.max(0,parseInt(b.dataset.answerMin||'0',10)||0);
+  const score=s=> (s.pages*100) + (s.pages>1 && s.lastFill<.38 ? 30 : 0) + Math.abs(.72-s.lastFill)*10;
+  let bestSim=original, bestScore=score(original), bestCounts=new Map(snapshots), removed=0;
 
-  let current=original, removed=0;
-  for(let step=0;step<80;step++){
-    const list=candidates(); if(!list.length) break;
-    const b=list[step%list.length]||list[0];
-    const lines=b.querySelectorAll('.answer-line');
-    if(!lines.length) continue;
+  // Reduce later-page / larger writing spaces first. This tends to pull an orphan final section
+  // back onto page 2 without making early questions cramped.
+  for(let step=0;step<120;step++){
+    const candidates=blocks.filter(b=>b.querySelectorAll('.answer-line').length>minFor(b));
+    if(!candidates.length) break;
+    candidates.sort((a,b)=>{
+      const al=a.querySelectorAll('.answer-line').length-minFor(a);
+      const bl=b.querySelectorAll('.answer-line').length-minFor(b);
+      if(bl!==al) return bl-al;
+      return blocks.indexOf(b)-blocks.indexOf(a); // later blocks first
+    });
+    const b=candidates[0], lines=b.querySelectorAll('.answer-line');
     lines[lines.length-1].remove(); removed++; void cols.offsetHeight;
-    const sim=simulatedAcademicPagination(hdr,cols);
-    current=sim;
-    if(sim.pages<original.pages){
-      cols.closest('.paper')?.classList.add('answer-space-adapted');
-      cols.dataset.answerSpaceAdapted=String(removed);
-      return true; // one-page reduction per render keeps writing space conservative
+    const sim=simulatedAcademicPagination(hdr,cols), sc=score(sim);
+    if(sc<bestScore-.05){
+      bestScore=sc; bestSim=sim;
+      bestCounts=new Map(blocks.map(x=>[x,x.querySelectorAll('.answer-line').length]));
     }
+    if(sim.pages<original.pages && sim.lastFill>=.30) break;
   }
-  // No page-count benefit: restore exactly what the user/auto rules originally produced.
-  for(const [b,count] of snapshots){
+
+  const materiallyBetter=bestSim.pages<original.pages || (bestSim.pages===original.pages && original.lastFill<.42 && bestSim.lastFill>=original.lastFill+.16);
+  if(!materiallyBetter){
+    for(const [b,count] of snapshots){
+      const aw=b.querySelector('.answer-space'); if(!aw) continue;
+      while(aw.querySelectorAll('.answer-line').length<count){const al=document.createElement('div');al.className='answer-line';aw.appendChild(al);}
+      while(aw.querySelectorAll('.answer-line').length>count) aw.lastElementChild?.remove();
+    }
+    void cols.offsetHeight; return false;
+  }
+  // Restore to the best measured state, not necessarily the most aggressive state.
+  for(const [b,count] of bestCounts){
     const aw=b.querySelector('.answer-space'); if(!aw) continue;
-    while(aw.querySelectorAll('.answer-line').length<count){
-      const al=document.createElement('div'); al.className='answer-line'; aw.appendChild(al);
-    }
+    while(aw.querySelectorAll('.answer-line').length<count){const al=document.createElement('div');al.className='answer-line';aw.appendChild(al);}
+    while(aw.querySelectorAll('.answer-line').length>count) aw.lastElementChild?.remove();
   }
-  void cols.offsetHeight;
-  return false;
+  cols.closest('.paper')?.classList.add('answer-space-adapted','a4-pack-active');
+  cols.dataset.answerSpaceAdapted=String([...snapshots].reduce((n,[b,c])=>n+Math.max(0,c-(bestCounts.get(b)??c)),0));
+  void cols.offsetHeight; return true;
 }
 
 function smartAcademicPagination(hdr,cols){
@@ -1281,7 +1322,7 @@ function smartAcademicPagination(hdr,cols){
   const pref=$('academicPagination')?.value||'smart';
   groupAcademicChoicePairs(cols);
   const paper=cols.closest('.paper');
-  paper?.classList.remove('pagination-compact','pagination-relaxed','pagination-tight','answer-space-adapted');
+  paper?.classList.remove('pagination-compact','pagination-relaxed','pagination-tight','answer-space-adapted','a4-pack-active','a4-pack-dense');
   const answerSpaceChanged=adaptiveAcademicAnswerSpace(hdr,cols);
   if(pref==='preserve'){setAcademicPaginationStatus(hdr,cols,false);return;}
 
@@ -1291,7 +1332,17 @@ function smartAcademicPagination(hdr,cols){
   let base=simulatedAcademicPagination(hdr,cols);
   const sparse=base.pages>1&&base.lastFill<.46;
   const wantCompact=pref==='compact'||(pref==='smart'&&sparse);
-  if(!wantCompact){setAcademicPaginationStatus(hdr,cols,false);return;}
+  if(!wantCompact){setAcademicPaginationStatus(hdr,cols,answerSpaceChanged);return;}
+
+  // A4 packing pass: recover vertical space without touching font size.
+  // It is deliberately stronger only when the final page is an orphan.
+  if(sparse){
+    paper?.classList.add('a4-pack-active','a4-pack-dense','pagination-relaxed');
+    const packed=simulatedAcademicPagination(hdr,cols);
+    if(packed.pages<base.pages){
+      setAcademicPaginationStatus(hdr,cols,true); return;
+    }
+  }
 
   const startFont=parseFloat(cols.style.fontSize)||parseFloat($('fontSize').value||12);
   const startLine=parseFloat(cols.style.lineHeight)||parseFloat($('lineHeight').value||1.38);
@@ -2221,7 +2272,7 @@ function build(){
       if(ownAuto&&globalAuto){
         block.dataset.autoSpace='1';
         const type=String(q?.sectionType||'').toLowerCase();
-        block.dataset.answerMin=String(/long answer|essay/.test(type)?4:/short answer|numerical|problem/.test(type)?2:/very short|passage|comprehension|case study|source based/.test(type)?1:0);
+        block.dataset.answerMin=String(/long answer|essay/.test(type)?3:/short answer|numerical|problem/.test(type)?2:/very short|passage|comprehension|case study|source based/.test(type)?1:0);
       }
       if(lines){
         const aw=document.createElement('div'); aw.className='answer-space';
@@ -2229,15 +2280,18 @@ function build(){
         block.appendChild(aw);
       }
       if(q.diagramSpace && q.diagramSpace!=='none' && !(q.body||[]).some(t=>/^\s*\[?DIAGRAM\]?\s*$/iu.test(String(t||'')))) addDiagramSpace(block,q.diagramSpace);
-      if(block.dataset.choiceAfter==='1'){
-        const od=document.createElement('div'); od.className='or-line'; od.dataset.choice='1'; od.innerHTML='<span class="or-label">OR</span>'; block.appendChild(od);
-      }
     }
 
     const sp=document.createElement('div');
     sp.className='qgap';
-    sp.style.height=(fit.mode==='auto'?$('qGap').value:fit.gap)+'mm';
+    sp.style.height=(block.dataset.choiceAfter==='1'?'0':(fit.mode==='auto'?$('qGap').value:fit.gap))+'mm';
     block.appendChild(sp);
+
+    // v5.5: OR is a sibling, not part of the first alternative.
+    // This allows the first alternative to use the remaining page while OR + next question stay together.
+    if(academic && block.dataset.choiceAfter==='1'){
+      const od=document.createElement('div'); od.className='or-line'; od.dataset.choice='1'; od.innerHTML='<span class="or-label">OR</span>'; cols.appendChild(od);
+    }
   });
 
   // Include the quote in the physical page-fit calculation.
@@ -2638,4 +2692,4 @@ showHome();
 </script>
 </body>
 </html>
-<!-- KSR DTP v5.4.0: Smart Pagination & Marks Engine; MCQ Parser Locked -->
+<!-- KSR DTP v5.5.0: A4 Page Packing Engine; MCQ Parser Locked -->
