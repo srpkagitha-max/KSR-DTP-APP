@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0b3b7a" />
 <link rel="manifest" href="manifest.webmanifest" />
 <title></title>
-<!-- KSR DTP v5.5.0 A4 Page Packing Engine — MCQ Parser Locked -->
+<!-- KSR DTP v5.6.0 Smart Global Reflow — MCQ Parser Locked -->
 <style>
 :root{
   --blue:#087f78;--blue2:#0b9b8d;--ink:#12302d;--muted:#687b78;
@@ -379,6 +379,22 @@ body.mode-school .pagination-note,body.mode-college .pagination-note{display:blo
 .marks-warn.detail{white-space:normal}
 
 
+
+/* v5.6 — Smart Global Reflow + 2-page optimization */
+.paper.academic-paper.global-reflow .answer-line{height:5.0mm}
+.paper.academic-paper.global-reflow .section-head{margin-top:1.45mm!important;margin-bottom:.45mm!important;padding:.58mm 1.1mm!important}
+.paper.academic-paper.global-reflow .section-instruction{margin-bottom:.45mm!important;line-height:1.18!important}
+.paper.academic-paper.global-reflow .section-type-note{margin-bottom:.45mm!important;line-height:1.16!important}
+.paper.academic-paper.global-reflow.qbox-on .qblock{padding:.72mm 1.05mm!important;margin-bottom:.48mm!important}
+.paper.academic-paper.global-reflow .qstart,.paper.academic-paper.global-reflow .stem{margin-bottom:.18mm!important}
+.paper.academic-paper.global-reflow .or-line{margin-top:.35mm!important;margin-bottom:.35mm!important}
+.paper.academic-paper.global-reflow .match-table th,.paper.academic-paper.global-reflow .match-table td{padding:.62mm 1.05mm!important}
+.pagination-note.reflow{border-color:#81c7b1;background:#edf9f5;color:#0f5a48}
+@media print{
+ .paper.academic-paper.global-reflow .choice-tail{break-inside:avoid-page!important;page-break-inside:avoid!important}
+ .paper.academic-paper.global-reflow .match-question{break-inside:avoid-page!important;page-break-inside:avoid!important}
+}
+
 /* v5.5 — A4 Page Packing Engine
    Choice packing is now tail-based: the first alternative may use remaining page space,
    while the OR label stays with the next alternative. This prevents large blank areas. */
@@ -657,8 +673,8 @@ body.mode-school .validation-detail,body.mode-college .validation-detail{display
       <div class="field academic-only"><label>Default Answer Space</label>
         <select id="academicAnswerLines"><option value="auto">Auto by Question Type</option><option value="0">None</option><option value="2">2 Lines</option><option value="4">4 Lines</option><option value="6">6 Lines</option><option value="10">10 Lines</option></select>
       </div>
-      <div class="field academic-only"><label>A4 Page Packing</label>
-        <select id="academicPagination"><option value="smart">Smart A4 Packing</option><option value="preserve">Preserve Spacious Layout</option><option value="compact">Prefer Fewer Pages</option></select>
+      <div class="field academic-only"><label>Smart Global Reflow</label>
+        <select id="academicPagination"><option value="smart">Smart Global Reflow</option><option value="preserve">Preserve Spacious Layout</option><option value="compact">Prefer Fewer Pages</option></select>
       </div>
     </div>
     <div class="template-note">All question-paper appearance and page-fit controls are together here. Use <b>Save Setup to Institutes</b> when the paper is ready to remember this complete style.</div>
@@ -704,7 +720,7 @@ body.mode-school .validation-detail,body.mode-college .validation-detail{display
 <div class="field" style="grid-column:span 2"><label>Smart Fit Range</label>
       <div id="pageRange" class="chip" style="border-radius:10px;min-height:38px;display:flex;align-items:center">Paste questions to calculate minimum / maximum pages</div>
     </div>
-<div class="hint target-pages-note">Minimum uses safe compact option rows where they fit. Maximum keeps options one below another with relaxed spacing. Target Pages automatically balances font size, spacing, option layout and the final quote box together inside the selected page count. Academic Auto Answer Space reduces unnecessary blank areas by question type. A4 Page Packing keeps OR with the alternative question, preserves Match tables, and reduces only auto-generated answer space when a sparse last page can be avoided.</div>
+<div class="hint target-pages-note">Minimum uses safe compact option rows where they fit. Maximum keeps options one below another with relaxed spacing. Target Pages automatically balances font size, spacing, option layout and the final quote box together inside the selected page count. Academic Auto Answer Space reduces unnecessary blank areas by question type. Smart Global Reflow evaluates the whole paper, protects OR alternatives and Match tables, and adjusts only auto-generated writing space when it can remove a sparse/orphan page.</div>
 </div>
 
   
@@ -787,7 +803,7 @@ body.mode-school .validation-detail,body.mode-college .validation-detail{display
 </main>
 
 <script>
-// KSR DTP v5.5.0 — A4 Page Packing Engine; MCQ parser locked and unchanged
+// KSR DTP v5.6.0 — Smart Global Reflow + 2-Page Optimization; MCQ parser locked and unchanged
 const $=id=>document.getElementById(id);
 const ANSWER_MARK=/[●•⬤∙·▪✓✔★*🔴🔵🟢🟡🟠⚫⚪✅]+/gu;
 const LEADING_ANSWER_MARK=/^\s*[●•⬤∙·▪✓✔★*🔴🔵🟢🟡🟠⚫⚪✅]+\s*/u;
@@ -1253,10 +1269,10 @@ function setAcademicPaginationStatus(hdr,cols,changed=false){
   if(stat) stat.textContent=`Pagination: ${sim.pages} page${sim.pages===1?'':'s'} • Last ${Math.round(sim.lastFill*100)}%`;
   if(note){
     const sparse=sim.pages>1&&sim.lastFill<.34;
-    note.className='pagination-note '+(sparse?'warn':'good');
+    note.className='pagination-note '+(sparse?'warn':'good')+(cols.dataset.globalReflow==='1'?' reflow':'');
     note.textContent=sparse
-      ? `A4 Page Packing: last page is only ${Math.round(sim.lastFill*100)}% used. Auto writing space and choice-tail packing were applied where safe; manual writing space remains unchanged.`
-      : `A4 Page Packing: ${sim.pages} page${sim.pages===1?'':'s'} balanced${changed?' after A4 packing':''}. OR stays with the alternative question, Match tables stay intact, and manual writing-space choices remain untouched.`;
+      ? `Smart Global Reflow: ${sim.pages} pages remain; final page is ${Math.round(sim.lastFill*100)}% used. Manual answer-space settings, OR alternatives and Match tables are protected.`
+      : `Smart Global Reflow: ${sim.pages} page${sim.pages===1?'':'s'} balanced${changed?' after whole-paper optimization':''}. Auto answer space was adjusted only where safe; manual writing space stays untouched.`;
   }
 }
 function adaptiveAcademicAnswerSpace(hdr,cols){
@@ -1317,69 +1333,102 @@ function adaptiveAcademicAnswerSpace(hdr,cols){
   void cols.offsetHeight; return true;
 }
 
+
+function globalAcademicReflow(hdr,cols){
+  if(!isAcademicMode()) return {changed:false,sim:simulatedAcademicPagination(hdr,cols)};
+  const pref=$('academicPagination')?.value||'smart';
+  if(pref==='preserve') return {changed:false,sim:simulatedAcademicPagination(hdr,cols)};
+  const paper=cols.closest('.paper');
+  const originalSim=simulatedAcademicPagination(hdr,cols);
+  if(originalSim.pages<2) return {changed:false,sim:originalSim};
+
+  const autoBlocks=[...cols.querySelectorAll('.qblock[data-auto-space="1"]')];
+  const snapshots=new Map(autoBlocks.map(b=>[b,b.querySelectorAll('.answer-line').length]));
+  const minFor=b=>Math.max(0,parseInt(b.dataset.answerMin||'0',10)||0);
+  const baseFont=parseFloat(cols.style.fontSize)||parseFloat($('fontSize').value||12);
+  const baseLine=parseFloat(cols.style.lineHeight)||parseFloat($('lineHeight').value||1.38);
+  const gaps=[...cols.querySelectorAll('.qgap')];
+  const baseGap=gaps.length?(parseFloat(gaps[0].style.height)||parseFloat($('qGap').value||1.2)):1.2;
+  const pageTarget=Math.max(1,originalSim.pages-1); // try to remove one sparse/orphan page first
+  const score=s=>{
+    const mean=s.fills.reduce((a,b)=>a+b,0)/Math.max(1,s.fills.length);
+    const variance=s.fills.reduce((a,b)=>a+(b-mean)*(b-mean),0)/Math.max(1,s.fills.length);
+    const orphan=(s.pages>1 && s.lastFill<.33)?40:0;
+    const pagesPenalty=s.pages*120;
+    const targetBonus=s.pages<=pageTarget?-45:0;
+    return pagesPenalty+orphan+variance*38+Math.abs(.78-s.lastFill)*9+targetBonus;
+  };
+  let best={sim:originalSim,score:score(originalSim),counts:new Map(snapshots),font:baseFont,line:baseLine,gap:baseGap,reflow:false};
+
+  const restoreCounts=(counts)=>{
+    for(const [b,count] of counts){
+      const aw=b.querySelector('.answer-space'); if(!aw) continue;
+      while(aw.querySelectorAll('.answer-line').length<count){const al=document.createElement('div');al.className='answer-line';aw.appendChild(al);}
+      while(aw.querySelectorAll('.answer-line').length>count) aw.lastElementChild?.remove();
+    }
+  };
+  const captureCounts=()=>new Map(autoBlocks.map(b=>[b,b.querySelectorAll('.answer-line').length]));
+  const consider=(font,line,gap,reflow)=>{
+    setFitTypography(cols,font,line,gap,NaN,NaN); void cols.offsetHeight;
+    const sim=simulatedAcademicPagination(hdr,cols), sc=score(sim);
+    if(sc<best.score-.05){best={sim,score:sc,counts:captureCounts(),font,line,gap,reflow};}
+    return sim;
+  };
+
+  // Phase A: global spacing presets — no font shrink.
+  const presets=[
+    {line:Math.max(1.25,baseLine-.045),gap:Math.max(.52,baseGap*.55),reflow:true},
+    {line:Math.max(1.22,baseLine-.075),gap:Math.max(.42,baseGap*.42),reflow:true}
+  ];
+  for(const p of presets){paper?.classList.add('global-reflow');const sim=consider(baseFont,p.line,p.gap,true);if(sim.pages<=pageTarget&&sim.lastFill>.28)break;}
+
+  // Phase B: remove only AUTO writing lines, from later and larger blocks first.
+  for(let step=0;step<160;step++){
+    const candidates=autoBlocks.filter(b=>b.querySelectorAll('.answer-line').length>minFor(b));
+    if(!candidates.length) break;
+    candidates.sort((a,b)=>{
+      const ea=a.querySelectorAll('.answer-line').length-minFor(a), eb=b.querySelectorAll('.answer-line').length-minFor(b);
+      if(eb!==ea) return eb-ea;
+      return autoBlocks.indexOf(b)-autoBlocks.indexOf(a);
+    });
+    const b=candidates[0], ls=b.querySelectorAll('.answer-line'); ls[ls.length-1].remove();
+    const sim=consider(baseFont,Math.max(1.22,baseLine-.075),Math.max(.42,baseGap*.42),true);
+    if(sim.pages<=pageTarget && sim.lastFill>=.30) break;
+  }
+
+  // Phase C: tiny typography adjustment only when it can eliminate an orphan page.
+  if(best.sim.pages>pageTarget && originalSim.lastFill<.45){
+    for(let i=1;i<=12;i++){
+      const t=i/12, f=baseFont+(Math.max(10.9,baseFont*.95)-baseFont)*t;
+      const l=baseLine+(Math.max(1.20,baseLine-.09)-baseLine)*t;
+      const g=baseGap+(Math.max(.38,baseGap*.36)-baseGap)*t;
+      const sim=consider(f,l,g,true); if(sim.pages<=pageTarget&&sim.lastFill>=.28) break;
+    }
+  }
+
+  const improved=best.sim.pages<originalSim.pages || (best.sim.pages===originalSim.pages && (best.sim.lastFill>originalSim.lastFill+.14 || best.score<score(originalSim)-8));
+  if(!improved){
+    restoreCounts(snapshots); setFitTypography(cols,baseFont,baseLine,baseGap,NaN,NaN); paper?.classList.remove('global-reflow'); void cols.offsetHeight;
+    return {changed:false,sim:originalSim};
+  }
+  restoreCounts(best.counts); setFitTypography(cols,best.font,best.line,best.gap,NaN,NaN);
+  paper?.classList.toggle('global-reflow',!!best.reflow); paper?.classList.add('a4-pack-active');
+  cols.dataset.globalReflow='1'; void cols.offsetHeight;
+  return {changed:true,sim:simulatedAcademicPagination(hdr,cols)};
+}
+
 function smartAcademicPagination(hdr,cols){
   if(!isAcademicMode()) return;
   const pref=$('academicPagination')?.value||'smart';
   groupAcademicChoicePairs(cols);
   const paper=cols.closest('.paper');
-  paper?.classList.remove('pagination-compact','pagination-relaxed','pagination-tight','answer-space-adapted','a4-pack-active','a4-pack-dense');
-  const answerSpaceChanged=adaptiveAcademicAnswerSpace(hdr,cols);
+  paper?.classList.remove('pagination-compact','pagination-relaxed','pagination-tight','answer-space-adapted','a4-pack-active','a4-pack-dense','global-reflow');
+  delete cols.dataset.globalReflow;
   if(pref==='preserve'){setAcademicPaginationStatus(hdr,cols,false);return;}
 
-  // Phase 1 rule: reclaim decorative spacing before reducing readable text.
-  // This specifically handles a small final section/table being pushed alone
-  // to the next A4 page by keep-together rules.
-  let base=simulatedAcademicPagination(hdr,cols);
-  const sparse=base.pages>1&&base.lastFill<.46;
-  const wantCompact=pref==='compact'||(pref==='smart'&&sparse);
-  if(!wantCompact){setAcademicPaginationStatus(hdr,cols,answerSpaceChanged);return;}
-
-  // A4 packing pass: recover vertical space without touching font size.
-  // It is deliberately stronger only when the final page is an orphan.
-  if(sparse){
-    paper?.classList.add('a4-pack-active','a4-pack-dense','pagination-relaxed');
-    const packed=simulatedAcademicPagination(hdr,cols);
-    if(packed.pages<base.pages){
-      setAcademicPaginationStatus(hdr,cols,true); return;
-    }
-  }
-
-  const startFont=parseFloat(cols.style.fontSize)||parseFloat($('fontSize').value||12);
-  const startLine=parseFloat(cols.style.lineHeight)||parseFloat($('lineHeight').value||1.38);
-  const gaps=[...cols.querySelectorAll('.qgap')];
-  const startGap=gaps.length?(parseFloat(gaps[0].style.height)||parseFloat($('qGap').value||1.2)):1.2;
-  const original={font:startFont,line:startLine,gap:startGap};
-  let best={...original}, bestSim=base, changed=false;
-
-  // Pass A: spacing/padding recovery only — no font shrink.
-  paper?.classList.add('pagination-compact','pagination-tight','pagination-relaxed');
-  setFitTypography(cols,startFont,Math.max(1.27,startLine-.055),Math.max(.55,startGap*.55),NaN,NaN);
-  let spacingSim=simulatedAcademicPagination(hdr,cols);
-  if(spacingSim.pages<bestSim.pages || (spacingSim.pages===bestSim.pages&&spacingSim.lastFill>bestSim.lastFill+.02)){
-    best={font:startFont,line:Math.max(1.27,startLine-.055),gap:Math.max(.55,startGap*.55)};bestSim=spacingSim;changed=true;
-  }
-  if(spacingSim.pages<base.pages){
-    setAcademicPaginationStatus(hdr,cols,true||answerSpaceChanged);return;
-  }
-
-  // Pass B: only if still sparse, allow a small readable typography reduction.
-  const minFont=Math.max(10.8,startFont*.93), minLine=Math.max(1.23,startLine-.10), minGap=Math.max(.42,startGap*.38);
-  for(let i=1;i<=24;i++){
-    const t=i/24;
-    const trial={font:startFont+(minFont-startFont)*t,line:startLine+(minLine-startLine)*t,gap:startGap+(minGap-startGap)*t};
-    setFitTypography(cols,trial.font,trial.line,trial.gap,NaN,NaN);
-    const sim=simulatedAcademicPagination(hdr,cols);
-    if(sim.pages<bestSim.pages || (sim.pages===bestSim.pages&&sim.lastFill>bestSim.lastFill+.02)){
-      best=trial;bestSim=sim;changed=true;
-    }
-    if(sim.pages<base.pages) break;
-  }
-  setFitTypography(cols,best.font,best.line,best.gap,NaN,NaN);
-  if(!changed && pref==='smart'){
-    paper?.classList.remove('pagination-compact','pagination-tight','pagination-relaxed');
-    setFitTypography(cols,original.font,original.line,original.gap,NaN,NaN);
-  }
-  setAcademicPaginationStatus(hdr,cols,changed||answerSpaceChanged);
+  // v5.6: optimize the entire paper, not just the final page.
+  const result=globalAcademicReflow(hdr,cols);
+  setAcademicPaginationStatus(hdr,cols,result.changed);
 }
 
 function getActiveQuestions(){ return isAcademicMode()?getAcademicQuestions():getParsedQuestions(); }
@@ -2692,4 +2741,4 @@ showHome();
 </script>
 </body>
 </html>
-<!-- KSR DTP v5.5.0: A4 Page Packing Engine; MCQ Parser Locked -->
+<!-- KSR DTP v5.6.0: Smart Global Reflow + 2-Page Optimization; MCQ Parser Locked -->
