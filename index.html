@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0b3b7a" />
 <link rel="manifest" href="manifest.webmanifest" />
 <title></title>
-<!-- KSR DTP v5.7.0 Adaptive Answer Space Engine — MCQ Parser Locked -->
+<!-- KSR DTP v5.8.0 Continuous Question Flow — MCQ Parser Locked -->
 <style>
 :root{
   --blue:#087f78;--blue2:#0b9b8d;--ink:#12302d;--muted:#687b78;
@@ -508,6 +508,72 @@ body.mode-school .blueprint-status,body.mode-college .blueprint-status{display:b
 body.mode-school .validation-detail,body.mode-college .validation-detail{display:block}
 @media(max-width:560px){.academic-presets .preset-row{grid-template-columns:1fr}.academic-presets .preset-row button{width:100%}}
 
+
+/* v5.8 — Continuous Academic Question Flow
+   Use every available A4 space. A descriptive question may start on one page and
+   continue naturally on the next page instead of being pushed as one large block. */
+.paper.academic-paper .qblock,
+.paper.academic-paper .qblock.section-first,
+.paper.academic-paper .qblock.or-with-next,
+.paper.academic-paper .qblock.or-alternative,
+.paper.academic-paper .qblock.match-question{
+  break-inside:auto!important;
+  page-break-inside:auto!important;
+  box-decoration-break:clone;
+  -webkit-box-decoration-break:clone;
+}
+.paper.academic-paper .answer-space{
+  break-inside:auto!important;
+  page-break-inside:auto!important;
+}
+.paper.academic-paper .answer-line,
+.paper.academic-paper .body-line,
+.paper.academic-paper .qstart{
+  break-inside:avoid!important;
+  page-break-inside:avoid!important;
+}
+/* OR must stay attached to the alternative that follows, but that alternative itself may continue. */
+.paper.academic-paper .choice-tail{
+  break-inside:auto!important;
+  page-break-inside:auto!important;
+}
+.paper.academic-paper .choice-tail>.or-line,
+.paper.academic-paper .or-line[data-choice="1"]{
+  break-after:avoid-page!important;
+  page-break-after:avoid!important;
+}
+/* Long Match-the-Following questions may use the remaining page; rows themselves stay intact. */
+.paper.academic-paper .match-table{
+  break-inside:auto!important;
+  page-break-inside:auto!important;
+}
+.paper.academic-paper .match-table thead{display:table-header-group}
+.paper.academic-paper .match-table tr{
+  break-inside:avoid!important;
+  page-break-inside:avoid!important;
+}
+/* Diagram/working boxes remain atomic because splitting a drawing box is not useful. */
+.paper.academic-paper .diagram-space{break-inside:avoid!important;page-break-inside:avoid!important}
+@media print{
+  .paper.academic-paper .qblock,
+  .paper.academic-paper .qblock.section-first,
+  .paper.academic-paper .qblock.or-with-next,
+  .paper.academic-paper .qblock.or-alternative,
+  .paper.academic-paper .qblock.match-question,
+  .paper.academic-paper .choice-tail,
+  .paper.academic-paper .answer-space,
+  .paper.academic-paper .match-table{
+    break-inside:auto!important;
+    page-break-inside:auto!important;
+  }
+  .paper.academic-paper .answer-line,
+  .paper.academic-paper .body-line,
+  .paper.academic-paper .qstart,
+  .paper.academic-paper .match-table tr{
+    break-inside:avoid!important;
+    page-break-inside:avoid!important;
+  }
+}
 </style>
 <style id="dynamicPrintStyle">
 @media print{
@@ -734,7 +800,7 @@ body.mode-school .validation-detail,body.mode-college .validation-detail{display
 <div class="field" style="grid-column:span 2"><label>Smart Fit Range</label>
       <div id="pageRange" class="chip" style="border-radius:10px;min-height:38px;display:flex;align-items:center">Paste questions to calculate minimum / maximum pages</div>
     </div>
-<div class="hint target-pages-note">Minimum uses safe compact option rows where they fit. Maximum keeps options one below another with relaxed spacing. Target Pages automatically balances font size, spacing, option layout and the final quote box together inside the selected page count. Academic Auto Answer Space reduces unnecessary blank areas by question type. Smart Global Reflow evaluates the whole paper, protects OR alternatives and Match tables, and adjusts only auto-generated writing space when it can remove a sparse/orphan page.</div>
+<div class="hint target-pages-note">Minimum uses safe compact option rows where they fit. Maximum keeps options one below another with relaxed spacing. Target Pages automatically balances font size, spacing, option layout and the final quote box together inside the selected page count. Academic Auto Answer Space reduces unnecessary blank areas by question type. Continuous Question Flow uses every available A4 space: a long descriptive question can begin in the remaining space and continue on the next page. OR labels stay with the following alternative, Match rows stay intact, and manual answer-space choices are preserved.</div>
 </div>
 
   
@@ -817,7 +883,7 @@ body.mode-school .validation-detail,body.mode-college .validation-detail{display
 </main>
 
 <script>
-// KSR DTP v5.7.0 — Adaptive Answer Space Engine + Orphan Page Elimination; MCQ parser locked and unchanged
+// KSR DTP v5.8.0 — Continuous Question Flow Across A4 Pages; MCQ parser locked and unchanged
 const $=id=>document.getElementById(id);
 const ANSWER_MARK=/[●•⬤∙·▪✓✔★*🔴🔵🟢🟡🟠⚫⚪✅]+/gu;
 const LEADING_ANSWER_MARK=/^\s*[●•⬤∙·▪✓✔★*🔴🔵🟢🟡🟠⚫⚪✅]+\s*/u;
@@ -2767,4 +2833,4 @@ showHome();
 </script>
 </body>
 </html>
-<!-- KSR DTP v5.7.0: Adaptive Answer Space Engine + Orphan Page Elimination; MCQ Parser Locked -->
+<!-- KSR DTP v5.8.0: Continuous Question Flow Across A4 Pages; MCQ Parser Locked -->
